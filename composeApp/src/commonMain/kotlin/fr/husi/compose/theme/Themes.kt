@@ -2,13 +2,37 @@ package fr.husi.compose.theme
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.husi.Key
 import fr.husi.database.DataStore
-import fr.husi.resources.*
+import fr.husi.resources.Res
+import fr.husi.resources.themes_amber
+import fr.husi.resources.themes_black
+import fr.husi.resources.themes_blue
+import fr.husi.resources.themes_blue_grey
+import fr.husi.resources.themes_brown
+import fr.husi.resources.themes_cyan
+import fr.husi.resources.themes_deep_orange
+import fr.husi.resources.themes_deep_purple
+import fr.husi.resources.themes_dynamic
+import fr.husi.resources.themes_green
+import fr.husi.resources.themes_grey
+import fr.husi.resources.themes_indigo
+import fr.husi.resources.themes_light_blue
+import fr.husi.resources.themes_light_green
+import fr.husi.resources.themes_lime
+import fr.husi.resources.themes_orange
+import fr.husi.resources.themes_pink
+import fr.husi.resources.themes_pink_ssr
+import fr.husi.resources.themes_purple
+import fr.husi.resources.themes_red
+import fr.husi.resources.themes_teal
+import fr.husi.resources.themes_yellow
 import org.jetbrains.compose.resources.StringResource
 
 const val RED = 1
@@ -33,6 +57,8 @@ const val GREY = 19
 const val BLUE_GREY = 20
 const val BLACK = 21
 const val DYNAMIC = 22
+
+val LocalAppDarkMode = compositionLocalOf { false }
 
 val themes = listOf(
     Color(0xFFF44336),
@@ -105,10 +131,12 @@ fun AppTheme(content: @Composable () -> Unit) {
         }
     }
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        content = content,
-    )
+    CompositionLocalProvider(LocalAppDarkMode provides isDarkMode) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            content = content,
+        )
+    }
 }
 
 fun themeString(theme: Int): StringResource = when (theme) {

@@ -1,6 +1,5 @@
 package fr.husi.compose
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
@@ -12,6 +11,7 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import fr.husi.compose.theme.LogColors
+import fr.husi.compose.theme.LocalAppDarkMode
 
 private val ansiRegex = Regex("\u001B\\[[;\\d]*m")
 
@@ -160,6 +160,7 @@ private fun Color.dim(factor: Float): Color {
 
 @Composable
 fun colorForUrlTestDelay(urlTestDelay: Number): Color {
+    val isDarkMode = LocalAppDarkMode.current
     val base = when (urlTestDelay) {
         in Short.MIN_VALUE..0 -> Color.Gray
         in 1..800 -> Color.Green
@@ -167,7 +168,7 @@ fun colorForUrlTestDelay(urlTestDelay: Number): Color {
         else -> Color.Red
     }
 
-    return if (isSystemInDarkTheme()) {
+    return if (isDarkMode) {
         base.dim(0.7f)
     } else {
         base

@@ -29,11 +29,11 @@ class MainActivity : ComposeActivity() {
         }
 
         setContent {
-            AppTheme {
-                val permissionPlatform = rememberAndroidPermissionPlatform()
-                CompositionLocalProvider(
-                    LocalPermissionPlatform provides permissionPlatform,
-                ) {
+            val permissionPlatform = rememberAndroidPermissionPlatform()
+            CompositionLocalProvider(
+                LocalPermissionPlatform provides permissionPlatform,
+            ) {
+                AppTheme {
                     MainScreen(
                         viewModel = viewModel,
                         moveToBackground = { moveTaskToBack(true) },

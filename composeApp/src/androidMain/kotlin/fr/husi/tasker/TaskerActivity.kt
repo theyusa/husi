@@ -39,6 +39,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -54,6 +55,8 @@ import fr.husi.compose.paddingExceptBottom
 import fr.husi.compose.theme.AppTheme
 import fr.husi.database.ProfileManager
 import fr.husi.ktx.intListN
+import fr.husi.permission.LocalPermissionPlatform
+import fr.husi.permission.rememberAndroidPermissionPlatform
 import fr.husi.repository.repo
 import fr.husi.resources.Res
 import fr.husi.resources.apply
@@ -108,75 +111,82 @@ class TaskerActivity : ComposeActivity() {
             val windowInsets = WindowInsets.safeDrawing
             val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
-            AppTheme {
-                Scaffold(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .nestedScroll(scrollBehavior.nestedScrollConnection),
-                    topBar = {
-                        TopAppBar(
-                            title = { Text(stringResource(Res.string.tasker_settings)) },
-                            navigationIcon = {
-                                SimpleIconButton(
-                                    imageVector = vectorResource(Res.drawable.close),
-                                    contentDescription = stringResource(Res.string.close),
-                                    onClick = {
-                                        onBackPressedDispatcher.onBackPressed()
-                                    },
-                                )
-                            },
-                            actions = {
-                                SimpleIconButton(
-                                    imageVector = vectorResource(Res.drawable.done),
-                                    contentDescription = stringResource(Res.string.apply),
-                                    onClick = {
-                                        saveAndExit()
-                                    },
-                                )
-                            },
-                            windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
-                            scrollBehavior = scrollBehavior,
-                        )
-                    },
-                ) { innerPadding ->
-                    Column(modifier = Modifier.paddingExceptBottom(innerPadding)) {
-                        TaskerPreference(
-                            onOpenProfileSelect = { preSelected, onSelected ->
-                                profileSelectSession = ProfileSelectSession(preSelected, onSelected)
-                            },
-                        )
+            val platformPermission = rememberAndroidPermissionPlatform()
 
-                        Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
-                    }
-                }
-
-                if (showBackAlert) AlertDialog(
-                    onDismissRequest = { showBackAlert = false },
-                    confirmButton = {
-                        TextButton(stringResource(Res.string.ok)) {
-                            saveAndExit()
-                        }
-                    },
-                    dismissButton = {
-                        TextButton(stringResource(Res.string.no)) {
-                            finish()
-                        }
-                    },
-                    icon = { Icon(vectorResource(Res.drawable.question_mark), null) },
-                    title = { Text(stringResource(Res.string.unsaved_changes_prompt)) },
-                )
-
-                val session = profileSelectSession
-                if (session != null) {
-                    ProfileSelectSheet(
-                        mainViewModel = mainViewModel,
-                        preSelected = session.preSelected,
-                        onDismiss = { profileSelectSession = null },
-                        onSelected = { id ->
-                            session.onSelected(id)
-                            profileSelectSession = null
+            CompositionLocalProvider(
+                LocalPermissionPlatform provides platformPermission,
+            ) {
+                AppTheme {
+                    Scaffold(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .nestedScroll(scrollBehavior.nestedScrollConnection),
+                        topBar = {
+                            TopAppBar(
+                                title = { Text(stringResource(Res.string.tasker_settings)) },
+                                navigationIcon = {
+                                    SimpleIconButton(
+                                        imageVector = vectorResource(Res.drawable.close),
+                                        contentDescription = stringResource(Res.string.close),
+                                        onClick = {
+                                            onBackPressedDispatcher.onBackPressed()
+                                        },
+                                    )
+                                },
+                                actions = {
+                                    SimpleIconButton(
+                                        imageVector = vectorResource(Res.drawable.done),
+                                        contentDescription = stringResource(Res.string.apply),
+                                        onClick = {
+                                            saveAndExit()
+                                        },
+                                    )
+                                },
+                                windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
+                                scrollBehavior = scrollBehavior,
+                            )
                         },
+                    ) { innerPadding ->
+                        Column(modifier = Modifier.paddingExceptBottom(innerPadding)) {
+                            TaskerPreference(
+                                onOpenProfileSelect = { preSelected, onSelected ->
+                                    profileSelectSession =
+                                        ProfileSelectSession(preSelected, onSelected)
+                                },
+                            )
+
+                            Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
+                        }
+                    }
+
+                    if (showBackAlert) AlertDialog(
+                        onDismissRequest = { showBackAlert = false },
+                        confirmButton = {
+                            TextButton(stringResource(Res.string.ok)) {
+                                saveAndExit()
+                            }
+                        },
+                        dismissButton = {
+                            TextButton(stringResource(Res.string.no)) {
+                                finish()
+                            }
+                        },
+                        icon = { Icon(vectorResource(Res.drawable.question_mark), null) },
+                        title = { Text(stringResource(Res.string.unsaved_changes_prompt)) },
                     )
+
+                    val session = profileSelectSession
+                    if (session != null) {
+                        ProfileSelectSheet(
+                            mainViewModel = mainViewModel,
+                            preSelected = session.preSelected,
+                            onDismiss = { profileSelectSession = null },
+                            onSelected = { id ->
+                                session.onSelected(id)
+                                profileSelectSession = null
+                            },
+                        )
+                    }
                 }
             }
         }

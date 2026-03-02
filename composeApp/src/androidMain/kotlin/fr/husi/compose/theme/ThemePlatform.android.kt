@@ -22,4 +22,4 @@ internal actual fun rememberDynamicColorScheme(isDarkMode: Boolean): ColorScheme
 }
 
 @Composable
-internal actual fun rememberPlatformSystemDarkMode(): Boolean = isSystemInDarkTheme()
+actual fun rememberPlatformSystemDarkMode(): Boolean = isSystemInDarkTheme()

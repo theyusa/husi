@@ -61,8 +61,6 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import org.jetbrains.compose.resources.stringResource
-import org.jetbrains.compose.resources.vectorResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
@@ -78,6 +76,19 @@ import fr.husi.ktx.forEachTry
 import fr.husi.permission.AppPermission
 import fr.husi.permission.LocalPermissionPlatform
 import fr.husi.permission.rememberAndroidPermissionPlatform
+import fr.husi.repository.repo
+import fr.husi.resources.Res
+import fr.husi.resources.action_flash_off
+import fr.husi.resources.action_flash_on
+import fr.husi.resources.action_import_file
+import fr.husi.resources.close
+import fr.husi.resources.flashlight_off
+import fr.husi.resources.flashlight_on
+import fr.husi.resources.ok
+import fr.husi.resources.photo
+import fr.husi.resources.profile_import
+import fr.husi.resources.question_mark
+import fr.husi.resources.subscription_import
 import fr.husi.ui.ComposeActivity
 import fr.husi.ui.MainActivity
 import fr.husi.ui.getStringOrRes
@@ -86,10 +97,10 @@ import io.github.vinceglb.filekit.dialogs.FileKitMode
 import io.github.vinceglb.filekit.dialogs.FileKitType
 import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.resources.vectorResource
 import java.util.concurrent.Executors
 import kotlin.math.roundToInt
-import fr.husi.resources.*
-import fr.husi.repository.repo
 
 class ScannerActivity : ComposeActivity() {
 
@@ -111,10 +122,11 @@ class ScannerActivity : ComposeActivity() {
         }
 
         setContent {
-            AppTheme {
-                CompositionLocalProvider(
-                    LocalPermissionPlatform provides rememberAndroidPermissionPlatform(),
-                ) {
+            val platformPermission = rememberAndroidPermissionPlatform()
+            CompositionLocalProvider(
+                LocalPermissionPlatform provides platformPermission,
+            ) {
+                AppTheme {
                     ScannerScreen(
                         viewModel = viewModel,
                         onBackPress = { onBackPressedDispatcher.onBackPressed() },

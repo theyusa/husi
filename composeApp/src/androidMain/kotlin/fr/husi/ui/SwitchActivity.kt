@@ -24,6 +24,7 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -43,6 +44,8 @@ import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.husi.compose.theme.AppTheme
 import fr.husi.database.DataStore
+import fr.husi.permission.LocalPermissionPlatform
+import fr.husi.permission.rememberAndroidPermissionPlatform
 import fr.husi.repository.repo
 import fr.husi.ui.configuration.ConfigurationContent
 import fr.husi.ui.configuration.ConfigurationScreenViewModel
@@ -55,121 +58,125 @@ class SwitchActivity : ComposeActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-            AppTheme {
-                val sheetState = rememberModalBottomSheetState()
+            val platformPermission = rememberAndroidPermissionPlatform()
+            CompositionLocalProvider(
+                LocalPermissionPlatform provides platformPermission,
+            ) {
+                AppTheme {
+                    val sheetState = rememberModalBottomSheetState()
 
-                val density = LocalDensity.current
-                val windowHeight = with(density) {
-                    LocalWindowInfo.current.containerSize.height.toDp()
-                }
-
-                val vm: ConfigurationScreenViewModel = viewModel(
-                    factory = object : ViewModelProvider.Factory {
-                        @Suppress("UNCHECKED_CAST")
-                        override fun <T : ViewModel> create(
-                            modelClass: Class<T>,
-                            extras: CreationExtras,
-                        ): T {
-                            return ConfigurationScreenViewModel(::returnProfile) as T
-                        }
-                    },
-                )
-                val snackbarState = remember { SnackbarHostState() }
-                val scope = rememberCoroutineScope()
-
-                val uiState by vm.uiState.collectAsStateWithLifecycle()
-                val selectedGroup by vm.selectedGroup.collectAsStateWithLifecycle(DataStore.selectedGroup)
-                val hasGroups = uiState.groups.isNotEmpty()
-                val pagerState = rememberPagerState(
-                    initialPage = uiState.groups
-                        .indexOfFirst { it.id == selectedGroup }
-                        .coerceIn(0, (uiState.groups.size - 1).coerceAtLeast(0)),
-                    pageCount = { uiState.groups.size },
-                )
-                var isPageRestored by remember { mutableStateOf(false) }
-
-                LaunchedEffect(selectedGroup, hasGroups) {
-                    if (!hasGroups) return@LaunchedEffect
-                    val index = uiState.groups.indexOfFirst { it.id == selectedGroup }
-                    val target = index.coerceIn(0, pagerState.pageCount - 1)
-                    if (target != pagerState.currentPage) {
-                        pagerState.scrollToPage(target)
+                    val density = LocalDensity.current
+                    val windowHeight = with(density) {
+                        LocalWindowInfo.current.containerSize.height.toDp()
                     }
-                    isPageRestored = true
-                }
-                LaunchedEffect(pagerState.currentPage, hasGroups, isPageRestored) {
-                    if (!hasGroups || pagerState.currentPage >= uiState.groups.size) {
-                        return@LaunchedEffect
-                    }
-                    val groupID = uiState.groups[pagerState.currentPage].id
-                    if (isPageRestored) {
-                        DataStore.selectedGroup = groupID
-                    }
-                    vm.requestFocusIfNotHave(groupID)
-                }
 
-                val topAppBarColors = TopAppBarDefaults.topAppBarColors()
-                val appBarContainerColor by animateColorAsState(
-                    targetValue = lerp(
-                        topAppBarColors.containerColor,
-                        topAppBarColors.scrolledContainerColor,
-                        0f,
-                    ),
-                    animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
-                    label = "appBarContainerColor",
-                )
-
-                LaunchedEffect(Unit) {
-                    vm.scrollToProxy(DataStore.selectedProxy)
-                }
-
-                ModalBottomSheet(
-                    onDismissRequest = ::finish,
-                    sheetState = sheetState,
-                    scrimColor = Color.Black.copy(alpha = 0.5f),
-                ) {
-                    val bottomPadding = WindowInsets.navigationBarsIgnoringVisibility
-                        .asPaddingValues()
-                        .calculateBottomPadding()
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(windowHeight * 0.6f),
-                    ) {
-                        if (hasGroups && uiState.groups.size > 1) PrimaryScrollableTabRow(
-                            selectedTabIndex = pagerState.currentPage.coerceIn(
-                                0,
-                                uiState.groups.size - 1,
-                            ),
-                            edgePadding = 0.dp,
-                            containerColor = appBarContainerColor,
-                        ) {
-                            uiState.groups.forEachIndexed { index, group ->
-                                Tab(
-                                    text = { Text(group.displayName()) },
-                                    selected = pagerState.currentPage == index,
-                                    onClick = {
-                                        vm.requestFocusIfNotHave(group.id)
-                                        scope.launch {
-                                            pagerState.animateScrollToPage(index)
-                                        }
-                                    },
-                                )
+                    val vm: ConfigurationScreenViewModel = viewModel(
+                        factory = object : ViewModelProvider.Factory {
+                            @Suppress("UNCHECKED_CAST")
+                            override fun <T : ViewModel> create(
+                                modelClass: Class<T>,
+                                extras: CreationExtras,
+                            ): T {
+                                return ConfigurationScreenViewModel(::returnProfile) as T
                             }
-                        }
+                        },
+                    )
+                    val snackbarState = remember { SnackbarHostState() }
+                    val scope = rememberCoroutineScope()
 
-                        ConfigurationContent(
-                            modifier = Modifier.fillMaxSize(),
-                            vm = vm,
-                            snackbarState = snackbarState,
-                            pagerState = pagerState,
-                            preSelected = null,
-                            selectCallback = ::returnProfile,
-                            bottomPadding = bottomPadding,
-                        )
+                    val uiState by vm.uiState.collectAsStateWithLifecycle()
+                    val selectedGroup by vm.selectedGroup.collectAsStateWithLifecycle(DataStore.selectedGroup)
+                    val hasGroups = uiState.groups.isNotEmpty()
+                    val pagerState = rememberPagerState(
+                        initialPage = uiState.groups
+                            .indexOfFirst { it.id == selectedGroup }
+                            .coerceIn(0, (uiState.groups.size - 1).coerceAtLeast(0)),
+                        pageCount = { uiState.groups.size },
+                    )
+                    var isPageRestored by remember { mutableStateOf(false) }
+
+                    LaunchedEffect(selectedGroup, hasGroups) {
+                        if (!hasGroups) return@LaunchedEffect
+                        val index = uiState.groups.indexOfFirst { it.id == selectedGroup }
+                        val target = index.coerceIn(0, pagerState.pageCount - 1)
+                        if (target != pagerState.currentPage) {
+                            pagerState.scrollToPage(target)
+                        }
+                        isPageRestored = true
+                    }
+                    LaunchedEffect(pagerState.currentPage, hasGroups, isPageRestored) {
+                        if (!hasGroups || pagerState.currentPage >= uiState.groups.size) {
+                            return@LaunchedEffect
+                        }
+                        val groupID = uiState.groups[pagerState.currentPage].id
+                        if (isPageRestored) {
+                            DataStore.selectedGroup = groupID
+                        }
+                        vm.requestFocusIfNotHave(groupID)
+                    }
+
+                    val topAppBarColors = TopAppBarDefaults.topAppBarColors()
+                    val appBarContainerColor by animateColorAsState(
+                        targetValue = lerp(
+                            topAppBarColors.containerColor,
+                            topAppBarColors.scrolledContainerColor,
+                            0f,
+                        ),
+                        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+                        label = "appBarContainerColor",
+                    )
+
+                    LaunchedEffect(Unit) {
+                        vm.scrollToProxy(DataStore.selectedProxy)
+                    }
+
+                    ModalBottomSheet(
+                        onDismissRequest = ::finish,
+                        sheetState = sheetState,
+                        scrimColor = Color.Black.copy(alpha = 0.5f),
+                    ) {
+                        val bottomPadding = WindowInsets.navigationBarsIgnoringVisibility
+                            .asPaddingValues()
+                            .calculateBottomPadding()
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(windowHeight * 0.6f),
+                        ) {
+                            if (hasGroups && uiState.groups.size > 1) PrimaryScrollableTabRow(
+                                selectedTabIndex = pagerState.currentPage.coerceIn(
+                                    0,
+                                    uiState.groups.size - 1,
+                                ),
+                                edgePadding = 0.dp,
+                                containerColor = appBarContainerColor,
+                            ) {
+                                uiState.groups.forEachIndexed { index, group ->
+                                    Tab(
+                                        text = { Text(group.displayName()) },
+                                        selected = pagerState.currentPage == index,
+                                        onClick = {
+                                            vm.requestFocusIfNotHave(group.id)
+                                            scope.launch {
+                                                pagerState.animateScrollToPage(index)
+                                            }
+                                        },
+                                    )
+                                }
+                            }
+
+                            ConfigurationContent(
+                                modifier = Modifier.fillMaxSize(),
+                                vm = vm,
+                                snackbarState = snackbarState,
+                                pagerState = pagerState,
+                                preSelected = null,
+                                selectCallback = ::returnProfile,
+                                bottomPadding = bottomPadding,
+                            )
+                        }
                     }
                 }
-
             }
         }
     }

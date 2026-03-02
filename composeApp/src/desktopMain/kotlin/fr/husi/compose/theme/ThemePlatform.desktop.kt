@@ -23,7 +23,7 @@ internal actual fun rememberDynamicColorScheme(isDarkMode: Boolean): ColorScheme
 
 @OptIn(InternalComposeUiApi::class)
 @Composable
-internal actual fun rememberPlatformSystemDarkMode(): Boolean {
+actual fun rememberPlatformSystemDarkMode(): Boolean {
     val systemTheme = LocalSystemTheme.current
     if (systemTheme == SystemTheme.Dark) return true
     if (systemTheme == SystemTheme.Light) return false

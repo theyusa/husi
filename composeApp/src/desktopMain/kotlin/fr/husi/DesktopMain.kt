@@ -105,7 +105,7 @@ fun main(args: Array<String>) {
             ) {
                 when (serviceStatus.state) {
                     ServiceState.Stopped -> repo.startService()
-                    ServiceState.Idle,ServiceState.Connected -> repo.stopService()
+                    ServiceState.Idle, ServiceState.Connected -> repo.stopService()
                     else -> {}
                 }
             }
