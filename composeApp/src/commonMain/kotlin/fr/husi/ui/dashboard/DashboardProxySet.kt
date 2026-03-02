@@ -2,8 +2,14 @@
 
 package fr.husi.ui.dashboard
 
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -36,19 +42,25 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
-import org.jetbrains.compose.resources.stringResource
-import org.jetbrains.compose.resources.vectorResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.colorForUrlTestDelay
 import fr.husi.compose.rememberScrollHideState
-import fr.husi.compose.BoxedVerticalScrollbar
-import fr.husi.resources.*
+import fr.husi.resources.Res
+import fr.husi.resources.bolt
+import fr.husi.resources.connection_test_url
+import fr.husi.resources.expand
+import fr.husi.resources.expand_less
+import fr.husi.resources.expand_more
+import fr.husi.resources.selected
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
+import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.resources.vectorResource
 
 @Composable
 internal fun DashboardProxySetScreen(
@@ -56,6 +68,7 @@ internal fun DashboardProxySetScreen(
     uiState: DashboardState,
     bottomPadding: Dp,
     selectProxy: (group: String, tag: String) -> Unit,
+    urlTestForSingle: (tag: String) -> Unit,
     urlTestForGroup: (group: String) -> Unit,
     onVisibleChange: (Boolean) -> Unit,
 ) {
@@ -83,6 +96,7 @@ internal fun DashboardProxySetScreen(
                 ProxySetCard(
                     proxySet = proxySet,
                     selectProxy = selectProxy,
+                    urlTestSingle = urlTestForSingle,
                     urlTestForGroup = urlTestForGroup,
                 )
             }
@@ -103,6 +117,7 @@ private fun ProxySetCard(
     modifier: Modifier = Modifier,
     proxySet: ProxySet,
     selectProxy: (group: String, tag: String) -> Unit,
+    urlTestSingle: (tag: String) -> Unit,
     urlTestForGroup: (group: String) -> Unit,
 ) {
     var expanded by rememberSaveable { mutableStateOf(false) }
@@ -137,6 +152,23 @@ private fun ProxySetCard(
                     SimpleIconButton(
                         imageVector = vectorResource(Res.drawable.bolt),
                         contentDescription = stringResource(Res.string.connection_test_url),
+                        modifier = Modifier.then(
+                            if (proxySet.isTesting) {
+                                val transition = rememberInfiniteTransition(label = "testing")
+                                val alpha = transition.animateFloat(
+                                    initialValue = 1f,
+                                    targetValue = 0.2f,
+                                    animationSpec = infiniteRepeatable(
+                                        animation = tween(500),
+                                        repeatMode = RepeatMode.Reverse,
+                                    ),
+                                    label = "alpha",
+                                ).value
+                                Modifier.alpha(alpha)
+                            } else {
+                                Modifier
+                            },
+                        ),
                         enabled = !proxySet.isTesting,
                         onClick = { urlTestForGroup(proxySet.tag) },
                     )
@@ -166,11 +198,12 @@ private fun ProxySetCard(
                             rowItems.forEach { proxy ->
                                 val selected = proxySet.selected == proxy.tag
                                 ProxyCard(
+                                    modifier = Modifier.weight(1f),
                                     proxy = proxy,
                                     selected = selected,
                                     selectable = proxySet.selectable,
-                                    onClick = { selectProxy(proxySet.tag, proxy.tag) },
-                                    modifier = Modifier.weight(1f),
+                                    select = { selectProxy(proxySet.tag, proxy.tag) },
+                                    urlTest = { urlTestSingle(proxy.tag) },
                                 )
                             }
                             // Fill remaining space if odd number of items
@@ -225,10 +258,11 @@ private fun ProxyCard(
     proxy: ProxySetItem,
     selected: Boolean,
     selectable: Boolean,
-    onClick: () -> Unit,
+    select: () -> Unit,
+    urlTest: () -> Unit,
 ) {
     Card(
-        onClick = onClick,
+        onClick = select,
         modifier = modifier.fillMaxWidth(),
         enabled = selectable,
         shape = CardDefaults.elevatedShape,
@@ -268,8 +302,8 @@ private fun ProxyCard(
                     color = MaterialTheme.colorScheme.tertiary,
                     style = MaterialTheme.typography.bodyMediumEmphasized,
                 )
-                // TODO URL test for single proxy
                 if (proxy.urlTestDelay > 0) Surface(
+                    modifier = Modifier.clickable { urlTest() },
                     shape = RoundedCornerShape(50),
                     color = Color.Black,
                     shadowElevation = 6.dp,

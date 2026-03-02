@@ -65,7 +65,6 @@ import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.StatsBar
 import fr.husi.compose.TextButton
 import fr.husi.compose.paddingExceptBottom
-import fr.husi.database.DataStore
 import fr.husi.ui.MainViewModel
 import fr.husi.ui.MainViewModelUiEvent
 import fr.husi.ui.getStringOrRes
@@ -440,16 +439,8 @@ fun DashboardScreen(
                         selectProxy = { group, proxy ->
                             viewModel.selectOutbound(group, proxy)
                         },
-                        urlTestForGroup = { group ->
-                            scope.launch {
-                                viewModel.setTesting(group, true)
-                                viewModel.groupURLTest(
-                                    group,
-                                    DataStore.connectionTestTimeout,
-                                )
-                                viewModel.setTesting(group, false)
-                            }
-                        },
+                        urlTestForSingle = viewModel::urlTestForSingle,
+                        urlTestForGroup = viewModel::urlTestForGroup,
                         onVisibleChange = { bottomVisible = it },
                     )
 

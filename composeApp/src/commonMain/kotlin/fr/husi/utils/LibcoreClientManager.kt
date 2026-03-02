@@ -25,9 +25,9 @@ class LibcoreClientManager(
 
     suspend fun <T> withClient(block: suspend (Client) -> T): T {
         return access.withLock {
-            val current = client ?: Libcore.newClient().also { client = it }
+            val client = offer()
             try {
-                block(current)
+                block(client)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -35,6 +35,10 @@ class LibcoreClientManager(
                 throw e
             }
         }
+    }
+
+    private fun offer(): Client {
+        return client ?: Libcore.newClient().also { client = it }
     }
 
     suspend fun close() {

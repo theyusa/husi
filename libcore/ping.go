@@ -18,7 +18,7 @@ import (
 	"github.com/sagernet/sing/common/control"
 	E "github.com/sagernet/sing/common/exceptions"
 	M "github.com/sagernet/sing/common/metadata"
-	N "github.com/sagernet/sing/common/network"
+
 	"github.com/xchacha20-poly1305/libping"
 	"golang.org/x/sync/errgroup"
 )
@@ -65,9 +65,7 @@ func TcpPing(host, port string, timeout int32) (latency int32, err error) {
 // urlTest perform URL test for tag using link and timeout as millisecond.
 // If tag is empty, it will use the default outbound.
 func (b *boxInstance) urlTest(tag, link string, timeout int32) (latency int32, err error) {
-	defer catchPanic("box.urlTest", func(panicErr error) { err = panicErr })
-
-	var detour N.Dialer
+	var detour adapter.Outbound
 	if tag == "" {
 		detour = b.Outbound().Default()
 	} else {
@@ -91,6 +89,16 @@ func (b *boxInstance) urlTest(tag, link string, timeout int32) (latency int32, e
 			return
 		}
 		chLatency <- t
+
+		historyStorage := b.api.HistoryStorage()
+		if historyStorage == nil {
+			return
+		}
+		realTag := group.RealTag(detour)
+		historyStorage.StoreURLTestHistory(realTag, &adapter.URLTestHistory{
+			Time:  time.Now(),
+			Delay: t,
+		})
 	}()
 	select {
 	case <-ctx.Done():
@@ -278,7 +286,7 @@ func (s *Service) handleNewInstanceURLTest(conn io.ReadWriter) error {
 		return E.Cause(err, "read timeout")
 	}
 
-	latency, err := s.doURLTest(config, tag, link, timeout)
+	latency, err := s.newInstanceURLTest(config, tag, link, timeout)
 	if err != nil {
 		_ = vario.WriteUint8(conn, resultCommonError)
 		_ = vario.WriteString(conn, err.Error())
@@ -296,7 +304,7 @@ func (s *Service) handleNewInstanceURLTest(conn io.ReadWriter) error {
 	return nil
 }
 
-func (s *Service) doURLTest(config, tag, link string, timeout int32) (int32, error) {
+func (s *Service) newInstanceURLTest(config, tag, link string, timeout int32) (int32, error) {
 	instance, err := newBoxInstance(config, s.platformInterface, true)
 	if err != nil {
 		return -1, E.Cause(err, "create instance")

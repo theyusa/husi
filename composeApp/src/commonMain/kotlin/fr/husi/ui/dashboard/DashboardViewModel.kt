@@ -191,7 +191,8 @@ class DashboardViewModel : ViewModel() {
     private var job: Job? = null
     private var subscriptionJob: Job? = null
     private var clashModeSubscriptionJob: Job? = null
-    private val clientManager = LibcoreClientManager()
+    private val client = LibcoreClientManager()
+    private val urlTestClient = LibcoreClientManager()
     private val processLabelAccess = Mutex()
     private val processLabelCache = mutableMapOf<String, String>()
     private val processIconCache = mutableMapOf<String, Any>()
@@ -201,7 +202,8 @@ class DashboardViewModel : ViewModel() {
         job?.cancel()
         subscriptionJob?.cancel()
         clashModeSubscriptionJob?.cancel()
-        clientManager.close()
+        client.close()
+        urlTestClient.close()
         connections.clear()
         _uiState.update { state ->
             state.copy(
@@ -212,13 +214,13 @@ class DashboardViewModel : ViewModel() {
         }
         if (!isConnected) return
 
-        subscriptionJob = clientManager.subscribeConnectionEvents(viewModelScope) { event ->
+        subscriptionJob = client.subscribeConnectionEvents(viewModelScope) { event ->
             viewModelScope.launch {
                 handleConnectionEvent(event)
             }
         }
         try {
-            clientManager.withClient { client ->
+            client.withClient { client ->
                 val iterator = client.queryConnections()
                     ?: return@withClient
                 while (iterator.hasNext()) {
@@ -230,7 +232,7 @@ class DashboardViewModel : ViewModel() {
         } catch (e: Exception) {
             Logs.w("query connections", e)
         }
-        clashModeSubscriptionJob = clientManager.subscribeClashMode(viewModelScope) { mode ->
+        clashModeSubscriptionJob = client.subscribeClashMode(viewModelScope) { mode ->
             viewModelScope.launch {
                 _uiState.update { state ->
                     state.copy(selectedClashMode = mode)
@@ -238,7 +240,7 @@ class DashboardViewModel : ViewModel() {
             }
         }
         try {
-            val clashModes = clientManager.withClient { client ->
+            val clashModes = client.withClient { client ->
                 client.queryClashModes()?.toList() ?: emptyList()
             }
             _uiState.update { state ->
@@ -261,7 +263,8 @@ class DashboardViewModel : ViewModel() {
         subscriptionJob?.cancel()
         clashModeSubscriptionJob?.cancel()
         runBlocking {
-            clientManager.close()
+            client.close()
+            urlTestClient.close()
         }
         runOnDefaultDispatcher {
             DefaultNetworkListener.stop(this@DashboardViewModel)
@@ -342,7 +345,7 @@ class DashboardViewModel : ViewModel() {
         }.toInt()
     }
 
-    fun setTesting(group: String, isTesting: Boolean) = viewModelScope.launch {
+    private fun setTesting(group: String, isTesting: Boolean) {
         _uiState.update { state ->
             state.copy(
                 proxySets = state.proxySets.map {
@@ -374,7 +377,7 @@ class DashboardViewModel : ViewModel() {
      */
     private suspend fun refreshStatus(): Boolean {
         return try {
-            clientManager.withClient { client ->
+            client.withClient { client ->
                 _uiState.update { state ->
                     state.copy(
                         memory = client.queryMemory(),
@@ -386,7 +389,7 @@ class DashboardViewModel : ViewModel() {
             }
             true
         } catch (e: Exception) {
-            Logs.w("refreshStatus error: ${e.message}")
+            Logs.w(e)
             false
         }
     }
@@ -557,52 +560,68 @@ class DashboardViewModel : ViewModel() {
 
     fun closeConnection(uuid: String) = viewModelScope.launch(Dispatchers.IO) {
         try {
-            clientManager.withClient { client ->
+            client.withClient { client ->
                 client.closeConnection(uuid)
             }
         } catch (e: Exception) {
-            Logs.w("closeConnection error: ${e.message}")
+            Logs.w(e)
         }
     }
 
     fun selectOutbound(groupName: String, tag: String) = viewModelScope.launch(Dispatchers.IO) {
         try {
-            clientManager.withClient { client ->
+            client.withClient { client ->
                 client.selectOutbound(groupName, tag)
             }
         } catch (e: Exception) {
-            Logs.w("selectOutbound error: ${e.message}")
+            Logs.w(e)
         }
     }
 
-    suspend fun groupURLTest(tag: String, timeout: Int) {
+    fun urlTestForSingle(tag: String) = viewModelScope.launch(Dispatchers.IO) {
         try {
-            clientManager.withClient { client ->
-                val link = DataStore.connectionTestURL
-                client.groupTest(tag, link, timeout)
+            client.withClient { client ->
+                client.urlTest(tag, DataStore.connectionTestURL, DataStore.connectionTestTimeout)
             }
         } catch (e: Exception) {
-            Logs.w("groupURLTest error: ${e.message}")
+            Logs.w(e)
+        }
+    }
+
+    fun urlTestForGroup(tag: String) = viewModelScope.launch(Dispatchers.IO) {
+        setTesting(tag, true)
+        try {
+            urlTestClient.withClient { client ->
+                client.groupTest(
+                    tag,
+                    DataStore.connectionTestURL,
+                    DataStore.connectionTestTimeout,
+                )
+            }
+        } catch (e: Exception) {
+            Logs.w(e)
+        } finally {
+            setTesting(tag, false)
         }
     }
 
     fun resetNetwork() = viewModelScope.launch(Dispatchers.IO) {
         try {
-            clientManager.withClient { client ->
+            client.withClient { client ->
                 client.resetNetwork()
             }
         } catch (e: Exception) {
-            Logs.w("resetNetwork error: ${e.message}")
+            Logs.w(e)
         }
     }
 
     fun setClashMode(mode: String) = viewModelScope.launch(Dispatchers.IO) {
         try {
-            clientManager.withClient { client ->
+            client.withClient { client ->
                 client.setClashMode(mode)
             }
         } catch (e: Exception) {
-            Logs.w("setClashMode error: ${e.message}")
+            Logs.w(e)
         }
     }
 }
