@@ -159,7 +159,7 @@ private fun Color.dim(factor: Float): Color {
 }
 
 @Composable
-fun colorForUrlTestDelay(urlTestDelay: Number): Color {
+fun colorForUrlTestDelay(urlTestDelay: Int): Color {
     val isDarkMode = LocalAppDarkMode.current
     val base = when (urlTestDelay) {
         in Short.MIN_VALUE..0 -> Color.Gray

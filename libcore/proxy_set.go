@@ -180,7 +180,7 @@ func buildProxySet(outboundManager adapter.OutboundManager, outboundGroup adapte
 type GroupItem struct {
 	Tag   string
 	Type  string
-	Delay int16
+	Delay int32
 }
 
 type GroupItemIterator interface {
@@ -190,16 +190,16 @@ type GroupItemIterator interface {
 }
 
 func buildGroupItem(outbound adapter.Outbound, historyStorage adapter.URLTestHistoryStorage) *GroupItem {
-	var delay int16
+	var delay int32
 	if historyStorage != nil {
-		if history := historyStorage.LoadURLTestHistory(outbound.Type()); history != nil {
-			delay = int16(history.Delay)
+		if history := historyStorage.LoadURLTestHistory(outbound.Tag()); history != nil {
+			delay = int32(history.Delay)
 		}
 	}
 	return &GroupItem{
 		Tag:   outbound.Tag(),
 		Type:  pluginoption.ProxyDisplayName(outbound.Type()),
-		Delay: delay,
+		Delay: int32(delay),
 	}
 }
 
@@ -266,7 +266,7 @@ func (g *GroupItem) WriteToBinary(writer io.Writer) error {
 	if err != nil {
 		return E.Cause(err, "write type")
 	}
-	err = vario.WriteInt16(writer, g.Delay)
+	err = vario.WriteInt32(writer, g.Delay)
 	if err != nil {
 		return E.Cause(err, "write delay")
 	}
@@ -282,7 +282,7 @@ func readGroupItem(reader io.Reader) (*GroupItem, error) {
 	if err != nil {
 		return nil, E.Cause(err, "read type")
 	}
-	delay, err := vario.ReadInt16(reader)
+	delay, err := vario.ReadInt32(reader)
 	if err != nil {
 		return nil, E.Cause(err, "read delay")
 	}

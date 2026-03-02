@@ -31,6 +31,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -52,7 +53,7 @@ import fr.husi.compose.colorForUrlTestDelay
 import fr.husi.compose.rememberScrollHideState
 import fr.husi.resources.Res
 import fr.husi.resources.bolt
-import fr.husi.resources.connection_test_url
+import fr.husi.resources.connection_test
 import fr.husi.resources.expand
 import fr.husi.resources.expand_less
 import fr.husi.resources.expand_more
@@ -121,6 +122,8 @@ private fun ProxySetCard(
     urlTestForGroup: (group: String) -> Unit,
 ) {
     var expanded by rememberSaveable { mutableStateOf(false) }
+    val selectedProxy = proxySet.items.find { it.tag == proxySet.selected }
+    val selectedDelay = selectedProxy?.urlTestDelay ?: 0
 
     ElevatedCard(
         modifier = modifier
@@ -151,7 +154,7 @@ private fun ProxySetCard(
                 Row {
                     SimpleIconButton(
                         imageVector = vectorResource(Res.drawable.bolt),
-                        contentDescription = stringResource(Res.string.connection_test_url),
+                        contentDescription = stringResource(Res.string.connection_test),
                         modifier = Modifier.then(
                             if (proxySet.isTesting) {
                                 val transition = rememberInfiniteTransition(label = "testing")
@@ -232,6 +235,7 @@ private fun ProxySetCard(
                                 .background(MaterialTheme.colorScheme.primary, CircleShape),
                         )
                         Column(
+                            modifier = Modifier.weight(1f),
                             verticalArrangement = Arrangement.spacedBy(2.dp),
                         ) {
                             Text(
@@ -245,6 +249,10 @@ private fun ProxySetCard(
                                 style = MaterialTheme.typography.titleSmallEmphasized,
                             )
                         }
+                        ItemURLTestButton(
+                            delay = selectedDelay,
+                            onClick = { urlTestSingle(proxySet.selected) },
+                        )
                     }
                 }
             }
@@ -278,7 +286,10 @@ private fun ProxyCard(
         ),
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.Bottom,
         ) {
             if (selected) {
                 Box(
@@ -290,6 +301,7 @@ private fun ProxyCard(
                 Spacer(modifier = Modifier.width(8.dp))
             }
             Column(
+                modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 Text(
@@ -302,18 +314,45 @@ private fun ProxyCard(
                     color = MaterialTheme.colorScheme.tertiary,
                     style = MaterialTheme.typography.bodyMediumEmphasized,
                 )
-                if (proxy.urlTestDelay > 0) Surface(
-                    modifier = Modifier.clickable { urlTest() },
-                    shape = RoundedCornerShape(50),
-                    color = Color.Black,
-                    shadowElevation = 6.dp,
-                ) {
-                    Text(
-                        text = proxy.urlTestDelay.toString(),
-                        color = colorForUrlTestDelay(proxy.urlTestDelay),
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                    )
-                }
+            }
+            ItemURLTestButton(
+                delay = proxy.urlTestDelay,
+                onClick = urlTest,
+            )
+        }
+    }
+}
+
+@Composable
+private fun ItemURLTestButton(
+    modifier: Modifier = Modifier,
+    delay: Int,
+    onClick: () -> Unit,
+) {
+    Surface(
+        modifier = modifier
+            .width(56.dp)
+            .clickable { onClick() },
+        shape = RoundedCornerShape(50),
+        color = Color.Black,
+        shadowElevation = 6.dp,
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 6.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            if (delay > 0) {
+                Text(
+                    text = delay.toString(),
+                    color = colorForUrlTestDelay(delay),
+                )
+            } else {
+                Icon(
+                    vectorResource(Res.drawable.bolt),
+                    stringResource(Res.string.connection_test),
+                )
             }
         }
     }

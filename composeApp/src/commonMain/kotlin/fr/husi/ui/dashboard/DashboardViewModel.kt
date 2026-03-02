@@ -107,7 +107,7 @@ fun fr.husi.libcore.ProxySetIterator.toList(): List<ProxySet> {
 data class ProxySetItem(
     val tag: String = "",
     val type: String = "",
-    val urlTestDelay: Short = -1,
+    val urlTestDelay: Int = -1,
 ) {
     constructor(item: fr.husi.libcore.GroupItem) : this(
         tag = item.tag,
