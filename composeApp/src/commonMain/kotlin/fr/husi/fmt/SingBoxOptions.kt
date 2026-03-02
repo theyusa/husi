@@ -2906,7 +2906,7 @@ object SingBoxOptions {
         var multiplex: OutboundMultiplexOptions? = null
 
         @JvmField
-        var transport: V2RayTransportOptions? = null
+        var transport: JsonElement? = null
 
     }
 
@@ -3341,7 +3341,7 @@ object SingBoxOptions {
         var multiplex: OutboundMultiplexOptions? = null
 
         @JvmField
-        var transport: V2RayTransportOptions? = null
+        var transport: JsonElement? = null
 
         @JvmField
         var packet_encoding: String? = null
@@ -3457,7 +3457,7 @@ object SingBoxOptions {
         var multiplex: OutboundMultiplexOptions? = null
 
         @JvmField
-        var transport: V2RayTransportOptions? = null
+        var transport: JsonElement? = null
 
     }
 

@@ -5,10 +5,12 @@ import fr.husi.fmt.FmtTestConstant
 import fr.husi.fmt.trojan.TrojanBean
 import fr.husi.fmt.trojan.parseTrojan
 import fr.husi.ktx.JSONMap
+import fr.husi.ktx.asKxsMap
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class V2RayFmtTest {
@@ -148,6 +150,31 @@ class V2RayFmtTest {
         val vless = assertIs<SingBoxOptions.Outbound_VLESSOptions>(outbound)
         assertEquals(SingBoxOptions.TYPE_VLESS, vless.type)
         assertEquals("xtls-rprx-vision", vless.flow)
+    }
+
+    @Test
+    fun `buildSingBoxOutboundStandardV2RayBean should preserve ws transport fields`() {
+        val bean = VMessBean().apply {
+            serverAddress = "example.com"
+            serverPort = 10086
+            uuid = "test-uuid"
+            v2rayTransport = "ws"
+            host = "host.example.com"
+            path = "/ws"
+            wsMaxEarlyData = 4096
+            earlyDataHeaderName = "Sec-WebSocket-Protocol"
+        }
+
+        val outboundMap = buildSingBoxOutboundStandardV2RayBean(bean).asKxsMap()
+        val transport = assertIs<Map<*, *>>(outboundMap["transport"])
+        assertEquals("ws", transport["type"])
+        assertEquals("/ws", transport["path"])
+        assertEquals(4096L, transport["max_early_data"])
+        assertEquals("Sec-WebSocket-Protocol", transport["early_data_header_name"])
+
+        val headers = assertIs<Map<*, *>>(transport["headers"])
+        assertEquals(listOf("host.example.com"), headers["Host"])
+        assertNull(headers["host"])
     }
 
     @Test

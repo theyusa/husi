@@ -36,6 +36,7 @@ import fr.husi.ktx.Logs
 import fr.husi.ktx.b64Decode
 import fr.husi.ktx.b64DecodeToString
 import fr.husi.ktx.blankAsNull
+import fr.husi.ktx.toJsonObjectKxs
 import fr.husi.ktx.listByLineOrComma
 import fr.husi.ktx.queryParameterNotBlank
 import fr.husi.ktx.queryParameterUnescapeNotBlank
@@ -547,7 +548,7 @@ fun buildSingBoxOutboundStandardV2RayBean(bean: StandardV2RayBean): Outbound = w
             else -> null
         }
         tls = buildSingBoxOutboundTLS(bean)
-        transport = buildSingBoxOutboundStreamSettings(bean)
+        transport = buildSingBoxOutboundStreamSettings(bean)?.toJsonObjectKxs()
         if (bean.shouldMux()) multiplex = buildSingBoxMux(bean)
 
         global_padding = true
@@ -567,7 +568,7 @@ fun buildSingBoxOutboundStandardV2RayBean(bean: StandardV2RayBean): Outbound = w
             else -> null
         }
         tls = buildSingBoxOutboundTLS(bean)
-        transport = buildSingBoxOutboundStreamSettings(bean)
+        transport = buildSingBoxOutboundStreamSettings(bean)?.toJsonObjectKxs()
         if (bean.shouldMux()) multiplex = buildSingBoxMux(bean)
     }
 
@@ -577,7 +578,7 @@ fun buildSingBoxOutboundStandardV2RayBean(bean: StandardV2RayBean): Outbound = w
         server_port = bean.serverPort
         password = bean.password
         tls = buildSingBoxOutboundTLS(bean)
-        transport = buildSingBoxOutboundStreamSettings(bean)
+        transport = buildSingBoxOutboundStreamSettings(bean)?.toJsonObjectKxs()
         if (bean.shouldMux()) multiplex = buildSingBoxMux(bean)
     }
 
