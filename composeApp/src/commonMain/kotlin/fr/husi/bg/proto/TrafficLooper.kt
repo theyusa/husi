@@ -1,17 +1,16 @@
 package fr.husi.bg.proto
 
 import fr.husi.Key
-import fr.husi.aidl.SpeedDisplayData
 import fr.husi.bg.BackendState
-import fr.husi.bg.BaseService
 import fr.husi.bg.ServiceState
 import fr.husi.bg.SpeedStats
 import fr.husi.database.DataStore
 import fr.husi.database.ProfileManager
 import fr.husi.database.ProxyEntity
+import fr.husi.fmt.ConfigBuildResult
 import fr.husi.fmt.TAG_DIRECT
 import fr.husi.ktx.Logs
-import fr.husi.repository.repo
+import fr.husi.libcore.Service
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -24,7 +23,10 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 class TrafficLooper(
-    val data: BaseService.Data, private val scope: CoroutineScope,
+    private val box: Service,
+    private val config: ConfigBuildResult,
+    private val scope: CoroutineScope,
+    private val onSpeedUpdate: (suspend (SpeedStats) -> Unit)? = null,
 ) {
 
     private var job: Job? = null
@@ -43,9 +45,9 @@ class TrafficLooper(
     }
 
     fun updateSelectedTag(groupName: String, old: String, new: String) {
-        val group = data.proxy?.config?.trafficMap?.get(groupName) ?: return
-        val oldID = data.proxy?.config?.tagToID?.get(old)
-        val newID = data.proxy?.config?.tagToID?.get(new)
+        val group = config.trafficMap[groupName] ?: return
+        val oldID = config.tagToID[old]
+        val newID = config.tagToID[new]
         for (entity in group) {
             when (entity.id) {
                 oldID -> {
@@ -83,11 +85,33 @@ class TrafficLooper(
         var persistTicks = if (delayMs > 0) persistTicksForDelay(delayMs) else 1L
         var ticks = 0L
 
-        var trafficUpdater: TrafficUpdater? = null
-        var proxy: ProxyInstance?
-
         // for display
         val itemBypass = TrafficUpdater.TrafficLooperData(tag = TAG_DIRECT)
+
+        // initialize
+        idMap.clear()
+        idMap[-1] = itemBypass
+        val mainID = config.tagToID[config.mainTag]
+        config.trafficMap.forEach { (tag, entities) ->
+            val isProxySet = entities.any { it.type == ProxyEntity.TYPE_PROXY_SET }
+            for (ent in entities) {
+                val item = TrafficUpdater.TrafficLooperData(
+                    tag = tag,
+                    rx = ent.rx,
+                    tx = ent.tx,
+                    rxBase = ent.rx,
+                    txBase = ent.tx,
+                    ignore = isProxySet && ent.id != mainID,
+                )
+                idMap[ent.id] = item
+                tagMap[tag] = item
+                Logs.d("traffic count $tag to ${ent.id}")
+            }
+        }
+        val trafficUpdater = TrafficUpdater(
+            box = box, items = idMap.values.toList(),
+        )
+        box.initializeProxySet()
 
         while (scope.isActive) {
             var currentDelayMs = speedInterval.value
@@ -101,44 +125,6 @@ class TrafficLooper(
                 delayMs = currentDelayMs
                 persistTicks = persistTicksForDelay(delayMs)
                 ticks = 0
-            }
-
-            proxy = data.proxy
-            if (proxy == null) {
-                delay(delayMs)
-                continue
-            }
-
-            if (trafficUpdater == null) {
-                if (!proxy.isInitialized()) {
-                    delay(delayMs)
-                    continue
-                }
-                idMap.clear()
-                idMap[-1] = itemBypass
-                val tags = hashSetOf(proxy.config.mainTag, TAG_DIRECT)
-                val mainID = proxy.config.tagToID[proxy.config.mainTag]
-                proxy.config.trafficMap.forEach { (tag, entities) ->
-                    tags.add(tag)
-                    val isProxySet = entities.any { it.type == ProxyEntity.TYPE_PROXY_SET }
-                    for (ent in entities) {
-                        val item = TrafficUpdater.TrafficLooperData(
-                            tag = tag,
-                            rx = ent.rx,
-                            tx = ent.tx,
-                            rxBase = ent.rx,
-                            txBase = ent.tx,
-                            ignore = isProxySet && ent.id != mainID,
-                        )
-                        idMap[ent.id] = item
-                        tagMap[tag] = item
-                        Logs.d("traffic count $tag to ${ent.id}")
-                    }
-                }
-                trafficUpdater = TrafficUpdater(
-                    box = repo.boxService!!, items = idMap.values.toList(),
-                )
-                repo.boxService!!.initializeProxySet()
             }
 
             trafficUpdater.updateAll()
@@ -167,19 +153,11 @@ class TrafficLooper(
                 txTotal = mainTx,
                 rxTotal = mainRx,
             )
-            val speed = speedStats.toDisplayData()
 
             // Update shared speed state
-            if (data.state == ServiceState.Connected) {
+            if (DataStore.serviceState == ServiceState.Connected) {
                 BackendState.updateSpeed(speedStats)
-                data.binder.notifySpeed(speed)
-            }
-
-            // ServiceNotification
-            data.notification.apply {
-                if (canPostSpeed()) {
-                    onSpeed(speed)
-                }
+                onSpeedUpdate?.invoke(speedStats)
             }
 
             if (profileTrafficStatistics.value) {
@@ -196,7 +174,7 @@ class TrafficLooper(
     }
 
     private suspend fun updateDb() {
-        data.proxy?.config?.trafficMap?.forEach { (_, entities) ->
+        config.trafficMap.forEach { (_, entities) ->
             for (entity in entities) {
                 val item = idMap[entity.id] ?: return@forEach
                 ProfileManager.updateTraffic(entity, item.tx, item.rx)
@@ -204,12 +182,3 @@ class TrafficLooper(
         }
     }
 }
-
-private fun SpeedStats.toDisplayData() = SpeedDisplayData(
-    txRateProxy = txRateProxy,
-    rxRateProxy = rxRateProxy,
-    txRateDirect = txRateDirect,
-    rxRateDirect = rxRateDirect,
-    txTotal = txTotal,
-    rxTotal = rxTotal,
-)

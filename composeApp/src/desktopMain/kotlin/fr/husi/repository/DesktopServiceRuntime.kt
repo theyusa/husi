@@ -7,6 +7,7 @@ import fr.husi.bg.GuardedProcessPool
 import fr.husi.bg.ServiceState
 import fr.husi.bg.initPlugins
 import fr.husi.bg.launchPlugins
+import fr.husi.bg.proto.TrafficLooper
 import fr.husi.database.DataStore
 import fr.husi.database.ProfileManager
 import fr.husi.ktx.Logs
@@ -34,6 +35,8 @@ internal class DesktopServiceRuntime(
 
     private var runningProfileName: String? = null
     private var processes: GuardedProcessPool? = null
+    var trafficLooper: TrafficLooper? = null
+        private set
     private val cacheFiles = ArrayList<java.io.File>()
 
     fun start() {
@@ -110,6 +113,13 @@ internal class DesktopServiceRuntime(
             service.newInstance(config.config)
             service.startInstance()
 
+            trafficLooper = TrafficLooper(
+                box = service,
+                config = config,
+                scope = scope,
+            )
+            trafficLooper?.start()
+
             DataStore.currentProfile = profile.id
             runningProfileName = profile.displayNameForService()
             changeState(ServiceState.Connected, runningProfileName)
@@ -155,6 +165,9 @@ internal class DesktopServiceRuntime(
         val service = boxService
         val pool = processes
         processes = null
+
+        trafficLooper?.stop()
+        trafficLooper = null
 
         pool?.close(scope)
 

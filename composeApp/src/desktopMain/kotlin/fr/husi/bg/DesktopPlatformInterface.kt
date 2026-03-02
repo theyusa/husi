@@ -7,6 +7,9 @@ import fr.husi.libcore.LocalDNSTransport
 import fr.husi.libcore.NetworkInterfaceIterator
 import fr.husi.libcore.PlatformInterface
 import fr.husi.libcore.WIFIState
+import fr.husi.repository.DesktopRepository
+import fr.husi.repository.desktopRepo
+import fr.husi.repository.repo
 import java.net.InetAddress
 
 class DesktopPlatformInterface : PlatformInterface {
@@ -48,11 +51,11 @@ class DesktopPlatformInterface : PlatformInterface {
     }
 
     override fun onGroupSelectedChange(
-        group: String?,
-        old: String?,
-        now: String?,
+        group: String,
+        old: String,
+        now: String,
     ) {
-        TODO("Implement me")
+        desktopRepo.serviceRuntime.trafficLooper?.updateSelectedTag(group, old, now)
     }
 
     override fun openTun(): Int {

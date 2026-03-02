@@ -1,10 +1,13 @@
 package fr.husi.bg.proto
 
 import fr.husi.BuildConfig
+import fr.husi.aidl.SpeedDisplayData
 import fr.husi.bg.BaseService
+import fr.husi.bg.SpeedStats
 import fr.husi.database.ProxyEntity
 import fr.husi.ktx.Logs
 import fr.husi.ktx.runOnDefaultDispatcher
+import fr.husi.repository.repo
 import kotlinx.coroutines.runBlocking
 
 class ProxyInstance(profile: ProxyEntity, var service: BaseService.Interface? = null) :
@@ -31,9 +34,19 @@ class ProxyInstance(profile: ProxyEntity, var service: BaseService.Interface? = 
     override fun launch() {
         super.launch() // start box
         runOnDefaultDispatcher {
-            service?.let {
-                trafficLooper = TrafficLooper(it.data, this)
-            }
+            val data = service?.data ?: return@runOnDefaultDispatcher
+            trafficLooper = TrafficLooper(
+                box = repo.boxService!!,
+                config = config,
+                scope = this,
+                onSpeedUpdate = { stats ->
+                    val speed = stats.toSpeedDisplayData()
+                    data.binder.notifySpeed(speed)
+                    data.notification.apply {
+                        if (canPostSpeed()) onSpeed(speed)
+                    }
+                },
+            )
             trafficLooper?.start()
         }
     }
@@ -46,3 +59,12 @@ class ProxyInstance(profile: ProxyEntity, var service: BaseService.Interface? = 
         }
     }
 }
+
+private fun SpeedStats.toSpeedDisplayData() = SpeedDisplayData(
+    txRateProxy = txRateProxy,
+    rxRateProxy = rxRateProxy,
+    txRateDirect = txRateDirect,
+    rxRateDirect = rxRateDirect,
+    txTotal = txTotal,
+    rxTotal = rxTotal,
+)

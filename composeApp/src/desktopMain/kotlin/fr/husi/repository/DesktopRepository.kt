@@ -7,6 +7,8 @@ import java.io.File
 import org.jetbrains.compose.resources.getPluralString as getComposePluralString
 import org.jetbrains.compose.resources.getString as getComposeString
 
+val desktopRepo get() = repo as DesktopRepository
+
 class DesktopRepository(
     dataDir: File = File(System.getProperty("user.home"), ".husi"),
     override val isMainProcess: Boolean = true,
@@ -24,7 +26,7 @@ class DesktopRepository(
     override val boxService: fr.husi.libcore.Service? by lazy {
         createBoxService(isBgProcess)
     }
-    private val serviceRuntime by lazy {
+    internal val serviceRuntime by lazy {
         DesktopServiceRuntime(boxService)
     }
 
