@@ -28,10 +28,6 @@ As a free software, husi will never submit to Google. Visit [Keep Android Open](
 
 [CONTRIBUTING](./CONTRIBUTING.md)
 
-[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/xchacha20-poly1305/husi)
-
-New here? You can use [DeepWiki](https://deepwiki.com/xchacha20-poly1305/husi) to known basic structure of husi and ask anything you want.
-
 ### 📚 Localization
 
 Is husi not in your language, or the translation is incorrect or incomplete? Get involved in the
@@ -128,8 +124,6 @@ If you run `libcore/build.sh` directly:
 * no platform args: defaults to Android only
 
 If anja is not in GOPATH, it will be automatically downloaded and compiled.
-
-If you don't want to build it, you can download then in [actions](https://github.com/xchacha20-poly1305/husi/actions)
 
 #### 🎀 Rename package name (optional)
 
