@@ -26,6 +26,8 @@ SIZE_BYTES_PLACEHOLDER="__HUSI_SIZE_BYTES__"
 LAUNCHER_PATH_PLACEHOLDER="__HUSI_LAUNCHER_PATH__"
 LAUNCHER_CAPS_PLACEHOLDER="__HUSI_LAUNCHER_CAPS__"
 LAUNCHER_SETCAPS="cap_setpcap,cap_net_admin,cap_net_raw,cap_net_bind_service,cap_sys_ptrace,cap_dac_read_search=ep"
+TAG_NAME=""
+TAG_EPOCH=""
 
 log() {
     echo "[package-native] $*"
@@ -143,6 +145,25 @@ load_metadata() {
     MAINTAINER="Husi contributors"
 }
 
+resolve_tag_epoch() {
+    local candidate="v$VERSION_NAME"
+
+    if git rev-parse -q --verify "refs/tags/$candidate" >/dev/null 2>&1; then
+        TAG_NAME="$candidate"
+        TAG_EPOCH="$(git log -1 --format=%ct "refs/tags/$candidate" | tr -d '\r\n')"
+    fi
+
+    if [[ -z "$TAG_NAME" || -z "$TAG_EPOCH" ]]; then
+        error "No matching tag found for VERSION_NAME=$VERSION_NAME (required: v$VERSION_NAME)."
+        exit 1
+    fi
+
+    if [[ ! "$TAG_EPOCH" =~ ^[0-9]+$ ]]; then
+        error "Invalid tag epoch '$TAG_EPOCH' from tag '$TAG_NAME'."
+        exit 1
+    fi
+}
+
 normalize_platform() {
     local value
     value="$(echo "$1" | tr '[:upper:]' '[:lower:]')"
@@ -240,9 +261,9 @@ resolve_formats() {
 }
 
 require_tools_for_formats() {
-    local -a tools=(awk sed find cp mkdir mktemp date du bsdtar zstd xargs)
+    local -a tools=(awk sed find cp mkdir mktemp date du bsdtar zstd xargs git)
     if [[ -n "${ENABLED_FORMATS[deb]:-}" ]]; then
-        tools+=(dpkg-deb)
+        tools+=(dpkg-deb gzip)
     fi
     if [[ -n "${ENABLED_FORMATS[rpm]:-}" ]]; then
         tools+=(rpmbuild)
@@ -383,6 +404,10 @@ build_deb() {
     local postrm_file="$control_dir/postrm"
     local output_path="$output_dir/${PACKAGE_NAME}_${VERSION_NAME}_${DEB_ARCH}.deb"
     local launcher_path="/usr/lib/$PACKAGE_NAME/bin/$PACKAGE_NAME"
+    local deb_changelog_date
+    deb_changelog_date="$(LC_ALL=C date -u -d "@$TAG_EPOCH" "+%a, %d %b %Y %H:%M:%S +0000")"
+    local doc_dir="$deb_root/usr/share/doc/$PACKAGE_NAME"
+    local changelog_plain="$doc_dir/changelog.Debian"
 
     rm -rf "$deb_root"
     mkdir -p "$deb_root"
@@ -407,6 +432,16 @@ build_deb() {
         "$LAUNCHER_PATH_PLACEHOLDER" "$launcher_path"
     chmod 755 "$postinst_file" "$postrm_file"
 
+    mkdir -p "$doc_dir"
+    cat >"$changelog_plain" <<EOF
+$PACKAGE_NAME ($VERSION_NAME-$PKGREL) unstable; urgency=medium
+
+  * Package desktop app with system Java runtime dependency
+
+ -- $MAINTAINER  $deb_changelog_date
+EOF
+    gzip -n -f "$changelog_plain"
+
     dpkg-deb --root-owner-group --build "$deb_root" "$output_path"
     log "Built deb: $output_path"
 }
@@ -420,7 +455,7 @@ build_rpm() {
     local rpm_version
     rpm_version="$(normalize_rpm_version "$VERSION_NAME")"
     local changelog_date
-    changelog_date="$(LC_ALL=C date "+%a %b %d %Y")"
+    changelog_date="$(LC_ALL=C date -u -d "@$TAG_EPOCH" "+%a %b %d %Y")"
     local spec_file="$rpm_top/SPECS/${PACKAGE_NAME}.spec"
     local icon_target="$rootfs/usr/share/pixmaps/$PACKAGE_NAME.png"
     local icon_entry=""
@@ -476,8 +511,7 @@ build_pacman() {
     local output_pkg="$output_dir/${PACKAGE_NAME}-${pacman_pkgver}-${PKGREL}-${PACMAN_ARCH}.pkg.tar.zst"
     local size_bytes
     size_bytes="$(du -sb "$rootfs" | awk '{print $1}')"
-    local build_date
-    build_date="$(date +%s)"
+    local build_date="$TAG_EPOCH"
     local launcher_path="/usr/lib/$PACKAGE_NAME/bin/$PACKAGE_NAME"
 
     rm -rf "$pacman_root"
@@ -565,6 +599,7 @@ done
 
 PKGREL="$(normalize_pkgrel "$PKGREL")"
 load_metadata
+resolve_tag_epoch
 resolve_target
 resolve_arch
 resolve_formats "$FORMATS"

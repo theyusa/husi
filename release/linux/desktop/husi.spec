@@ -6,6 +6,8 @@ License: GPL-3.0-or-later
 URL: __HUSI_APP_URL__
 BuildArch: __HUSI_RPM_ARCH__
 Requires: java >= 21
+Requires: ca-certificates
+Requires: nftables
 Requires(post): /usr/sbin/setcap
 
 %description

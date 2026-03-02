@@ -217,7 +217,11 @@ make desktop_package_linux
 ```
 
 This command still builds the uber jar first, then packages it with native Linux tooling.
-Required host tools: `cc`, `dpkg-deb`, `rpmbuild`, `bsdtar`, `zstd`.
+Required host tools: `zig`, `git`, `dpkg-deb`, `rpmbuild`, `bsdtar`, `zstd`.
+If building `deb`, `gzip` is also required.
+
+Package timestamps are derived from git tag `v<VERSION_NAME>` from `husi.properties`,
+not from local build time.
 Default output directory:
 
 ```shell
@@ -246,6 +250,12 @@ make launcher
 The default packaging flow runs `make launcher` first, then `package-native.sh` consumes that binary.
 Zig targets musl by default for static linking; no external C toolchain is needed.
 Package install scripts call `setcap` on the launcher so capabilities can be raised to ambient set before starting the JVM.
+
+You can preflight required tooling without producing packages:
+
+```shell
+./release/linux/package-native.sh --check-tools --formats deb,rpm,pacman
+```
 
 #### 🌈 Plugins
 
