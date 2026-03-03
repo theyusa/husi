@@ -5,7 +5,7 @@ import androidx.compose.runtime.Stable
 import fr.husi.fmt.v2ray.StandardV2RayBean
 
 @Immutable
-internal sealed interface StandardV2RayUiState : ProfileSettingsUiState {
+internal sealed interface StandardV2RayUiState : ProfileEditorUiState {
     val name: String
     val address: String
     val port: Int
@@ -46,7 +46,7 @@ internal sealed interface StandardV2RayUiState : ProfileSettingsUiState {
 
 @Stable
 internal abstract class StandardV2RaySettingsViewModel<T : StandardV2RayBean> :
-    ProfileSettingsViewModel<T>() {
+    ProfileEditorViewModel<T>() {
 
     abstract fun setName(name: String)
     abstract fun setAddress(address: String)

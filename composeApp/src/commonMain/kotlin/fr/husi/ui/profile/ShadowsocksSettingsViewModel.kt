@@ -31,10 +31,10 @@ internal data class ShadowsocksUiState(
     val pluginConfig: String = "",
 
     val udpOverTcp: Boolean = false,
-) : ProfileSettingsUiState
+) : ProfileEditorUiState
 
 @Stable
-internal class ShadowsocksSettingsViewModel : ProfileSettingsViewModel<ShadowsocksBean>() {
+internal class ShadowsocksSettingsViewModel : ProfileEditorViewModel<ShadowsocksBean>() {
     override fun createBean() = ShadowsocksBean().applyDefaultValues()
 
     private val _uiState = MutableStateFlow(ShadowsocksUiState())

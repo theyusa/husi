@@ -23,10 +23,10 @@ internal data class ShadowTLSUiState(
     val certPublicKeySha256: String = "",
     val allowInsecure: Boolean = false,
     val utlsFingerprint: String = "",
-) : ProfileSettingsUiState
+) : ProfileEditorUiState
 
 @Stable
-internal class ShadowTLSSettingsViewModel : ProfileSettingsViewModel<ShadowTLSBean>() {
+internal class ShadowTLSSettingsViewModel : ProfileEditorViewModel<ShadowTLSBean>() {
     override fun createBean() = ShadowTLSBean().applyDefaultValues()
 
     private val _uiState = MutableStateFlow(ShadowTLSUiState())

@@ -28,6 +28,7 @@ fun TrustTunnelSettingsScreen(
     profileId: Long,
     isSubscription: Boolean,
     onResult: (updated: Boolean) -> Unit,
+    onOpenConfigEditor: openConfigEditor,
 ) {
     val viewModel: TrustTunnelSettingsViewModel = viewModel { TrustTunnelSettingsViewModel() }
 
@@ -39,6 +40,7 @@ fun TrustTunnelSettingsScreen(
         title = Res.string.profile_config,
         viewModel = viewModel,
         onResult = onResult,
+        onOpenConfigEditor = onOpenConfigEditor,
     ) { scope, uiState, _ ->
         scope.trustTunnelSettings(uiState as TrustTunnelUiState, viewModel)
     }

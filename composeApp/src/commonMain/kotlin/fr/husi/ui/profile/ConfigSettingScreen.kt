@@ -33,6 +33,7 @@ import fr.husi.compose.BackHandler
 import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.TextButton
+import fr.husi.fmt.config.ConfigBean
 import fr.husi.ktx.contentOrUnset
 import fr.husi.resources.Res
 import fr.husi.resources.apply
@@ -62,6 +63,7 @@ import me.zhanghai.compose.preference.SwitchPreference
 import me.zhanghai.compose.preference.TextFieldPreference
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
+import kotlin.random.Random
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -69,14 +71,21 @@ fun ConfigSettingScreen(
     profileId: Long,
     isSubscription: Boolean,
     onResult: (updated: Boolean) -> Unit,
+    onOpenConfigEditor: openConfigEditor,
 ) {
-    val viewModel: ConfigSettingsViewModel = viewModel { ConfigSettingsViewModel() }
+    val sessionKey = remember { Random.nextInt().toString() }
+    val viewModel: ConfigSettingsViewModel = viewModel(
+        key = if (profileId >= 0L) {
+            "config-settings-$profileId"
+        } else {
+            "config-settings-new-$sessionKey"
+        },
+    ) { ConfigSettingsViewModel() }
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val isDirty by viewModel.isDirty.collectAsStateWithLifecycle()
 
     var showBackAlert by remember { mutableStateOf(false) }
     var showDeleteAlert by remember { mutableStateOf(false) }
-    val openConfigEditor = LocalOpenConfigEditor.current
 
     LaunchedEffect(profileId, isSubscription) {
         viewModel.initialize(profileId, isSubscription)
@@ -87,8 +96,8 @@ fun ConfigSettingScreen(
     }
 
     val config = when (uiState.type) {
-        fr.husi.fmt.config.ConfigBean.TYPE_CONFIG -> uiState.customConfig
-        fr.husi.fmt.config.ConfigBean.TYPE_OUTBOUND -> uiState.customOutbound
+        ConfigBean.TYPE_CONFIG -> uiState.customConfig
+        ConfigBean.TYPE_OUTBOUND -> uiState.customOutbound
         else -> error("impossible")
     }
 
@@ -175,12 +184,12 @@ fun ConfigSettingScreen(
                                 val text = if (config.isBlank()) {
                                     stringResource(Res.string.not_set)
                                 } else {
-                                    stringResource(Res.string.lines, config.count { it == 'n' } + 1)
+                                    stringResource(Res.string.lines, config.count { it == '\n' } + 1)
                                 }
                                 Text(text)
                             },
                             onClick = {
-                                openConfigEditor(config, viewModel::setConfig)
+                                onOpenConfigEditor(config, viewModel::setConfig)
                             },
                         )
                     }

@@ -44,6 +44,7 @@ fun VMessSettingsScreen(
     profileId: Long,
     isSubscription: Boolean,
     onResult: (updated: Boolean) -> Unit,
+    onOpenConfigEditor: openConfigEditor,
 ) {
     val viewModel: VMessSettingsViewModel = viewModel { VMessSettingsViewModel() }
 
@@ -55,6 +56,7 @@ fun VMessSettingsScreen(
         title = Res.string.profile_config,
         viewModel = viewModel,
         onResult = onResult,
+        onOpenConfigEditor = onOpenConfigEditor,
     ) { scope, uiState, scrollTo ->
         scope.vmessSettings(uiState as VMessUiState, viewModel, scrollTo)
     }

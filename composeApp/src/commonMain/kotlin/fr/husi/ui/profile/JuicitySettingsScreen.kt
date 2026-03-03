@@ -23,6 +23,7 @@ fun JuicitySettingsScreen(
     profileId: Long,
     isSubscription: Boolean,
     onResult: (updated: Boolean) -> Unit,
+    onOpenConfigEditor: openConfigEditor,
 ) {
     val viewModel: JuicitySettingsViewModel = viewModel { JuicitySettingsViewModel() }
     LaunchedEffect(profileId, isSubscription) {
@@ -33,6 +34,7 @@ fun JuicitySettingsScreen(
         title = Res.string.profile_config,
         viewModel = viewModel,
         onResult = onResult,
+        onOpenConfigEditor = onOpenConfigEditor,
     ) { scope, uiState, _ ->
         scope.juicitySettings(uiState as JuicityUiState, viewModel)
     }

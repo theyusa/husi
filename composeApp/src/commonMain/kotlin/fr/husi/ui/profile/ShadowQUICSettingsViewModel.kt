@@ -31,10 +31,10 @@ internal data class ShadowQUICUiState(
 
     val extraPaths: String = "",
     val maxPaths: Int = 0,
-) : ProfileSettingsUiState
+) : ProfileEditorUiState
 
 @Stable
-internal class ShadowQUICSettingsViewModel : ProfileSettingsViewModel<ShadowQUICBean>() {
+internal class ShadowQUICSettingsViewModel : ProfileEditorViewModel<ShadowQUICBean>() {
     override fun createBean() = ShadowQUICBean().applyDefaultValues()
 
     private val _uiState = MutableStateFlow(ShadowQUICUiState())

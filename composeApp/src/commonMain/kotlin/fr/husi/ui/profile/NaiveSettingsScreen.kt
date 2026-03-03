@@ -34,6 +34,7 @@ fun NaiveSettingsScreen(
     profileId: Long,
     isSubscription: Boolean,
     onResult: (updated: Boolean) -> Unit,
+    onOpenConfigEditor: openConfigEditor,
 ) {
     val viewModel: NaiveSettingsViewModel = viewModel { NaiveSettingsViewModel() }
     LaunchedEffect(profileId, isSubscription) {
@@ -44,6 +45,7 @@ fun NaiveSettingsScreen(
         title = Res.string.profile_config,
         viewModel = viewModel,
         onResult = onResult,
+        onOpenConfigEditor = onOpenConfigEditor,
     ) { scope, uiState, _ ->
         scope.naiveSettings(uiState as NaiveUiState, viewModel)
     }

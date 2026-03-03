@@ -23,6 +23,7 @@ fun WireGuardSettingsScreen(
     profileId: Long,
     isSubscription: Boolean,
     onResult: (updated: Boolean) -> Unit,
+    onOpenConfigEditor: openConfigEditor,
 ) {
     val viewModel: WireGuardSettingsViewModel = viewModel { WireGuardSettingsViewModel() }
 
@@ -34,6 +35,7 @@ fun WireGuardSettingsScreen(
         title = Res.string.profile_config,
         viewModel = viewModel,
         onResult = onResult,
+        onOpenConfigEditor = onOpenConfigEditor,
     ) { scope, uiState, _ ->
         scope.wireGuardSettings(uiState as WireGuardUiState, viewModel)
     }

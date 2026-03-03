@@ -22,10 +22,10 @@ internal data class ChainUiState(
 
     val name: String = "",
     val profiles: List<ProxyEntity> = emptyList(),
-) : ProfileSettingsUiState
+) : ProfileEditorUiState
 
 @Stable
-internal class ChainSettingsViewModel : ProfileSettingsViewModel<ChainBean>() {
+internal class ChainSettingsViewModel : ProfileEditorViewModel<ChainBean>() {
     private val _uiState = MutableStateFlow(ChainUiState())
     override val uiState = _uiState.asStateFlow()
 

@@ -62,6 +62,7 @@ fun ChainSettingsScreen(
     isSubscription: Boolean,
     onOpenProfileSelect: (preSelected: Long?, onSelected: (Long) -> Unit) -> Unit,
     onResult: (updated: Boolean) -> Unit,
+    onOpenConfigEditor: openConfigEditor,
 ) {
     val viewModel: ChainSettingsViewModel = viewModel { ChainSettingsViewModel() }
 
@@ -73,6 +74,7 @@ fun ChainSettingsScreen(
         title = Res.string.chain_settings,
         viewModel = viewModel,
         onResult = onResult,
+        onOpenConfigEditor = onOpenConfigEditor,
     ) { scope, uiState, _ ->
         scope.chainSettings(
             uiState = uiState as ChainUiState,

@@ -14,6 +14,7 @@ fun TrojanSettingsScreen(
     profileId: Long,
     isSubscription: Boolean,
     onResult: (updated: Boolean) -> Unit,
+    onOpenConfigEditor: openConfigEditor,
 ) {
     val viewModel: TrojanSettingsViewModel = viewModel { TrojanSettingsViewModel() }
 
@@ -25,6 +26,7 @@ fun TrojanSettingsScreen(
         title = Res.string.profile_config,
         viewModel = viewModel,
         onResult = onResult,
+        onOpenConfigEditor = onOpenConfigEditor,
     ) { scope, uiState, scrollTo ->
         scope.trojanSettings(uiState as TrojanUiState, viewModel, scrollTo)
     }

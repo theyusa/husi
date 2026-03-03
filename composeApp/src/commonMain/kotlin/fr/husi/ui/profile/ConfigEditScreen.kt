@@ -59,6 +59,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -176,10 +177,13 @@ private fun RepeatableIconButton(
 fun ConfigEditScreen(
     modifier: Modifier = Modifier,
     initialText: String,
-    viewModel: ConfigEditViewModel = viewModel { ConfigEditViewModel(initialText) },
     back: () -> Unit,
     saveAndExit: (text: String) -> Unit,
 ) {
+    val viewModel: ConfigEditViewModel = viewModel { ConfigEditViewModel() }
+    LaunchedEffect(initialText) {
+        viewModel.initialize(initialText)
+    }
     // Force LTR ( this is json editor + make AutoMirrored arrow correct  )
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
         ConfigEditScreenContent(
@@ -222,15 +226,20 @@ private fun ConfigEditScreenContent(
     }
 
     val uiState by viewModel.uiState.collectAsState()
-    val currentText = viewModel.textFieldState.text
 
     var showBackDialog by remember { mutableStateOf(false) }
-    BackHandler(enabled = currentText.toString() != initialText) {
-        showBackDialog = true
+    BackHandler(enabled = true) {
+        if (viewModel.textFieldState.text.toString() != initialText) {
+            showBackDialog = true
+        } else {
+            back()
+        }
     }
 
-    LaunchedEffect(currentText) {
-        viewModel.onTextChange()
+    LaunchedEffect(viewModel) {
+        snapshotFlow { viewModel.textFieldState.text.toString() }.collect { text ->
+            viewModel.onTextChange(text)
+        }
     }
 
     val coroutineScope = rememberCoroutineScope()
@@ -290,7 +299,7 @@ private fun ConfigEditScreenContent(
                         overflowIndicator = ::MoreOverIcon,
                     ) {
                         clickableItem(
-                            onClick = { viewModel.saveAndExit(currentText.toString()) },
+                            onClick = viewModel::saveAndExit,
                             icon = {
                                 Icon(vectorResource(Res.drawable.done), null)
                             },
@@ -408,7 +417,7 @@ private fun ConfigEditScreenContent(
                         contentDescription = stringResource(Res.string.action_test_config),
                         onClick = {
                             coroutineScope.launch {
-                                viewModel.checkConfig(currentText.toString())
+                                viewModel.checkConfig()
                             }
                         },
                     )
@@ -490,7 +499,7 @@ private fun ConfigEditScreenContent(
         },
         confirmButton = {
             TextButton(stringResource(Res.string.ok)) {
-                viewModel.saveAndExit(currentText.toString())
+                viewModel.saveAndExit()
             }
         },
         dismissButton = {

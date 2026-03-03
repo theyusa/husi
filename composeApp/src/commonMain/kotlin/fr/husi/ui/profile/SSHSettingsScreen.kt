@@ -50,6 +50,7 @@ fun SSHSettingsScreen(
     profileId: Long,
     isSubscription: Boolean,
     onResult: (updated: Boolean) -> Unit,
+    onOpenConfigEditor: openConfigEditor,
 ) {
     val viewModel: SSHSettingsViewModel = viewModel { SSHSettingsViewModel() }
 
@@ -61,6 +62,7 @@ fun SSHSettingsScreen(
         title = Res.string.profile_config,
         viewModel = viewModel,
         onResult = onResult,
+        onOpenConfigEditor = onOpenConfigEditor,
     ) { scope, uiState, _ ->
         scope.sshSettings(uiState as SshUiState, viewModel)
     }

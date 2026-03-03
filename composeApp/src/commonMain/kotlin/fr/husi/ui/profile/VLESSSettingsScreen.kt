@@ -38,6 +38,7 @@ fun VLESSSettingsScreen(
     profileId: Long,
     isSubscription: Boolean,
     onResult: (updated: Boolean) -> Unit,
+    onOpenConfigEditor: openConfigEditor,
 ) {
     val viewModel: VLESSSettingsViewModel = viewModel { VLESSSettingsViewModel() }
 
@@ -49,6 +50,7 @@ fun VLESSSettingsScreen(
         title = Res.string.profile_config,
         viewModel = viewModel,
         onResult = onResult,
+        onOpenConfigEditor = onOpenConfigEditor,
     ) { scope, uiState, scrollTo ->
         scope.vlessSettings(uiState as VLESSUiState, viewModel, scrollTo)
     }

@@ -21,10 +21,10 @@ internal data class SshUiState(
     val privateKey: String = "",
     val privateKeyPassphrase: String = "",
     val publicKey: String = "",
-) : ProfileSettingsUiState
+) : ProfileEditorUiState
 
 @Stable
-internal class SSHSettingsViewModel : ProfileSettingsViewModel<SSHBean>() {
+internal class SSHSettingsViewModel : ProfileEditorViewModel<SSHBean>() {
     override fun createBean() = SSHBean().applyDefaultValues()
 
     private val _uiState = MutableStateFlow(SshUiState())

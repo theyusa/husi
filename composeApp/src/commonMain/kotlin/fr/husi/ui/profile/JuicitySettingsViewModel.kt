@@ -20,10 +20,10 @@ internal data class JuicityUiState(
     val sni: String = "",
     val allowInsecure: Boolean = false,
     val pinSha256: String = "",
-) : ProfileSettingsUiState
+) : ProfileEditorUiState
 
 @Stable
-internal class JuicitySettingsViewModel : ProfileSettingsViewModel<JuicityBean>() {
+internal class JuicitySettingsViewModel : ProfileEditorViewModel<JuicityBean>() {
     override fun createBean() = JuicityBean().applyDefaultValues()
 
     private val _uiState = MutableStateFlow(JuicityUiState())

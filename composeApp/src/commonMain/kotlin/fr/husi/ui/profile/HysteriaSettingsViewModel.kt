@@ -35,10 +35,10 @@ internal data class HysteriaUiState(
     val ech: Boolean = false,
     val echConfig: String = "",
     val echQueryServerName: String = "",
-) : ProfileSettingsUiState
+) : ProfileEditorUiState
 
 @Stable
-internal class HysteriaSettingsViewModel : ProfileSettingsViewModel<HysteriaBean>() {
+internal class HysteriaSettingsViewModel : ProfileEditorViewModel<HysteriaBean>() {
     override fun createBean() = HysteriaBean().applyDefaultValues()
 
     private val _uiState = MutableStateFlow(HysteriaUiState())

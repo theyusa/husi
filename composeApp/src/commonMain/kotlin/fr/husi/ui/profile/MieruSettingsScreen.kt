@@ -49,6 +49,7 @@ fun MieruSettingsScreen(
     profileId: Long,
     isSubscription: Boolean,
     onResult: (updated: Boolean) -> Unit,
+    onOpenConfigEditor: openConfigEditor,
 ) {
     val viewModel: MieruSettingsViewModel = viewModel { MieruSettingsViewModel() }
     LaunchedEffect(profileId, isSubscription) {
@@ -59,6 +60,7 @@ fun MieruSettingsScreen(
         title = Res.string.profile_config,
         viewModel = viewModel,
         onResult = onResult,
+        onOpenConfigEditor = onOpenConfigEditor,
     ) { scope, uiState, _ ->
         scope.mieruSettings(uiState as MieruUiState, viewModel)
     }

@@ -28,6 +28,7 @@ fun AnyTLSSettingsScreen(
     profileId: Long,
     isSubscription: Boolean,
     onResult: (updated: Boolean) -> Unit,
+    onOpenConfigEditor: openConfigEditor,
 ) {
     val viewModel: AnyTLSSettingsViewModel = viewModel { AnyTLSSettingsViewModel() }
 
@@ -39,6 +40,7 @@ fun AnyTLSSettingsScreen(
         title = Res.string.profile_config,
         viewModel = viewModel,
         onResult = onResult,
+        onOpenConfigEditor = onOpenConfigEditor,
     ) { scope, uiState, _ ->
         scope.anyTlsSettings(uiState as AnyTLSUiState, viewModel)
     }

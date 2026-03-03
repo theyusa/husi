@@ -23,10 +23,10 @@ internal data class WireGuardUiState(
     val reserved: String = "",
     val listenPort: Int = 0,
     val persistentKeepaliveInterval: Int = 0,
-) : ProfileSettingsUiState
+) : ProfileEditorUiState
 
 @Stable
-internal class WireGuardSettingsViewModel : ProfileSettingsViewModel<WireGuardBean>() {
+internal class WireGuardSettingsViewModel : ProfileEditorViewModel<WireGuardBean>() {
     override fun createBean() = WireGuardBean().applyDefaultValues()
 
     private val _uiState = MutableStateFlow(WireGuardUiState())

@@ -31,10 +31,10 @@ internal data class TuicUiState(
     val echQueryServerName: String = "",
     val clientCert: String = "",
     val clientKey: String = "",
-) : ProfileSettingsUiState
+) : ProfileEditorUiState
 
 @Stable
-internal class TuicSettingsViewModel : ProfileSettingsViewModel<TuicBean>() {
+internal class TuicSettingsViewModel : ProfileEditorViewModel<TuicBean>() {
     override fun createBean() = TuicBean().applyDefaultValues()
 
     private val _uiState = MutableStateFlow(TuicUiState())

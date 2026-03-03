@@ -75,6 +75,7 @@ fun ShadowQUICSettingsScreen(
     profileId: Long,
     isSubscription: Boolean,
     onResult: (updated: Boolean) -> Unit,
+    onOpenConfigEditor: openConfigEditor,
 ) {
     val viewModel: ShadowQUICSettingsViewModel = viewModel { ShadowQUICSettingsViewModel() }
 
@@ -86,6 +87,7 @@ fun ShadowQUICSettingsScreen(
         title = Res.string.profile_config,
         viewModel = viewModel,
         onResult = onResult,
+        onOpenConfigEditor = onOpenConfigEditor,
     ) { scope, uiState, _ ->
         scope.shadowQuicSettings(uiState as ShadowQUICUiState, viewModel)
     }

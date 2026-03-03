@@ -20,10 +20,10 @@ internal data class MieruUiState(
     val password: String = "",
     val mtu: Int = 1400,
     val muxNumber: Int = 0,
-) : ProfileSettingsUiState
+) : ProfileEditorUiState
 
 @Stable
-internal class MieruSettingsViewModel : ProfileSettingsViewModel<MieruBean>() {
+internal class MieruSettingsViewModel : ProfileEditorViewModel<MieruBean>() {
     override fun createBean() = MieruBean().applyDefaultValues()
 
     private val _uiState = MutableStateFlow(MieruUiState())

@@ -19,10 +19,10 @@ internal data class SocksUiState(
     val username: String = "",
     val password: String = "",
     val udpOverTcp: Boolean = false,
-) : ProfileSettingsUiState
+) : ProfileEditorUiState
 
 @Stable
-internal class SocksSettingsViewModel : ProfileSettingsViewModel<SOCKSBean>() {
+internal class SocksSettingsViewModel : ProfileEditorViewModel<SOCKSBean>() {
     override fun createBean() = SOCKSBean().applyDefaultValues()
 
     private val _uiState = MutableStateFlow(SocksUiState())

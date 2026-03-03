@@ -34,10 +34,10 @@ internal data class TrustTunnelUiState(
     val echQueryServerName: String = "",
     val clientCert: String = "",
     val clientKey: String = "",
-) : ProfileSettingsUiState
+) : ProfileEditorUiState
 
 @Stable
-internal class TrustTunnelSettingsViewModel : ProfileSettingsViewModel<TrustTunnelBean>() {
+internal class TrustTunnelSettingsViewModel : ProfileEditorViewModel<TrustTunnelBean>() {
     override fun createBean() = TrustTunnelBean().applyDefaultValues()
 
     private val _uiState = MutableStateFlow(TrustTunnelUiState())

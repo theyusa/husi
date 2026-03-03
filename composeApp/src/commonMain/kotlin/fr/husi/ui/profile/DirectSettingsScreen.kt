@@ -19,6 +19,7 @@ fun DirectSettingsScreen(
     profileId: Long,
     isSubscription: Boolean,
     onResult: (updated: Boolean) -> Unit,
+    onOpenConfigEditor: openConfigEditor,
 ) {
     val viewModel: DirectSettingsViewModel = viewModel { DirectSettingsViewModel() }
     LaunchedEffect(profileId, isSubscription) {
@@ -29,6 +30,7 @@ fun DirectSettingsScreen(
         title = Res.string.profile_config,
         viewModel = viewModel,
         onResult = onResult,
+        onOpenConfigEditor = onOpenConfigEditor,
     ) { scope, uiState, _ ->
         scope.directSettings(uiState as DirectUiState, viewModel)
     }

@@ -27,6 +27,7 @@ fun TuicSettingsScreen(
     profileId: Long,
     isSubscription: Boolean,
     onResult: (updated: Boolean) -> Unit,
+    onOpenConfigEditor: openConfigEditor,
 ) {
     val viewModel: TuicSettingsViewModel = viewModel { TuicSettingsViewModel() }
 
@@ -38,6 +39,7 @@ fun TuicSettingsScreen(
         title = Res.string.profile_config,
         viewModel = viewModel,
         onResult = onResult,
+        onOpenConfigEditor = onOpenConfigEditor,
     ) { scope, uiState, _ ->
         scope.tuicSettings(uiState as TuicUiState, viewModel)
     }

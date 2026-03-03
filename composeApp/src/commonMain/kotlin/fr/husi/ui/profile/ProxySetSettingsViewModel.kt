@@ -38,10 +38,10 @@ internal data class ProxySetUiState(
 
     val profiles: List<ProxyEntity> = emptyList(),
     val groups: LinkedHashMap<Long, ProxyGroup> = LinkedHashMap(),
-) : ProfileSettingsUiState
+) : ProfileEditorUiState
 
 @Stable
-internal class ProxySetSettingsViewModel : ProfileSettingsViewModel<ProxySetBean>() {
+internal class ProxySetSettingsViewModel : ProfileEditorViewModel<ProxySetBean>() {
 
     private val _uiState = MutableStateFlow(ProxySetUiState())
     override val uiState = _uiState.asStateFlow()

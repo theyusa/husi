@@ -28,6 +28,7 @@ fun SocksSettingsScreen(
     profileId: Long,
     isSubscription: Boolean,
     onResult: (updated: Boolean) -> Unit,
+    onOpenConfigEditor: openConfigEditor,
 ) {
     val viewModel: SocksSettingsViewModel = viewModel { SocksSettingsViewModel() }
     LaunchedEffect(profileId, isSubscription) {
@@ -38,6 +39,7 @@ fun SocksSettingsScreen(
         title = Res.string.profile_config,
         viewModel = viewModel,
         onResult = onResult,
+        onOpenConfigEditor = onOpenConfigEditor,
     ) { scope, uiState, _ ->
         scope.socksSettings(uiState as SocksUiState, viewModel)
     }

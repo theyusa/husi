@@ -34,10 +34,10 @@ internal data class AnyTLSUiState(
     val echQueryServerName: String = "",
     val clientCert: String = "",
     val clientKey: String = "",
-) : ProfileSettingsUiState
+) : ProfileEditorUiState
 
 @Stable
-internal class AnyTLSSettingsViewModel : ProfileSettingsViewModel<AnyTLSBean>() {
+internal class AnyTLSSettingsViewModel : ProfileEditorViewModel<AnyTLSBean>() {
     override fun createBean() = AnyTLSBean().applyDefaultValues()
 
     private val _uiState = MutableStateFlow(AnyTLSUiState())

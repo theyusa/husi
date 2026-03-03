@@ -100,6 +100,7 @@ fun ProxySetSettingsScreen(
     isSubscription: Boolean,
     onOpenProfileSelect: (preSelected: Long?, onSelected: (Long) -> Unit) -> Unit,
     onResult: (updated: Boolean) -> Unit,
+    onOpenConfigEditor: openConfigEditor,
 ) {
     val viewModel: ProxySetSettingsViewModel = viewModel { ProxySetSettingsViewModel() }
 
@@ -111,6 +112,7 @@ fun ProxySetSettingsScreen(
         title = Res.string.group_settings,
         viewModel = viewModel,
         onResult = onResult,
+        onOpenConfigEditor = onOpenConfigEditor,
     ) { scope, uiState, _ ->
         scope.proxySetSettings(
             uiState = uiState as ProxySetUiState,

@@ -66,6 +66,7 @@ fun ShadowsocksSettingsScreen(
     profileId: Long,
     isSubscription: Boolean,
     onResult: (updated: Boolean) -> Unit,
+    onOpenConfigEditor: openConfigEditor,
 ) {
     val viewModel: ShadowsocksSettingsViewModel = viewModel { ShadowsocksSettingsViewModel() }
     LaunchedEffect(profileId, isSubscription) {
@@ -76,6 +77,7 @@ fun ShadowsocksSettingsScreen(
         title = Res.string.profile_config,
         viewModel = viewModel,
         onResult = onResult,
+        onOpenConfigEditor = onOpenConfigEditor,
     ) { scope, uiState, scrollTo ->
         scope.shadowsocksSettings(uiState as ShadowsocksUiState, viewModel, scrollTo)
     }

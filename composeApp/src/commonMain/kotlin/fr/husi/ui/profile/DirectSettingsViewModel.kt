@@ -13,10 +13,10 @@ internal data class DirectUiState(
     val name: String = "",
     override val customConfig: String = "",
     override val customOutbound: String = "",
-) : ProfileSettingsUiState
+) : ProfileEditorUiState
 
 @Stable
-internal class DirectSettingsViewModel : ProfileSettingsViewModel<DirectBean>() {
+internal class DirectSettingsViewModel : ProfileEditorViewModel<DirectBean>() {
     override fun createBean() = DirectBean().applyDefaultValues()
 
     private val _uiState = MutableStateFlow(DirectUiState())

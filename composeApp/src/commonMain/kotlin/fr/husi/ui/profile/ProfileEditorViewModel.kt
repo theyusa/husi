@@ -30,29 +30,29 @@ import kotlinx.coroutines.launch
 import fr.husi.resources.*
 
 @Immutable
-internal sealed interface ProfileSettingsUiEvent {
-    data class Alert(val title: StringOrRes, val message: StringOrRes) : ProfileSettingsUiEvent
+internal sealed interface ProfileEditorUiEvent {
+    data class Alert(val title: StringOrRes, val message: StringOrRes) : ProfileEditorUiEvent
 }
 
 @Immutable
-internal sealed interface ProfileSettingsUiState {
+internal sealed interface ProfileEditorUiState {
     val customConfig: String
     val customOutbound: String
 }
 
 @Stable
-internal abstract class ProfileSettingsViewModel<T : AbstractBean> : ViewModel() {
+internal abstract class ProfileEditorViewModel<T : AbstractBean> : ViewModel() {
 
-    abstract val uiState: StateFlow<ProfileSettingsUiState>
+    abstract val uiState: StateFlow<ProfileEditorUiState>
 
-    private val _uiEvent = MutableSharedFlow<ProfileSettingsUiEvent>()
+    private val _uiEvent = MutableSharedFlow<ProfileEditorUiEvent>()
     val uiEvent = _uiEvent.asSharedFlow()
 
     protected suspend fun emitAlert(title: StringOrRes, message: StringOrRes) {
-        _uiEvent.emit(ProfileSettingsUiEvent.Alert(title, message))
+        _uiEvent.emit(ProfileEditorUiEvent.Alert(title, message))
     }
 
-    private val _initialState = MutableStateFlow<ProfileSettingsUiState?>(null)
+    private val _initialState = MutableStateFlow<ProfileEditorUiState?>(null)
     val isDirty by lazy(LazyThreadSafetyMode.NONE) {
         uiState.map { currentState ->
             _initialState.value?.let { initialState ->
@@ -74,19 +74,27 @@ internal abstract class ProfileSettingsViewModel<T : AbstractBean> : ViewModel()
     lateinit var proxyEntity: ProxyEntity
     lateinit var bean: T
     var isSubscription = false
+    private var initializedFor: Pair<Long, Boolean>? = null
 
-    fun initialize(editingId: Long, isSubscription: Boolean) = viewModelScope.launch {
-        this@ProfileSettingsViewModel.editingId = editingId
-        this@ProfileSettingsViewModel.isSubscription = isSubscription
-
-        bean = if (isNew) {
-            createBean().applyDefaultValues()
-        } else {
-            proxyEntity = onIoDispatcher { SagerDatabase.proxyDao.getById(editingId)!! }
-            (proxyEntity.requireBean() as T)
+    fun initialize(editingId: Long, isSubscription: Boolean) {
+        val args = editingId to isSubscription
+        if (initializedFor == args) {
+            return
         }
-        bean.writeToUiState()
-        _initialState.value = uiState.value
+        initializedFor = args
+        viewModelScope.launch {
+            this@ProfileEditorViewModel.editingId = editingId
+            this@ProfileEditorViewModel.isSubscription = isSubscription
+
+            bean = if (isNew) {
+                createBean().applyDefaultValues()
+            } else {
+                proxyEntity = onIoDispatcher { SagerDatabase.proxyDao.getById(editingId)!! }
+                (proxyEntity.requireBean() as T)
+            }
+            bean.writeToUiState()
+            _initialState.value = uiState.value
+        }
     }
 
     fun delete() = runOnIoDispatcher {

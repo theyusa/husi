@@ -84,6 +84,7 @@ fun HysteriaSettingsScreen(
     profileId: Long,
     isSubscription: Boolean,
     onResult: (updated: Boolean) -> Unit,
+    onOpenConfigEditor: openConfigEditor,
 ) {
     val viewModel: HysteriaSettingsViewModel = viewModel { HysteriaSettingsViewModel() }
     val protocolNames = listOf(
@@ -100,6 +101,7 @@ fun HysteriaSettingsScreen(
         title = Res.string.profile_config,
         viewModel = viewModel,
         onResult = onResult,
+        onOpenConfigEditor = onOpenConfigEditor,
     ) { scope, uiState, _ ->
         scope.hysteriaSettings(uiState as HysteriaUiState, viewModel, protocolNames)
     }

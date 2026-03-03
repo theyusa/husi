@@ -39,7 +39,7 @@ data class ConfigEditUiState(
 )
 
 @Stable
-class ConfigEditViewModel(initialText: String) : ViewModel() {
+class ConfigEditViewModel : ViewModel() {
 
     private val _uiEvent = MutableSharedFlow<ConfigEditUiEvent>()
     val uiEvent = _uiEvent.asSharedFlow()
@@ -47,19 +47,28 @@ class ConfigEditViewModel(initialText: String) : ViewModel() {
     private val _uiState = MutableStateFlow(ConfigEditUiState())
     val uiState: StateFlow<ConfigEditUiState> = _uiState.asStateFlow()
 
-    val textFieldState = TextFieldState(initialText)
+    val textFieldState = TextFieldState("")
 
-    private val historyStack = mutableListOf(initialText)
+    private val historyStack = mutableListOf("")
     private var historyPointer = 0
     private val maxHistorySize = 25
 
     private var debounceJob: Job? = null
     private val debounceDelay = 500L
 
-    private var lastText: String = initialText
+    private var lastText: String = ""
 
-    fun onTextChange() {
-        val newText = textFieldState.text.toString()
+    fun initialize(initialText: String) {
+        debounceJob?.cancel()
+        textFieldState.setTextAndPlaceCursorAtEnd(initialText)
+        historyStack.clear()
+        historyStack.add(initialText)
+        historyPointer = 0
+        lastText = initialText
+        updateUndoRedoState()
+    }
+
+    fun onTextChange(newText: String) {
         if (newText == lastText) return
         lastText = newText
 
@@ -155,7 +164,11 @@ class ConfigEditViewModel(initialText: String) : ViewModel() {
         return Libcore.formatConfig(origin.toString())
     }
 
-    suspend fun checkConfig(text: String) {
+    suspend fun checkConfig() {
+        checkConfig(textFieldState.text.toString())
+    }
+
+    private suspend fun checkConfig(text: String) {
         try {
             val jsonContent = if (text.contains("outbound")) {
                 // complete config
@@ -175,9 +188,9 @@ class ConfigEditViewModel(initialText: String) : ViewModel() {
         _uiEvent.emit(ConfigEditUiEvent.SnackBar(Res.string.ok))
     }
 
-    fun saveAndExit(text: String) = viewModelScope.launch {
+    fun saveAndExit() = viewModelScope.launch {
         val formatted = try {
-            formatJson(text)
+            formatJson(textFieldState.text.toString())
         } catch (e: Exception) {
             Logs.w(e)
             _uiEvent.emit(ConfigEditUiEvent.Alert(e.readableMessage))

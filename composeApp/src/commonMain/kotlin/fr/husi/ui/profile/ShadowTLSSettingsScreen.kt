@@ -27,6 +27,7 @@ fun ShadowTLSSettingsScreen(
     profileId: Long,
     isSubscription: Boolean,
     onResult: (updated: Boolean) -> Unit,
+    onOpenConfigEditor: openConfigEditor,
 ) {
     val viewModel: ShadowTLSSettingsViewModel = viewModel { ShadowTLSSettingsViewModel() }
 
@@ -38,6 +39,7 @@ fun ShadowTLSSettingsScreen(
         title = Res.string.profile_config,
         viewModel = viewModel,
         onResult = onResult,
+        onOpenConfigEditor = onOpenConfigEditor,
     ) { scope, uiState, _ ->
         scope.shadowTlsSettings(uiState as ShadowTLSUiState, viewModel)
     }

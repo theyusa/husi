@@ -27,10 +27,10 @@ internal data class NaiveUiState(
     val echQueryServerName: String = "",
     override val customConfig: String = "",
     override val customOutbound: String = "",
-) : ProfileSettingsUiState
+) : ProfileEditorUiState
 
 @Stable
-internal class NaiveSettingsViewModel : ProfileSettingsViewModel<NaiveBean>() {
+internal class NaiveSettingsViewModel : ProfileEditorViewModel<NaiveBean>() {
     override fun createBean() = NaiveBean().applyDefaultValues()
 
     private val _uiState = MutableStateFlow(NaiveUiState())

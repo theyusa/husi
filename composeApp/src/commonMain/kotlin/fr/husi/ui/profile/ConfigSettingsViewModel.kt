@@ -13,10 +13,10 @@ internal data class ConfigUiState(
     val type: Int = ConfigBean.TYPE_OUTBOUND,
     override val customConfig: String = "",
     override val customOutbound: String = "",
-) : ProfileSettingsUiState
+) : ProfileEditorUiState
 
 @Stable
-internal class ConfigSettingsViewModel : ProfileSettingsViewModel<ConfigBean>() {
+internal class ConfigSettingsViewModel : ProfileEditorViewModel<ConfigBean>() {
 
     override fun createBean() = ConfigBean()
 
