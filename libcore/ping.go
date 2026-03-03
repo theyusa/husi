@@ -90,7 +90,7 @@ func (b *boxInstance) urlTest(tag, link string, timeout int32) (latency int32, e
 		}
 		chLatency <- t
 
-		historyStorage := b.api.HistoryStorage()
+		historyStorage := b.historyStorage()
 		if historyStorage == nil {
 			return
 		}

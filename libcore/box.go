@@ -177,3 +177,10 @@ func (b *boxInstance) NeedWIFIState() bool {
 func (b *boxInstance) QueryStats(tag string, isUpload bool) int64 {
 	return b.api.QueryStats(tag, isUpload)
 }
+
+func (b *boxInstance) historyStorage() adapter.URLTestHistoryStorage {
+	if b.api == nil {
+		return nil
+	}
+	return b.api.HistoryStorage()
+}
