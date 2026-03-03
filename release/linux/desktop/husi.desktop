@@ -7,3 +7,4 @@ Icon=__HUSI_PACKAGE_NAME__
 Terminal=false
 Categories=Network;
 StartupNotify=true
+MimeType=x-scheme-handler/husi;x-scheme-handler/sing-box;x-scheme-handler/ss;x-scheme-handler/socks;x-scheme-handler/socks4;x-scheme-handler/socks4a;x-scheme-handler/sock5;x-scheme-handler/vmess;x-scheme-handler/vless;x-scheme-handler/trojan;x-scheme-handler/trojan-go;x-scheme-handler/naive+https;x-scheme-handler/naive+quic;x-scheme-handler/hysteria;x-scheme-handler/hysteria2;x-scheme-handler/hy2;x-scheme-handler/tuic;x-scheme-handler/juicity;x-scheme-handler/mieru;x-scheme-handler/anytls;x-scheme-handler/tt;
