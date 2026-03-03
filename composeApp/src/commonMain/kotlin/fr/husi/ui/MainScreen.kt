@@ -25,7 +25,6 @@ import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -37,14 +36,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavController
-import androidx.navigation.NavDestination
-import androidx.navigation.NavDestination.Companion.hasRoute
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
-import androidx.navigation.toRoute
+import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.runtime.rememberNavBackStack
+import androidx.navigation3.ui.NavDisplay
 import fr.husi.AlertType
 import fr.husi.bg.Alert
 import fr.husi.bg.BackendState
@@ -130,14 +124,9 @@ fun MainScreen(
     val uriHandler = LocalUriHandler.current
     val scope = rememberCoroutineScope()
 
-    val navController = rememberNavController()
-    var profileEditorResultCallback by remember { mutableStateOf<((Boolean) -> Unit)?>(null) }
-    var appListSession by remember { mutableStateOf<AppListSession?>(null) }
-    var configEditorSession by remember { mutableStateOf<ConfigEditorSession?>(null) }
-    var assetEditResultCallback by remember { mutableStateOf<((AssetEditResult) -> Unit)?>(null) }
-    var routeSettingsDraft by remember { mutableStateOf<RouteSettingsUiState?>(null) }
-    var routeSettingsSavedCallback by remember { mutableStateOf<(() -> Unit)?>(null) }
-    var profileSelectSession by remember { mutableStateOf<ProfileSelectSession?>(null) }
+    val savedStateConfiguration = remember { NavRoutes.savedStateConfiguration }
+    val backStack = rememberNavBackStack(savedStateConfiguration, NavRoutes.Configuration)
+    var profileSelectRoute by remember { mutableStateOf<NavRoutes.ProfileSelect?>(null) }
     val canCollapseDrawer = drawerIsCollapsible()
     val drawerState = rememberDrawerState(
         if (canCollapseDrawer) {
@@ -146,18 +135,40 @@ fun MainScreen(
             DrawerValue.Open
         },
     )
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentDestination = navBackStackEntry?.destination
-    val isAtStartDestination = currentDestination?.id == navController.graph.startDestinationId
+    val currentRoute = backStack.lastOrNull() as? NavRoutes
+    val isAtStartDestination = currentRoute == NavRoutes.Configuration
     val serviceStatus by BackendState.status.collectAsStateWithLifecycle()
 
     fun openProfileSelect(preSelected: Long?, onSelected: (Long) -> Unit) {
-        profileSelectSession = ProfileSelectSession(preSelected, onSelected)
+        profileSelectRoute = NavRoutes.ProfileSelect(preSelected = preSelected).also {
+            it.onSelected = onSelected
+        }
     }
 
     fun closeDrawer() {
         if (canCollapseDrawer) {
             scope.launch { drawerState.close() }
+        }
+    }
+
+    fun popBackStack(): Boolean {
+        if (backStack.size <= 1) {
+            return false
+        }
+        backStack.removeLastOrNull()
+        return true
+    }
+
+    fun navigateTo(route: NavRoutes) {
+        backStack.add(route)
+    }
+
+    fun navigateToDrawerRoute(route: NavRoutes) {
+        while (backStack.size > 1) {
+            backStack.removeLastOrNull()
+        }
+        if (backStack.lastOrNull() != route) {
+            backStack.add(route)
         }
     }
 
@@ -199,11 +210,9 @@ fun MainScreen(
             canCollapseDrawer && drawerState.isOpen -> scope.launch { drawerState.close() }
 
             !isAtStartDestination -> {
-                val popped = navController.popBackStack()
+                val popped = popBackStack()
                 if (!popped) {
-                    navController.navigate(NavRoutes.Configuration) {
-                        launchSingleTop = true
-                    }
+                    navigateToDrawerRoute(NavRoutes.Configuration)
                 }
             }
 
@@ -238,9 +247,9 @@ fun MainScreen(
             fun BuildDrawerItem(info: DrawerItemInfo) {
                 DrawerItem(
                     info = info,
-                    navController = navController,
                     closeDrawer = ::closeDrawer,
-                    currentDestination = currentDestination,
+                    currentRoute = currentRoute,
+                    onNavigate = ::navigateToDrawerRoute,
                 )
             }
 
@@ -348,296 +357,296 @@ fun MainScreen(
             }
         },
     ) {
-        NavHost(
-            navController = navController,
-            startDestination = NavRoutes.Configuration,
-        ) {
-            fun onDrawerClick() {
-                if (!canCollapseDrawer) {
-                    return
-                }
-                scope.launch {
-                    if (drawerState.isOpen) {
-                        drawerState.close()
-                    } else {
-                        drawerState.open()
-                    }
-                }
+        fun onDrawerClick() {
+            if (!canCollapseDrawer) {
+                return
             }
-            composable<NavRoutes.Configuration> {
-                ConfigurationScreen(
-                    mainViewModel = viewModel,
-                    onNavigationClick = ::onDrawerClick,
-                    selectCallback = null,
-                    preSelected = null,
-                    openProfileEditor = { type, id, isSubscription, onResult ->
-                        profileEditorResultCallback = onResult
-                        navController.navigate(
-                            NavRoutes.ProfileEditor(
-                                type = type,
-                                id = id,
-                                subscription = isSubscription,
-                            ),
-                        )
-                    },
-                )
-            }
-            composable<NavRoutes.Groups> {
-                GroupScreen(
-                    mainViewModel = viewModel,
-                    onDrawerClick = ::onDrawerClick,
-                    openGroupSettings = { groupId ->
-                        navController.navigate(NavRoutes.GroupSettings(groupId = groupId))
-                    },
-                )
-            }
-            composable<NavRoutes.Route> {
-                RouteScreen(
-                    mainViewModel = viewModel,
-                    onDrawerClick = ::onDrawerClick,
-                    openRouteSettings = { routeId ->
-                        routeSettingsDraft = null
-                        routeSettingsSavedCallback = null
-                        navController.navigate(NavRoutes.RouteSettings(routeId = routeId))
-                    },
-                    openAssets = {
-                        navController.navigate(NavRoutes.Assets)
-                    },
-                )
-            }
-            composable<NavRoutes.Settings> {
-                SettingsScreen(
-                    mainViewModel = viewModel,
-                    onDrawerClick = ::onDrawerClick,
-                    openAppManager = { navController.navigate(NavRoutes.AppManager) },
-                )
-            }
-            composable<NavRoutes.Plugin> {
-                PluginScreen(
-                    mainViewModel = viewModel,
-                    onDrawerClick = ::onDrawerClick,
-                )
-            }
-            composable<NavRoutes.Log> {
-                LogcatScreen(
-                    mainViewModel = viewModel,
-                    onDrawerClick = ::onDrawerClick,
-                )
-            }
-            composable<NavRoutes.Dashboard> {
-                DashboardScreen(
-                    mainViewModel = viewModel,
-                    onDrawerClick = ::onDrawerClick,
-                    openConnectionDetail = { uuid ->
-                        navController.navigate(NavRoutes.ConnectionsDetail(uuid = uuid))
-                    },
-                )
-            }
-            composable<NavRoutes.ConnectionsDetail> { entry ->
-                val route = entry.toRoute<NavRoutes.ConnectionsDetail>()
-                ConnectionDetailScreen(
-                    uuid = route.uuid,
-                    popup = { navController.navigateUp() },
-                    navigateToRoutes = { navController.navigate(NavRoutes.Route) },
-                    openRouteSettings = { initialState, onSaved ->
-                        routeSettingsDraft = initialState
-                        routeSettingsSavedCallback = onSaved
-                        navController.navigate(
-                            NavRoutes.RouteSettings(
-                                routeId = -1L,
-                                useDraft = true,
-                            ),
-                        )
-                    },
-                )
-            }
-            composable<NavRoutes.ProfileEditor> { entry ->
-                val route = entry.toRoute<NavRoutes.ProfileEditor>()
-                ProfileEditorScreen(
-                    type = route.type,
-                    profileId = route.id,
-                    isSubscription = route.subscription,
-                    onOpenProfileSelect = ::openProfileSelect,
-                    onOpenConfigEditor = { initialText, onResult ->
-                        configEditorSession = ConfigEditorSession(
-                            initialText = initialText,
-                            onResult = onResult,
-                        )
-                        navController.navigate(NavRoutes.ConfigEditor)
-                    },
-                    onResult = { updated ->
-                        profileEditorResultCallback?.invoke(updated)
-                        profileEditorResultCallback = null
-                        navController.navigateUp()
-                    },
-                )
-            }
-            composable<NavRoutes.AppManager> {
-                AppManagerScreen(
-                    onBackPress = { navController.navigateUp() },
-                )
-            }
-            composable<NavRoutes.GroupSettings> { entry ->
-                val route = entry.toRoute<NavRoutes.GroupSettings>()
-                GroupSettingsScreen(
-                    groupId = route.groupId,
-                    onBackPress = { navController.navigateUp() },
-                    onOpenProfileSelect = ::openProfileSelect,
-                )
-            }
-            composable<NavRoutes.RouteSettings> { entry ->
-                val route = entry.toRoute<NavRoutes.RouteSettings>()
-                val initialState = if (route.useDraft) routeSettingsDraft else null
-                RouteSettingsScreen(
-                    routeId = route.routeId,
-                    initialState = initialState,
-                    onBackPress = {
-                        routeSettingsDraft = null
-                        routeSettingsSavedCallback = null
-                        navController.navigateUp()
-                    },
-                    onSaved = {
-                        routeSettingsSavedCallback?.invoke()
-                        routeSettingsDraft = null
-                        routeSettingsSavedCallback = null
-                        navController.navigateUp()
-                    },
-                    onOpenProfileSelect = ::openProfileSelect,
-                    onOpenAppList = { initialPackages, onResult ->
-                        appListSession = AppListSession(
-                            initialPackages = initialPackages,
-                            onResult = onResult,
-                        )
-                        navController.navigate(NavRoutes.AppList)
-                    },
-                    onOpenConfigEditor = { initialText, onResult ->
-                        configEditorSession = ConfigEditorSession(
-                            initialText = initialText,
-                            onResult = onResult,
-                        )
-                        navController.navigate(NavRoutes.ConfigEditor)
-                    },
-                )
-            }
-            composable<NavRoutes.AppList> {
-                val session = appListSession
-                if (session == null) {
-                    LaunchedEffect(Unit) {
-                        navController.navigateUp()
-                    }
+            scope.launch {
+                if (drawerState.isOpen) {
+                    drawerState.close()
                 } else {
-                    DisposableEffect(Unit) {
-                        onDispose {
-                            appListSession = null
-                        }
-                    }
-                    AppListScreen(
-                        initialPackages = session.initialPackages,
-                        onSave = { selectedPackages ->
-                            session.onResult(selectedPackages)
-                            navController.navigateUp()
-                        },
-                    )
+                    drawerState.open()
                 }
-            }
-            composable<NavRoutes.ConfigEditor> {
-                val session = configEditorSession
-                if (session == null) {
-                    LaunchedEffect(Unit) {
-                        navController.navigateUp()
-                    }
-                } else {
-                    ConfigEditScreen(
-                        initialText = session.initialText,
-                        back = {
-                            configEditorSession = null
-                            navController.navigateUp()
-                        },
-                        saveAndExit = { text ->
-                            session.onResult(text)
-                            configEditorSession = null
-                            navController.navigateUp()
-                        },
-                    )
-                }
-            }
-            composable<NavRoutes.Assets> {
-                AssetsScreen(
-                    onBackPress = { navController.navigateUp() },
-                    onOpenAssetEditor = { assetName, onResult ->
-                        assetEditResultCallback = onResult
-                        navController.navigate(NavRoutes.AssetEdit(assetName = assetName))
-                    },
-                )
-            }
-            composable<NavRoutes.AssetEdit> { entry ->
-                val route = entry.toRoute<NavRoutes.AssetEdit>()
-                AssetEditScreen(
-                    assetName = route.assetName,
-                    onFinished = { result ->
-                        assetEditResultCallback?.invoke(result)
-                        assetEditResultCallback = null
-                        navController.navigateUp()
-                    },
-                )
-            }
-            composable<NavRoutes.Tools> {
-                ToolsScreen(
-                    mainViewModel = viewModel,
-                    onDrawerClick = ::onDrawerClick,
-                    onOpenTool = { route ->
-                        navController.navigate(route)
-                    },
-                )
-            }
-            composable<NavRoutes.ToolsPage.Stun> {
-                StunScreen(
-                    onBackPress = { navController.navigateUp() },
-                )
-            }
-            composable<NavRoutes.ToolsPage.GetCert> {
-                GetCertScreen(
-                    onBack = { navController.navigateUp() },
-                )
-            }
-            composable<NavRoutes.ToolsPage.VPNScanner> {
-                VPNScannerScreen(
-                    onBackPress = { navController.navigateUp() },
-                )
-            }
-            composable<NavRoutes.ToolsPage.SpeedTest> {
-                SpeedtestScreen(
-                    onBackPress = { navController.navigateUp() },
-                )
-            }
-            composable<NavRoutes.ToolsPage.RuleSetMatch> {
-                RuleSetMatchScreen(
-                    onBackPress = { navController.navigateUp() },
-                )
-            }
-            composable<NavRoutes.About> {
-                AboutScreen(
-                    mainViewModel = viewModel,
-                    onDrawerClick = ::onDrawerClick,
-                    onNavigateToLibraries = { navController.navigate(NavRoutes.Libraries) },
-                )
-            }
-            composable<NavRoutes.Libraries> {
-                LibrariesScreen(
-                    onBackPress = { navController.navigateUp() },
-                )
             }
         }
 
-        val session = profileSelectSession
-        if (session != null) {
+        NavDisplay(
+            backStack = backStack,
+            onBack = { popBackStack() },
+            entryProvider = entryProvider(
+                fallback = { key ->
+                    error("Unknown route: $key")
+                },
+            ) {
+                entry<NavRoutes.Configuration> {
+                    ConfigurationScreen(
+                        mainViewModel = viewModel,
+                        onNavigationClick = ::onDrawerClick,
+                        selectCallback = null,
+                        preSelected = null,
+                        openProfileEditor = { type, id, isSubscription, onResult ->
+                            navigateTo(
+                                NavRoutes.ProfileEditor(
+                                    type = type,
+                                    id = id,
+                                    subscription = isSubscription,
+                                ).also {
+                                    it.onResult = onResult
+                                },
+                            )
+                        },
+                    )
+                }
+
+                entry<NavRoutes.Groups> {
+                    GroupScreen(
+                        mainViewModel = viewModel,
+                        onDrawerClick = ::onDrawerClick,
+                        openGroupSettings = { groupId ->
+                            navigateTo(NavRoutes.GroupSettings(groupId = groupId))
+                        },
+                    )
+                }
+
+                entry<NavRoutes.Route> {
+                    RouteScreen(
+                        mainViewModel = viewModel,
+                        onDrawerClick = ::onDrawerClick,
+                        openRouteSettings = { routeId ->
+                            navigateTo(NavRoutes.RouteSettings(routeId = routeId))
+                        },
+                        openAssets = {
+                            navigateTo(NavRoutes.Assets)
+                        },
+                    )
+                }
+
+                entry<NavRoutes.Settings> {
+                    SettingsScreen(
+                        mainViewModel = viewModel,
+                        onDrawerClick = ::onDrawerClick,
+                        openAppManager = { navigateTo(NavRoutes.AppManager) },
+                    )
+                }
+
+                entry<NavRoutes.Plugin> {
+                    PluginScreen(
+                        mainViewModel = viewModel,
+                        onDrawerClick = ::onDrawerClick,
+                    )
+                }
+
+                entry<NavRoutes.Log> {
+                    LogcatScreen(
+                        mainViewModel = viewModel,
+                        onDrawerClick = ::onDrawerClick,
+                    )
+                }
+
+                entry<NavRoutes.Dashboard> {
+                    DashboardScreen(
+                        mainViewModel = viewModel,
+                        onDrawerClick = ::onDrawerClick,
+                        openConnectionDetail = { uuid ->
+                            navigateTo(NavRoutes.ConnectionsDetail(uuid = uuid))
+                        },
+                    )
+                }
+
+                entry<NavRoutes.ConnectionsDetail> { key ->
+                    ConnectionDetailScreen(
+                        uuid = key.uuid,
+                        popup = { popBackStack() },
+                        navigateToRoutes = { navigateTo(NavRoutes.Route) },
+                        openRouteSettings = { initialState, onSaved ->
+                            navigateTo(
+                                NavRoutes.RouteSettings(
+                                    routeId = -1L,
+                                    useDraft = true,
+                                ).also {
+                                    it.initialState = initialState
+                                    it.onSaved = onSaved
+                                },
+                            )
+                        },
+                    )
+                }
+
+                entry<NavRoutes.ProfileEditor> { key ->
+                    ProfileEditorScreen(
+                        type = key.type,
+                        profileId = key.id,
+                        isSubscription = key.subscription,
+                        onOpenProfileSelect = ::openProfileSelect,
+                        onOpenConfigEditor = { initialText, onResult ->
+                            navigateTo(
+                                NavRoutes.ConfigEditor(initialText = initialText).also {
+                                    it.onResult = onResult
+                                },
+                            )
+                        },
+                        onResult = { updated ->
+                            key.onResult?.invoke(updated)
+                            popBackStack()
+                        },
+                    )
+                }
+
+                entry<NavRoutes.AppManager> {
+                    AppManagerScreen(
+                        onBackPress = { popBackStack() },
+                    )
+                }
+
+                entry<NavRoutes.GroupSettings> { key ->
+                    GroupSettingsScreen(
+                        groupId = key.groupId,
+                        onBackPress = { popBackStack() },
+                        onOpenProfileSelect = ::openProfileSelect,
+                    )
+                }
+
+                entry<NavRoutes.RouteSettings> { key ->
+                    val initialState = if (key.useDraft) key.initialState else null
+                    RouteSettingsScreen(
+                        routeId = key.routeId,
+                        initialState = initialState,
+                        onBackPress = { popBackStack() },
+                        onSaved = {
+                            key.onSaved?.invoke()
+                            popBackStack()
+                        },
+                        onOpenProfileSelect = ::openProfileSelect,
+                        onOpenAppList = { initialPackages, onResult ->
+                            navigateTo(
+                                NavRoutes.AppList(
+                                    initialPackages = initialPackages,
+                                ).also {
+                                    it.onResult = onResult
+                                },
+                            )
+                        },
+                        onOpenConfigEditor = { initialText, onResult ->
+                            navigateTo(
+                                NavRoutes.ConfigEditor(initialText = initialText).also {
+                                    it.onResult = onResult
+                                },
+                            )
+                        },
+                    )
+                }
+
+                entry<NavRoutes.AppList> { key ->
+                    AppListScreen(
+                        initialPackages = key.initialPackages,
+                        onSave = { selectedPackages ->
+                            key.onResult?.invoke(selectedPackages)
+                            popBackStack()
+                        },
+                    )
+                }
+
+                entry<NavRoutes.ConfigEditor> { key ->
+                    ConfigEditScreen(
+                        initialText = key.initialText,
+                        back = { popBackStack() },
+                        saveAndExit = { text ->
+                            key.onResult?.invoke(text)
+                            popBackStack()
+                        },
+                    )
+                }
+
+                entry<NavRoutes.Assets> {
+                    AssetsScreen(
+                        onBackPress = { popBackStack() },
+                        onOpenAssetEditor = { assetName, onResult ->
+                            navigateTo(
+                                NavRoutes.AssetEdit(assetName = assetName).also {
+                                    it.onFinished = onResult
+                                },
+                            )
+                        },
+                    )
+                }
+
+                entry<NavRoutes.AssetEdit> { key ->
+                    AssetEditScreen(
+                        assetName = key.assetName,
+                        onFinished = { result ->
+                            key.onFinished?.invoke(result)
+                            popBackStack()
+                        },
+                    )
+                }
+
+                entry<NavRoutes.Tools> {
+                    ToolsScreen(
+                        mainViewModel = viewModel,
+                        onDrawerClick = ::onDrawerClick,
+                        onOpenTool = { route ->
+                            navigateTo(route)
+                        },
+                    )
+                }
+
+                entry<NavRoutes.ToolsPage.Stun> {
+                    StunScreen(
+                        onBackPress = { popBackStack() },
+                    )
+                }
+
+                entry<NavRoutes.ToolsPage.GetCert> {
+                    GetCertScreen(
+                        onBack = { popBackStack() },
+                    )
+                }
+
+                entry<NavRoutes.ToolsPage.VPNScanner> {
+                    VPNScannerScreen(
+                        onBackPress = { popBackStack() },
+                    )
+                }
+
+                entry<NavRoutes.ToolsPage.SpeedTest> {
+                    SpeedtestScreen(
+                        onBackPress = { popBackStack() },
+                    )
+                }
+
+                entry<NavRoutes.ToolsPage.RuleSetMatch> {
+                    RuleSetMatchScreen(
+                        onBackPress = { popBackStack() },
+                    )
+                }
+
+                entry<NavRoutes.About> {
+                    AboutScreen(
+                        mainViewModel = viewModel,
+                        onDrawerClick = ::onDrawerClick,
+                        onNavigateToLibraries = { navigateTo(NavRoutes.Libraries) },
+                    )
+                }
+
+                entry<NavRoutes.Libraries> {
+                    LibrariesScreen(
+                        onBackPress = { popBackStack() },
+                    )
+                }
+            },
+        )
+
+        val profileSelect = profileSelectRoute
+        if (profileSelect != null) {
             ProfileSelectSheet(
                 mainViewModel = viewModel,
-                preSelected = session.preSelected,
-                onDismiss = { profileSelectSession = null },
+                preSelected = profileSelect.preSelected,
+                onDismiss = {
+                    profileSelectRoute = null
+                },
                 onSelected = { id ->
-                    session.onSelected(id)
-                    profileSelectSession = null
+                    profileSelect.onSelected?.invoke(id)
+                    profileSelectRoute = null
                 },
             )
         }
@@ -791,43 +800,22 @@ private data class DrawerItemInfo(
     val route: NavRoutes,
 )
 
-private data class AppListSession(
-    val initialPackages: Set<String>,
-    val onResult: (Set<String>) -> Unit,
-)
-
-private data class ConfigEditorSession(
-    val initialText: String,
-    val onResult: (String) -> Unit,
-)
-
-private data class ProfileSelectSession(
-    val preSelected: Long?,
-    val onSelected: (Long) -> Unit,
-)
-
 @Composable
 private fun DrawerItem(
     modifier: Modifier = Modifier,
     info: DrawerItemInfo,
-    navController: NavController,
     closeDrawer: () -> Unit,
-    currentDestination: NavDestination?,
+    currentRoute: NavRoutes?,
+    onNavigate: (NavRoutes) -> Unit,
 ) {
-    val selected = currentDestination.matchesRoute(info.route)
+    val selected = currentRoute.matchesRoute(info.route)
     NavigationDrawerItem(
         label = { Text(stringResource(info.label)) },
         selected = selected,
         onClick = {
             closeDrawer()
             if (!selected) {
-                navController.navigate(info.route) {
-                    popUpTo(navController.graph.startDestinationId) {
-                        saveState = true
-                    }
-                    launchSingleTop = true
-                    restoreState = true
-                }
+                onNavigate(info.route)
             }
         },
         modifier = modifier.padding(NavigationDrawerItemDefaults.ItemPadding),
@@ -837,9 +825,9 @@ private fun DrawerItem(
     )
 }
 
-private fun NavDestination?.matchesRoute(
+private fun NavRoutes?.matchesRoute(
     route: NavRoutes,
 ): Boolean {
-    val destination = this ?: return false
-    return destination.hasRoute(route::class)
+    val current = this ?: return false
+    return current::class == route::class
 }

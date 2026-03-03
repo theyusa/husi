@@ -14,7 +14,7 @@ jetbrainsLifecycle = "2.9.6"
 androidxWork = "2.11.1"
 androidxDatastore = "1.2.0"
 androidxComposeBom = "2026.02.01"
-jetbrainsNavigationCompose = "2.9.2"
+jetbrainsNavigation3Ui = "1.0.0-alpha06"
 accompanist = "0.37.3"
 composePreference = "2.1.1"
 fastScroller = "0.3.2"
@@ -87,7 +87,7 @@ jetbrains-compose-components-resources = { module = "org.jetbrains.compose.compo
 jetbrains-compose-ui-tooling-preview = { module = "org.jetbrains.compose.ui:ui-tooling-preview", version.ref = "composeMultiplatform" }
 jetbrains-lifecycle-viewmodel-compose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "jetbrainsLifecycle" }
 jetbrains-lifecycle-runtime-compose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose", version.ref = "jetbrainsLifecycle" }
-jetbrains-navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "jetbrainsNavigationCompose" }
+jetbrains-navigation3-ui = { module = "org.jetbrains.androidx.navigation3:navigation3-ui", version.ref = "jetbrainsNavigation3Ui" }
 
 [plugins]
 aboutlibraries = { id = "com.mikepenz.aboutlibraries.plugin", version.ref = "aboutlibraries" }

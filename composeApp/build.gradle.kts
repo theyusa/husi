@@ -281,7 +281,7 @@ kotlin {
                 implementation(libs.jetbrains.compose.ui.tooling.preview)
                 implementation(libs.jetbrains.lifecycle.viewmodel.compose)
                 implementation(libs.jetbrains.lifecycle.runtime.compose)
-                implementation(libs.jetbrains.navigation.compose)
+                implementation(libs.jetbrains.navigation3.ui)
                 implementation(libs.kotlinx.collections.immutable)
                 implementation(libs.androidx.datastore.preferences)
                 implementation(libs.androidx.room.runtime)
