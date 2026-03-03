@@ -409,7 +409,7 @@ fun SettingsScreen(
                     }
                     item(Key.APP_LANGUAGE, PreferenceType.LIST) {
                         fun getLanguageDisplayName(tag: String): String =
-                            AppLanguage.fromTag(tag)?.nativeName ?: runBlocking {
+                            AppLanguage.fromTag(tag)?.displayName ?: runBlocking {
                                 repo.getString(Res.string.language_system_default)
                             }
 

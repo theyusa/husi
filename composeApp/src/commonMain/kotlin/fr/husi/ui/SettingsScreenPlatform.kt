@@ -3,9 +3,7 @@ package fr.husi.ui
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
-import fr.husi.ktx.emptyAsNull
 import kotlinx.coroutines.flow.Flow
-import java.util.Locale
 
 internal expect fun LazyListScope.autoConnect()
 
@@ -14,22 +12,19 @@ internal interface AppLanguageController {
     val flow: Flow<String>
 }
 
-internal enum class AppLanguage(val tag: String) {
-    SYSTEM(""),
-    ARABIC("ar"),
-    ENGLISH("en-US"),
-    SPANISH("es"),
-    PERSIAN("fa"),
-    RUSSIAN("ru"),
-    CHINESE_SIMPLIFIED("zh-Hans-CN"),
-    CHINESE_TRADITIONAL_TW("zh-Hant-TW"),
-    CHINESE_TRADITIONAL_HK("zh-Hant-HK");
-
-    val nativeName: String?
-        get() = tag.emptyAsNull()?.let {
-            val locale = Locale.forLanguageTag(it)
-            locale.getDisplayLanguage(locale)
-        }
+internal enum class AppLanguage(
+    val tag: String,
+    val displayName: String?,
+) {
+    SYSTEM("", null),
+    ARABIC("ar", "العربية"),
+    ENGLISH("en-US", "English"),
+    SPANISH("es", "Español"),
+    PERSIAN("fa", "فارسی"),
+    RUSSIAN("ru", "Русский"),
+    CHINESE_SIMPLIFIED("zh-Hans-CN", "简体中文"),
+    CHINESE_TRADITIONAL_TW("zh-Hant-TW", "繁體中文（台灣）"),
+    CHINESE_TRADITIONAL_HK("zh-Hant-HK", "繁體中文（香港）");
 
     companion object {
         private val tagMap = entries.associateBy { it.tag }
