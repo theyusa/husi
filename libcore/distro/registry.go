@@ -73,7 +73,6 @@ func OutboundRegistry() *outbound.Registry {
 	anytls.RegisterOutbound(registry)
 
 	registerQUICOutbounds(registry)
-	registerWireGuardOutbound(registry)
 	registerNaiveOutbound(registry)
 
 	registerPluginsOutbound(registry)
@@ -99,10 +98,6 @@ func registerQUICOutbounds(registry *outbound.Registry) {
 	hysteria.RegisterOutbound(registry)
 	tuic.RegisterOutbound(registry)
 	hysteria2.RegisterOutbound(registry)
-}
-
-func registerWireGuardOutbound(registry *outbound.Registry) {
-	wireguard.RegisterOutbound(registry)
 }
 
 func registerWireGuardEndpoint(registry *endpoint.Registry) {
