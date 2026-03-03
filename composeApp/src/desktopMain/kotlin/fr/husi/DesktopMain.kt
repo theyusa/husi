@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Tray
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
+import androidx.compose.ui.window.isTraySupported
 import androidx.compose.ui.window.rememberTrayState
 import androidx.compose.ui.window.rememberWindowState
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -36,6 +37,7 @@ import fr.husi.repository.DesktopRepository
 import fr.husi.repository.repo
 import fr.husi.resources.Res
 import fr.husi.resources.app_name
+import fr.husi.resources.close
 import fr.husi.resources.exit
 import fr.husi.resources.ic_service_active
 import fr.husi.resources.ic_service_rest
@@ -79,68 +81,83 @@ fun main(args: Array<String>) {
         }
 
         DesktopResourceEnvironmentFix {
-            Tray(
-                icon = painterResource(Res.drawable.ic_service_rest),
-                state = trayState,
-                tooltip = stringResource(Res.string.app_name),
-                onAction = ::openWindow,
-            ) {
-                // TODO mnemonic and icon is not supported on some desktop environments (GNOME)
-                val serviceStatus by BackendState.status.collectAsState()
-                Item(
-                    text = serviceStatus.profileName ?: stringResource(Res.string.app_name),
+            val supportAdvancedTray = repo.isWindows
+            if (isTraySupported) {
+                Tray(
+                    icon = painterResource(Res.drawable.ic_service_rest),
+                    state = trayState,
+                    tooltip = stringResource(Res.string.app_name),
+                    onAction = ::openWindow,
                 ) {
-                    openWindow()
-                }
-                Item(
-                    text = stringResource(
-                        if (serviceStatus.state == ServiceState.Connected) {
-                            Res.string.stop
+                    val serviceStatus by BackendState.status.collectAsState()
+                    Item(
+                        text = serviceStatus.profileName ?: stringResource(Res.string.app_name),
+                        mnemonic = if (supportAdvancedTray) {
+                            'O'
                         } else {
-                            Res.string.start
+                            null
                         },
-                    ),
-                    enabled = serviceStatus.state == ServiceState.Connected
-                            || serviceStatus.state == ServiceState.Stopped
-                            || serviceStatus.state == ServiceState.Idle,
-                ) {
-                    when (serviceStatus.state) {
-                        ServiceState.Stopped -> repo.startService()
-                        ServiceState.Idle, ServiceState.Connected -> repo.stopService()
-                        else -> {}
-                    }
-                }
-                Menu(
-                    text = stringResource(Res.string.service_mode),
-                ) {
-                    val serviceMode by DataStore.configurationStore
-                        .stringFlow(Key.SERVICE_MODE, Key.MODE_VPN)
-                        .collectAsState(Key.MODE_VPN)
-                    CheckboxItem(
-                        text = stringResource(Res.string.service_mode_proxy),
-                        checked = serviceMode == Key.MODE_PROXY,
                     ) {
-                        if (serviceMode != Key.MODE_PROXY) {
-                            DataStore.serviceMode = Key.MODE_PROXY
-                            repo.reloadService()
+                        openWindow()
+                    }
+                    Item(
+                        text = stringResource(
+                            if (serviceStatus.state == ServiceState.Connected) {
+                                Res.string.stop
+                            } else {
+                                Res.string.start
+                            },
+                        ),
+                        enabled = serviceStatus.state == ServiceState.Connected
+                                || serviceStatus.state == ServiceState.Stopped
+                                || serviceStatus.state == ServiceState.Idle,
+                    ) {
+                        when (serviceStatus.state) {
+                            ServiceState.Stopped -> repo.startService()
+                            ServiceState.Idle, ServiceState.Connected -> repo.stopService()
+                            else -> {}
                         }
                     }
-                    CheckboxItem(
-                        text = stringResource(Res.string.service_mode_vpn),
-                        checked = serviceMode == Key.MODE_VPN,
+                    Menu(
+                        text = stringResource(Res.string.service_mode),
                     ) {
-                        if (serviceMode != Key.MODE_VPN) {
-                            DataStore.serviceMode = Key.MODE_VPN
-                            repo.reloadService()
+                        val serviceMode by DataStore.configurationStore
+                            .stringFlow(Key.SERVICE_MODE, Key.MODE_VPN)
+                            .collectAsState(Key.MODE_VPN)
+                        CheckboxItem(
+                            text = stringResource(Res.string.service_mode_proxy),
+                            checked = serviceMode == Key.MODE_PROXY,
+                        ) {
+                            if (serviceMode != Key.MODE_PROXY) {
+                                DataStore.serviceMode = Key.MODE_PROXY
+                                repo.reloadService()
+                            }
+                        }
+                        CheckboxItem(
+                            text = stringResource(Res.string.service_mode_vpn),
+                            checked = serviceMode == Key.MODE_VPN,
+                        ) {
+                            if (serviceMode != Key.MODE_VPN) {
+                                DataStore.serviceMode = Key.MODE_VPN
+                                repo.reloadService()
+                            }
                         }
                     }
+                    Item(
+                        text = stringResource(Res.string.exit),
+                        icon = if (supportAdvancedTray) {
+                            painterResource(Res.drawable.close)
+                        } else {
+                            null
+                        },
+                        mnemonic = if (supportAdvancedTray) {
+                            'E'
+                        } else {
+                            null
+                        },
+                        onClick = ::exitApplication,
+                    )
                 }
-                Item(
-                    text = stringResource(Res.string.exit),
-                    // icon = painterResource(Res.drawable.close),
-                    // mnemonic = 'E',
-                    onClick = ::exitApplication,
-                )
             }
 
             Window(
