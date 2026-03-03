@@ -29,6 +29,7 @@ class MieruBean : AbstractBean() {
     var username: String = ""
     var password: String = ""
     var mtu: Int = 1400
+    var trafficPattern: String = ""
 
     override fun initializeDefaultValues() {
         super.initializeDefaultValues()
@@ -36,7 +37,7 @@ class MieruBean : AbstractBean() {
     }
 
     override fun serialize(output: ByteBufferOutput) {
-        output.writeInt(1)
+        output.writeInt(2)
         super.serialize(output)
         output.writeString(protocol)
         output.writeString(username)
@@ -44,16 +45,20 @@ class MieruBean : AbstractBean() {
         if (protocol == PROTOCOL_UDP) {
             output.writeInt(mtu)
         }
+        output.writeString(trafficPattern)
     }
 
     override fun deserialize(input: ByteBufferInput) {
-        input.readInt()
+        val version = input.readInt()
         super.deserialize(input)
         protocol = input.readString().uppercase()
         username = input.readString()
         password = input.readString()
         if (protocol == PROTOCOL_TCP) {
             mtu = input.readInt()
+        }
+        if (version >= 2) {
+            trafficPattern = input.readString()
         }
     }
 

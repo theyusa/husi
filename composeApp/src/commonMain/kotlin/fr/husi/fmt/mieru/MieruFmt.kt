@@ -18,13 +18,15 @@
 
 package fr.husi.fmt.mieru
 
+import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.queryParameterNotBlank
+import fr.husi.ktx.toJsonMapKxs
 import fr.husi.ktx.toJsonStringKxs
 import fr.husi.libcore.Libcore
 import fr.husi.logLevelString
 
 fun MieruBean.buildMieruConfig(port: Int, logLevel: Int): String {
-    return mutableMapOf(
+    val basic = mutableMapOf(
         "activeProfile" to "default",
         "socks5Port" to port,
         "loggingLevel" to logLevel.takeIf { it > 0 }?.let { logLevelString(it).uppercase() },
@@ -54,7 +56,12 @@ fun MieruBean.buildMieruConfig(port: Int, logLevel: Int): String {
                 "handshakeMode" to "HANDSHAKE_NO_WAIT",
             ),
         ),
-    ).toJsonStringKxs()
+    )
+    trafficPattern.blankAsNull()?.let {
+        val trafficPatternJson = it.toJsonMapKxs()
+        basic["trafficPattern"] = trafficPatternJson["trafficPattern"] ?: trafficPatternJson
+    }
+    return basic.toJsonStringKxs()
 }
 
 // https://github.com/enfein/mieru/blob/b1cd50fabb2f893c7878388767d97370dbb7a660/pkg/appctl/url.go#L51
