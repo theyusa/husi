@@ -78,110 +78,112 @@ fun main(args: Array<String>) {
             windowState.isMinimized = false
         }
 
-        Tray(
-            icon = painterResource(Res.drawable.ic_service_rest),
-            state = trayState,
-            tooltip = stringResource(Res.string.app_name),
-            onAction = ::openWindow,
-        ) {
-            // TODO mnemonic and icon is not supported on some desktop environments (GNOME)
-            val serviceStatus by BackendState.status.collectAsState()
-            Item(
-                text = serviceStatus.profileName ?: stringResource(Res.string.app_name),
+        DesktopResourceEnvironmentFix {
+            Tray(
+                icon = painterResource(Res.drawable.ic_service_rest),
+                state = trayState,
+                tooltip = stringResource(Res.string.app_name),
+                onAction = ::openWindow,
             ) {
-                openWindow()
-            }
-            Item(
-                text = stringResource(
-                    if (serviceStatus.state == ServiceState.Connected) {
-                        Res.string.stop
-                    } else {
-                        Res.string.start
-                    },
-                ),
-                enabled = serviceStatus.state == ServiceState.Connected
-                        || serviceStatus.state == ServiceState.Stopped
-                        || serviceStatus.state == ServiceState.Idle,
-            ) {
-                when (serviceStatus.state) {
-                    ServiceState.Stopped -> repo.startService()
-                    ServiceState.Idle, ServiceState.Connected -> repo.stopService()
-                    else -> {}
-                }
-            }
-            Menu(
-                text = stringResource(Res.string.service_mode),
-            ) {
-                val serviceMode by DataStore.configurationStore
-                    .stringFlow(Key.SERVICE_MODE, Key.MODE_VPN)
-                    .collectAsState(Key.MODE_VPN)
-                CheckboxItem(
-                    text = stringResource(Res.string.service_mode_proxy),
-                    checked = serviceMode == Key.MODE_PROXY,
+                // TODO mnemonic and icon is not supported on some desktop environments (GNOME)
+                val serviceStatus by BackendState.status.collectAsState()
+                Item(
+                    text = serviceStatus.profileName ?: stringResource(Res.string.app_name),
                 ) {
-                    if (serviceMode != Key.MODE_PROXY) {
-                        DataStore.serviceMode = Key.MODE_PROXY
-                        repo.reloadService()
+                    openWindow()
+                }
+                Item(
+                    text = stringResource(
+                        if (serviceStatus.state == ServiceState.Connected) {
+                            Res.string.stop
+                        } else {
+                            Res.string.start
+                        },
+                    ),
+                    enabled = serviceStatus.state == ServiceState.Connected
+                            || serviceStatus.state == ServiceState.Stopped
+                            || serviceStatus.state == ServiceState.Idle,
+                ) {
+                    when (serviceStatus.state) {
+                        ServiceState.Stopped -> repo.startService()
+                        ServiceState.Idle, ServiceState.Connected -> repo.stopService()
+                        else -> {}
                     }
                 }
-                CheckboxItem(
-                    text = stringResource(Res.string.service_mode_vpn),
-                    checked = serviceMode == Key.MODE_VPN,
+                Menu(
+                    text = stringResource(Res.string.service_mode),
                 ) {
-                    if (serviceMode != Key.MODE_VPN) {
-                        DataStore.serviceMode = Key.MODE_VPN
-                        repo.reloadService()
+                    val serviceMode by DataStore.configurationStore
+                        .stringFlow(Key.SERVICE_MODE, Key.MODE_VPN)
+                        .collectAsState(Key.MODE_VPN)
+                    CheckboxItem(
+                        text = stringResource(Res.string.service_mode_proxy),
+                        checked = serviceMode == Key.MODE_PROXY,
+                    ) {
+                        if (serviceMode != Key.MODE_PROXY) {
+                            DataStore.serviceMode = Key.MODE_PROXY
+                            repo.reloadService()
+                        }
+                    }
+                    CheckboxItem(
+                        text = stringResource(Res.string.service_mode_vpn),
+                        checked = serviceMode == Key.MODE_VPN,
+                    ) {
+                        if (serviceMode != Key.MODE_VPN) {
+                            DataStore.serviceMode = Key.MODE_VPN
+                            repo.reloadService()
+                        }
                     }
                 }
+                Item(
+                    text = stringResource(Res.string.exit),
+                    // icon = painterResource(Res.drawable.close),
+                    // mnemonic = 'E',
+                    onClick = ::exitApplication,
+                )
             }
-            Item(
-                text = stringResource(Res.string.exit),
-                // icon = painterResource(Res.drawable.close),
-                // mnemonic = 'E',
-                onClick = ::exitApplication,
-            )
-        }
 
-        Window(
-            onCloseRequest = { windowVisible = false },
-            state = windowState,
-            visible = windowVisible,
-            title = stringResource(Res.string.app_name),
-            icon = painterResource(Res.drawable.ic_service_active),
-            onKeyEvent = { keyEvent ->
-                if (windowState.isMinimized || !windowVisible) return@Window false
-                if (keyEvent.type != KeyEventType.KeyDown) return@Window false
-                keyEventManager.dispatch(keyEvent)
-            },
-        ) {
-            val viewModel = viewModel { MainViewModel() }
-            val clipboard = LocalClipboard.current
+            Window(
+                onCloseRequest = { windowVisible = false },
+                state = windowState,
+                visible = windowVisible,
+                title = stringResource(Res.string.app_name),
+                icon = painterResource(Res.drawable.ic_service_active),
+                onKeyEvent = { keyEvent ->
+                    if (windowState.isMinimized || !windowVisible) return@Window false
+                    if (keyEvent.type != KeyEventType.KeyDown) return@Window false
+                    keyEventManager.dispatch(keyEvent)
+                },
+            ) {
+                val viewModel = viewModel { MainViewModel() }
+                val clipboard = LocalClipboard.current
 
-            fun handleKeyEvent(keyEvent: KeyEvent): Boolean {
-                if (!keyEvent.isTypeControlPressed) return false
-                if (keyEvent.key != InputKey.V) return false
-                runOnDefaultDispatcher {
-                    clipboard.getPlainText()?.let {
-                        viewModel.importFromUri(it)
+                fun handleKeyEvent(keyEvent: KeyEvent): Boolean {
+                    if (!keyEvent.isTypeControlPressed) return false
+                    if (keyEvent.key != InputKey.V) return false
+                    runOnDefaultDispatcher {
+                        clipboard.getPlainText()?.let {
+                            viewModel.importFromUri(it)
+                        }
+                    }
+                    return true
+                }
+
+                DisposableEffect(Unit) {
+                    keyEventManager.register(::handleKeyEvent)
+                    onDispose {
+                        keyEventManager.unregister(::handleKeyEvent)
                     }
                 }
-                return true
-            }
-
-            DisposableEffect(Unit) {
-                keyEventManager.register(::handleKeyEvent)
-                onDispose {
-                    keyEventManager.unregister(::handleKeyEvent)
-                }
-            }
-            AppTheme {
-                CompositionLocalProvider(
-                    LocalKeyEventManager provides keyEventManager,
-                ) {
-                    MainScreen(
-                        viewModel = viewModel,
-                        moveToBackground = {},
-                    )
+                AppTheme {
+                    CompositionLocalProvider(
+                        LocalKeyEventManager provides keyEventManager,
+                    ) {
+                        MainScreen(
+                            viewModel = viewModel,
+                            moveToBackground = {},
+                        )
+                    }
                 }
             }
         }
