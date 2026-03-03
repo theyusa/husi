@@ -1,5 +1,6 @@
 package fr.husi.bg
 
+import android.content.pm.PackageManager
 import android.net.NetworkCapabilities
 import android.os.Build
 import android.os.Build.VERSION.SDK_INT
@@ -75,6 +76,7 @@ class AndroidPlatformInterface : PlatformInterface {
     }
 
     override fun readWIFIState(): WIFIState? {
+        if (!androidRepo.packageManager.hasSystemFeature(PackageManager.FEATURE_WIFI)) return null
         // TODO API 34
         @Suppress("DEPRECATION") val wifiInfo = androidRepo.wifi.connectionInfo ?: return null
         var ssid = wifiInfo.ssid

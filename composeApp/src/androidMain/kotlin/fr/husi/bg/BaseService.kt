@@ -386,7 +386,7 @@ class BaseService {
                     registerReceiver(
                         data.receiver,
                         filter,
-                        "$packageName.SERVICE",
+                        "$packageName.permission.SERVICE",
                         null,
                         Context.RECEIVER_NOT_EXPORTED,
                     )
@@ -394,7 +394,7 @@ class BaseService {
                     registerReceiver(
                         data.receiver,
                         filter,
-                        "$packageName.SERVICE",
+                        "$packageName.permission.SERVICE",
                         null,
                     )
                 }
