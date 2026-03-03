@@ -49,6 +49,7 @@ import fr.husi.fmt.ssh.SSHBean
 import fr.husi.fmt.toUniversalLink
 import fr.husi.fmt.trojan.TrojanBean
 import fr.husi.fmt.trusttunnel.TrustTunnelBean
+import fr.husi.fmt.trusttunnel.toUri
 import fr.husi.fmt.tuic.TuicBean
 import fr.husi.fmt.tuic.toUri
 import fr.husi.fmt.v2ray.VLESSBean
@@ -263,7 +264,6 @@ data class ProxyEntity(
         TYPE_PROXY_SET -> false
         TYPE_CHAIN -> false
         TYPE_DIRECT -> false
-        TYPE_TRUST_TUNNEL -> false
         else -> true
     }
 
@@ -273,7 +273,6 @@ data class ProxyEntity(
         TYPE_WG -> false
         TYPE_SHADOWQUIC -> false
         TYPE_SHADOWTLS -> false
-        TYPE_TRUST_TUNNEL -> false
         TYPE_PROXY_SET -> false
         TYPE_CHAIN -> false
         TYPE_CONFIG -> false
@@ -294,6 +293,7 @@ data class ProxyEntity(
             is JuicityBean -> toUri()
             is MieruBean -> toUri()
             is AnyTLSBean -> toUri()
+            is TrustTunnelBean -> toUri()
             else -> toUniversalLink()
         }
     }

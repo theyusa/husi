@@ -13,6 +13,7 @@ import fr.husi.fmt.parseUniversal
 import fr.husi.fmt.shadowsocks.parseShadowsocks
 import fr.husi.fmt.socks.parseSOCKS
 import fr.husi.fmt.trojan.parseTrojan
+import fr.husi.fmt.trusttunnel.parseTrustTunnel
 import fr.husi.fmt.tuic.parseTuic
 import fr.husi.fmt.v2ray.parseV2Ray
 import java.io.ByteArrayOutputStream
@@ -227,6 +228,15 @@ suspend fun parseProxies(text: String): List<AbstractBean> {
                 Logs.d("Try parse AnyTLS link: $this")
                 runCatching {
                     entities.add(parseAnyTLS(this))
+                }.onFailure {
+                    Logs.w(it)
+                }
+            }
+
+            "tt" -> {
+                Logs.d("Try parse TrustTunnel link: $this")
+                runCatching {
+                    entities.add(parseTrustTunnel(this))
                 }.onFailure {
                     Logs.w(it)
                 }

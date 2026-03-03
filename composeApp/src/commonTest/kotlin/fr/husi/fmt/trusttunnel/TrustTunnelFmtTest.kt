@@ -9,6 +9,8 @@ import kotlin.test.assertTrue
 
 class TrustTunnelFmtTest {
 
+    // No URL test. Because already tested in sing-trusttunnel
+
     @Test
     fun `buildSingBoxOutboundTrustTunnelBean should map all TLS and connection fields`() {
         val bean = TrustTunnelBean().apply {

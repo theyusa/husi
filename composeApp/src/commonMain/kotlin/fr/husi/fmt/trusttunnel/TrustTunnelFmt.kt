@@ -4,6 +4,35 @@ import fr.husi.fmt.SingBoxOptions
 import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.emptyAsNull
 import fr.husi.ktx.listByLineOrComma
+import fr.husi.libcore.Libcore
+import fr.husi.libcore.TrustTunnelURL
+
+fun parseTrustTunnel(link: String): TrustTunnelBean {
+    val url = Libcore.parseTrustTunnelLink(link)
+    return TrustTunnelBean().apply {
+        serverAddress = url.host
+        serverPort = url.port
+        serverName = url.serverName
+        username = url.username
+        password = url.password
+        allowInsecure = url.skipVerification
+        certificates = url.certificate
+        quic = url.quic
+    }
+}
+
+fun TrustTunnelBean.toUri(): String {
+    return TrustTunnelURL().apply {
+        host = serverAddress
+        port = serverPort
+        serverName = serverName
+        username = username
+        password = password
+        skipVerification = allowInsecure
+        certificate = certificates
+        quic = quic
+    }.build()
+}
 
 fun buildSingBoxOutboundTrustTunnelBean(bean: TrustTunnelBean): SingBoxOptions.Outbound_TrustTunnelOptions {
     return SingBoxOptions.Outbound_TrustTunnelOptions().apply {

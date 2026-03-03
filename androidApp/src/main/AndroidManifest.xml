@@ -160,6 +160,7 @@
                 <data android:scheme="juicity" />
                 <data android:scheme="mieru" />
                 <data android:scheme="anytls" />
+                <data android:scheme="tt" />
 
             </intent-filter>
 

@@ -3,6 +3,7 @@ package trusttunnel
 import (
 	"context"
 	"net"
+	"net/netip"
 
 	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/adapter/outbound"
@@ -16,6 +17,7 @@ import (
 	E "github.com/sagernet/sing/common/exceptions"
 	M "github.com/sagernet/sing/common/metadata"
 	N "github.com/sagernet/sing/common/network"
+	"github.com/sagernet/sing/service"
 
 	"libcore/plugin/pluginoption"
 
@@ -32,9 +34,10 @@ func RegisterOutbound(registry *outbound.Registry) {
 
 type Outbound struct {
 	outbound.Adapter
-	ctx    context.Context
-	logger log.ContextLogger
-	client *trusttunnel.Client
+	ctx       context.Context
+	logger    log.ContextLogger
+	dnsRouter adapter.DNSRouter
+	client    *trusttunnel.Client
 }
 
 func NewOutbound(ctx context.Context, router adapter.Router, logger log.ContextLogger, tag string, options pluginoption.TrustTunnelOutboundOptions) (adapter.Outbound, error) {
@@ -53,6 +56,7 @@ func NewOutbound(ctx context.Context, router adapter.Router, logger log.ContextL
 	if err != nil {
 		return nil, err
 	}
+	dnsRouter := service.FromContext[adapter.DNSRouter](ctx)
 	client, err := trusttunnel.NewClient(trusttunnel.ClientOptions{
 		Ctx:    ctx,
 		Detour: detour,
@@ -65,6 +69,13 @@ func NewOutbound(ctx context.Context, router adapter.Router, logger log.ContextL
 		QUIC:                  options.QUIC,
 		QUICCongestionControl: options.QUICCongestionControl,
 		HealthCheck:           options.HealthCheck,
+		ResolveFunc: func(fqdn string) (netip.Addr, error) {
+			addresses, lookupErr := dnsRouter.Lookup(ctx, fqdn, adapter.DNSQueryOptions{})
+			if lookupErr != nil {
+				return netip.Addr{}, lookupErr
+			}
+			return addresses[0], nil
+		},
 	})
 	if err != nil {
 		return nil, err
@@ -74,10 +85,11 @@ func NewOutbound(ctx context.Context, router adapter.Router, logger log.ContextL
 		networks = append(networks, N.NetworkICMP)
 	}
 	return &Outbound{
-		Adapter: outbound.NewAdapterWithDialerOptions(pluginoption.TypeTrustTunnel, tag, networks, options.DialerOptions),
-		ctx:     ctx,
-		logger:  logger,
-		client:  client,
+		Adapter:   outbound.NewAdapterWithDialerOptions(pluginoption.TypeTrustTunnel, tag, networks, options.DialerOptions),
+		ctx:       ctx,
+		logger:    logger,
+		dnsRouter: dnsRouter,
+		client:    client,
 	}, nil
 }
 
@@ -90,6 +102,16 @@ func (h *Outbound) DialContext(ctx context.Context, network string, destination 
 		h.logger.InfoContext(ctx, "outbound connection to ", destination)
 		return h.client.Dial(ctx, destination)
 	case N.NetworkUDP:
+		if destination.IsFqdn() {
+			addresses, err := h.dnsRouter.Lookup(ctx, destination.Fqdn, adapter.DNSQueryOptions{})
+			if err != nil {
+				return nil, err
+			}
+			destination = M.Socksaddr{
+				Addr: addresses[0],
+				Port: destination.Port,
+			}
+		}
 		packetConn, err := h.ListenPacket(ctx, destination)
 		if err != nil {
 			return nil, err
