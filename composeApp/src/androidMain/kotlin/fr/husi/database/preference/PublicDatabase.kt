@@ -29,7 +29,7 @@ abstract class PublicDatabase : RoomDatabase() {
         }
 
         private fun buildDatabase(): PublicDatabase {
-            val dbFile = androidRepo.getDatabasePath(Key.DB_PUBLIC)
+            val dbFile = androidRepo.resolveDatabaseFile(Key.DB_PUBLIC)
             dbFile.parentFile?.mkdirs()
             return Room.databaseBuilder(
                 androidRepo.context,

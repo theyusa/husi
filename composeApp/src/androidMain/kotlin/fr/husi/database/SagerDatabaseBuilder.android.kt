@@ -8,7 +8,7 @@ import kotlinx.coroutines.Dispatchers
 
 internal actual object SagerDatabaseProvider {
     actual fun create(): SagerDatabase {
-        val dbFile = androidRepo.getDatabasePath(Key.DB_PROFILE)
+        val dbFile = androidRepo.resolveDatabaseFile(Key.DB_PROFILE)
         dbFile.parentFile?.mkdirs()
         return Room.databaseBuilder<SagerDatabase>(
             context = androidRepo.context,
