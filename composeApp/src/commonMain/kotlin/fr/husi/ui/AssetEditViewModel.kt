@@ -47,6 +47,8 @@ internal class AssetEditViewModel : ViewModel() {
     var isNew = false
 
     suspend fun initialize(name: String) {
+        isNew = false
+        shouldUpdateFromInternet = false
         val asset = SagerDatabase.assetDao.get(name) ?: AssetEntity().also {
             isNew = true
         }

@@ -36,8 +36,7 @@ class ConnectionDetailViewModel : ViewModel() {
     }
 
     suspend fun initialize(uuid: String) {
-        if (connectionState.value.uuid == uuid)
-            job?.cancel()
+        job?.cancel()
         connectionState.value = queryConnection(uuid)
         job = clientManager.subscribeConnectionEvents(viewModelScope) { event ->
             handleConnectionEvent(event)

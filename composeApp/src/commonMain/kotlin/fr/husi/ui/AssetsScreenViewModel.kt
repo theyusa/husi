@@ -84,16 +84,22 @@ internal class AssetsScreenViewModel : ViewModel() {
     private lateinit var geoDir: File
 
     private var previousAssetNames = emptySet<String>()
+    private var initializedFor: Pair<String, String>? = null
+    private var assetsObserveJob: Job? = null
 
     private var deleteTimer: Job? = null
     private val hiddenAssetsAccess = Mutex()
     private val hiddenAssets = mutableSetOf<String>()
 
     fun initialize(assetsDir: File, geoDir: File) {
+        val args = assetsDir.absolutePath to geoDir.absolutePath
+        if (initializedFor == args && assetsObserveJob?.isActive == true) return
+        initializedFor = args
+        assetsObserveJob?.cancel()
         this.assetsDir = assetsDir
         this.geoDir = geoDir
 
-        viewModelScope.launch {
+        assetsObserveJob = viewModelScope.launch {
             SagerDatabase.assetDao.getAll().collectLatest { assets ->
                 val currentNames = assets.map { it.name }.toSet()
                 val newAssets = currentNames - previousAssetNames

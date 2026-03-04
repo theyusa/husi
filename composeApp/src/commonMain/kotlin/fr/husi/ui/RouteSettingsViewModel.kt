@@ -86,7 +86,7 @@ internal class RouteSettingsViewModel : ViewModel() {
 
     private var editingId = -1L
     val isNew get() = editingId < 0L
-    private var initialized = false
+    private var initializedFor: Pair<Long, RouteSettingsUiState?>? = null
 
     private val initialState = MutableStateFlow<RouteSettingsUiState?>(null)
     val isDirty = uiState.map { currentState ->
@@ -103,8 +103,9 @@ internal class RouteSettingsViewModel : ViewModel() {
         routeId: Long,
         state: RouteSettingsUiState?,
     ) {
-        if (initialized) return
-        initialized = true
+        val args = routeId to state
+        if (initializedFor == args) return
+        initializedFor = args
         if (state != null) {
             editingId = -1L
             initialState.value = RouteSettingsUiState()
