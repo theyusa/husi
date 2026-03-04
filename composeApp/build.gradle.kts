@@ -1,6 +1,5 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
-import org.jetbrains.compose.desktop.application.tasks.AbstractJPackageTask
-import java.io.File
+import org.gradle.jvm.tasks.Jar
 
 plugins {
     id("org.jetbrains.kotlin.multiplatform")
@@ -14,62 +13,136 @@ plugins {
 }
 
 val metadata = requireMetadata()
-val supportedDesktopTargets =
-    setOf(
-        "linux/amd64",
-        "linux/arm64",
-        "darwin/amd64",
-        "darwin/arm64",
-        "windows/amd64",
-        "windows/arm64",
+enum class DesktopPlatform(
+    val id: String,
+    private val aliases: Set<String>,
+    val composeDependencyId: String,
+    val nativeNames: Set<String>,
+) {
+    Linux(
+        id = "linux",
+        aliases = setOf("linux"),
+        composeDependencyId = "linux",
+        nativeNames = setOf("linux"),
+    ),
+    Darwin(
+        id = "darwin",
+        aliases = setOf("darwin", "macos", "mac", "osx"),
+        composeDependencyId = "macos",
+        nativeNames = setOf("osx", "darwin"),
+    ),
+    Windows(
+        id = "windows",
+        aliases = setOf("windows", "win"),
+        composeDependencyId = "windows",
+        nativeNames = setOf("windows"),
+    ),
+    ;
+
+    private fun matches(rawValue: String): Boolean = rawValue.trim().lowercase() in aliases
+
+    companion object {
+        fun parse(rawValue: String): DesktopPlatform =
+            entries.firstOrNull { it.matches(rawValue) }
+                ?: error("Unsupported desktop platform '$rawValue'. Use linux, darwin, or windows.")
+
+        fun parseHost(rawValue: String): DesktopPlatform {
+            val value = rawValue.trim().lowercase()
+            return when {
+                value.contains("linux") -> Linux
+                value.contains("darwin") || value.contains("mac") || value.contains("osx") -> Darwin
+                value.startsWith("win") -> Windows
+                else -> error("Unsupported host desktop platform '$rawValue'. Use linux, darwin, or windows.")
+            }
+        }
+    }
+}
+
+enum class DesktopArch(
+    val id: String,
+    private val aliases: Set<String>,
+    val composeDependencyId: String,
+    val packageJarArchToken: String,
+    val nativeNames: Set<String>,
+) {
+    Amd64(
+        id = "amd64",
+        aliases = setOf("amd64", "x86_64"),
+        composeDependencyId = "x64",
+        packageJarArchToken = "x64",
+        nativeNames = setOf("x64", "amd64"),
+    ),
+    Arm64(
+        id = "arm64",
+        aliases = setOf("arm64", "aarch64"),
+        composeDependencyId = "arm64",
+        packageJarArchToken = "arm64",
+        nativeNames = setOf("arm64", "aarch64"),
+    ),
+    ;
+
+    private fun matches(rawValue: String): Boolean = rawValue.trim().lowercase() in aliases
+
+    companion object {
+        fun parse(rawValue: String): DesktopArch =
+            entries.firstOrNull { it.matches(rawValue) }
+                ?: error("Unsupported desktop arch '$rawValue'. Use amd64 or arm64.")
+    }
+}
+
+data class DesktopTarget(
+    val platform: DesktopPlatform,
+    val arch: DesktopArch,
+) {
+    val id: String = "${platform.id}/${arch.id}"
+    val libcoreDesktopJarName: String = "libcore-desktop-${platform.id}-${arch.id}.jar"
+    val composeDependencyNotation: String =
+        "org.jetbrains.compose.desktop:desktop-jvm-${platform.composeDependencyId}-${arch.composeDependencyId}"
+    val nativeKeepPrefixes: Set<String> =
+        platform.nativeNames
+            .flatMap { platformName ->
+                arch.nativeNames.flatMap { archName ->
+                    listOf("natives/${platformName}_${archName}/", "natives/${platformName}-${archName}/")
+                }
+            }.toSet()
+
+    override fun toString(): String = id
+
+    companion object {
+        val supported: Set<DesktopTarget> =
+            DesktopPlatform.entries.flatMap { platform ->
+                DesktopArch.entries.map { arch -> DesktopTarget(platform, arch) }
+            }.toSet()
+
+        fun parse(rawValue: String): DesktopTarget {
+            val tokens = rawValue.trim().split("/", limit = 2)
+            require(tokens.size == 2) {
+                "Invalid desktopTarget '$rawValue'. Use <platform>/<arch>, e.g. linux/amd64."
+            }
+            val parsedTarget = DesktopTarget(platform = DesktopPlatform.parse(tokens[0]), arch = DesktopArch.parse(tokens[1]))
+            require(parsedTarget in supported) {
+                "Unsupported desktop target '$rawValue'. Supported targets: ${supported.joinToString()}."
+            }
+            return parsedTarget
+        }
+
+        fun parseHost(platformRawValue: String, archRawValue: String): DesktopTarget =
+            DesktopTarget(
+                platform = DesktopPlatform.parseHost(platformRawValue),
+                arch = DesktopArch.parse(archRawValue),
+            )
+    }
+}
+
+fun resolveHostDesktopTarget(): DesktopTarget =
+    DesktopTarget.parseHost(
+        platformRawValue = System.getProperty("os.name"),
+        archRawValue = System.getProperty("os.arch"),
     )
-
-fun normalizeDesktopPlatform(rawValue: String): String {
-    val value = rawValue.trim().lowercase()
-    return when (value) {
-        "linux" -> "linux"
-        "darwin", "macos", "mac", "osx" -> "darwin"
-        "windows", "win" -> "windows"
-        else -> error("Unsupported desktop platform '$rawValue'. Use linux, darwin, or windows.")
-    }
-}
-
-fun normalizeDesktopArch(rawValue: String): String {
-    val value = rawValue.trim().lowercase()
-    return when (value) {
-        "amd64", "x86_64" -> "amd64"
-        "arm64", "aarch64" -> "arm64"
-        else -> error("Unsupported desktop arch '$rawValue'. Use amd64 or arm64.")
-    }
-}
-
-fun normalizeDesktopTarget(rawValue: String): String {
-    val tokens = rawValue.trim().split("/", limit = 2)
-    require(tokens.size == 2) {
-        "Invalid desktopTarget '$rawValue'. Use <platform>/<arch>, e.g. linux/amd64."
-    }
-    return "${normalizeDesktopPlatform(tokens[0])}/${normalizeDesktopArch(tokens[1])}"
-}
-
-fun desktopJarArchToken(arch: String): String =
-    when (arch) {
-        "amd64" -> "x64"
-        "arm64" -> "arm64"
-        else -> error("Unsupported desktop arch '$arch'.")
-    }
-
-fun resolveHostDesktopTarget(): String {
-    val platform = normalizeDesktopPlatform(System.getProperty("os.name"))
-    val arch = normalizeDesktopArch(System.getProperty("os.arch"))
-    return "$platform/$arch"
-}
 
 fun parseTargetFormat(rawValue: String): TargetFormat {
     val value = rawValue.trim().lowercase()
     return when (value) {
-        "appimage", "app-image", "app_image", "app" -> TargetFormat.AppImage
-        "deb" -> TargetFormat.Deb
-        "rpm" -> TargetFormat.Rpm
         "dmg" -> TargetFormat.Dmg
         "pkg" -> TargetFormat.Pkg
         "msi" -> TargetFormat.Msi
@@ -77,44 +150,10 @@ fun parseTargetFormat(rawValue: String): TargetFormat {
         else ->
             error(
                 "Unsupported desktop target format '$rawValue'. " +
-                    "Use appimage, deb, rpm, dmg, pkg, msi, or exe.",
+                    "Use dmg, pkg, msi, or exe.",
             )
     }
 }
-
-fun resolveLinuxTargetFormats(): Set<TargetFormat> {
-    val requestedFormats = project.findProperty("desktopLinuxFormats")?.toString().orEmpty().trim()
-    if (requestedFormats.isNotEmpty()) {
-        return requestedFormats
-            .split(",")
-            .map { parseTargetFormat(it) }
-            .filter { it == TargetFormat.AppImage || it == TargetFormat.Deb || it == TargetFormat.Rpm }
-            .toCollection(linkedSetOf())
-            .also {
-                require(it.isNotEmpty()) {
-                    "desktopLinuxFormats must include appimage, deb, or rpm."
-                }
-            }
-    }
-
-    val requestedDistro = project.findProperty("desktopLinuxDistro")?.toString().orEmpty().trim().lowercase()
-    if (requestedDistro.isEmpty()) {
-        return setOf(TargetFormat.AppImage)
-    }
-
-    return when (requestedDistro) {
-        "debian", "ubuntu" -> linkedSetOf(TargetFormat.AppImage, TargetFormat.Deb)
-        "fedora", "rhel", "opensuse", "rpm" -> linkedSetOf(TargetFormat.AppImage, TargetFormat.Rpm)
-        "all", "both" -> linkedSetOf(TargetFormat.AppImage, TargetFormat.Deb, TargetFormat.Rpm)
-        else ->
-            error(
-                "Unsupported desktopLinuxDistro '$requestedDistro'. " +
-                    "Use debian, ubuntu, fedora, rhel, opensuse, rpm, all, or both.",
-            )
-    }
-}
-
-fun normalizeRpmPackageVersion(versionName: String): String = versionName.replace("-", ".")
 
 fun resolveWindowsTargetFormats(): Set<TargetFormat> {
     val requestedFormats = project.findProperty("desktopWindowsFormats")?.toString().orEmpty().trim()
@@ -157,20 +196,18 @@ fun normalizeWindowsPackageVersion(versionName: String, versionCode: Int): Strin
     return "$major.$minor.$build"
 }
 
-val requestedDesktopTarget = project.findProperty("desktopTarget")?.toString()?.trim().orEmpty()
-val desktopTarget =
-    if (requestedDesktopTarget.isNotEmpty()) {
-        normalizeDesktopTarget(requestedDesktopTarget)
+val requestedDesktopTargetRaw = project.findProperty("desktopTarget")?.toString()?.trim().orEmpty()
+val requestedDesktopTarget =
+    if (requestedDesktopTargetRaw.isNotEmpty()) {
+        DesktopTarget.parse(requestedDesktopTargetRaw)
     } else {
-        resolveHostDesktopTarget()
+        null
     }
+val desktopTarget = requestedDesktopTarget ?: resolveHostDesktopTarget()
+val hostDesktopTarget = resolveHostDesktopTarget()
 val composeDesktopVersion = libs.versions.composeMultiplatform.get()
 
-require(desktopTarget in supportedDesktopTargets) {
-    "Unsupported desktop target '$desktopTarget'. Supported targets: ${supportedDesktopTargets.joinToString()}."
-}
-
-val desktopJarName = "libcore-desktop-${desktopTarget.substringBefore("/")}-${desktopTarget.substringAfter("/")}.jar"
+val desktopJarName = desktopTarget.libcoreDesktopJarName
 val desktopJarFile = layout.projectDirectory.file("libs/$desktopJarName").asFile
 val libcoreDesktopJar =
     files({
@@ -179,51 +216,17 @@ val libcoreDesktopJar =
         }
         desktopJarFile
     })
-val hostDesktopPlatform = normalizeDesktopPlatform(System.getProperty("os.name"))
-val hostDesktopArch = normalizeDesktopArch(System.getProperty("os.arch"))
-val desktopTargetPlatform = desktopTarget.substringBefore("/")
-val desktopTargetArch = desktopTarget.substringAfter("/")
 val desktopPackageName = metadata.getProperty("PACKAGE_NAME").trim()
 val desktopVersion = metadata.getProperty("VERSION_NAME").trim()
 val desktopVersionCode = metadata.getProperty("VERSION_CODE").trim().toInt()
 val macPackageVersion = normalizeMacPackageVersion(desktopVersion)
 val windowsPackageVersion = normalizeWindowsPackageVersion(desktopVersion, desktopVersionCode)
 val desktopTargetFormats =
-    when (hostDesktopPlatform) {
-        "linux" -> resolveLinuxTargetFormats()
-        "darwin" -> setOf(TargetFormat.Dmg)
-        "windows" -> resolveWindowsTargetFormats()
-        else -> error("Unsupported host desktop platform '$hostDesktopPlatform'.")
+    when (hostDesktopTarget.platform) {
+        DesktopPlatform.Linux -> emptySet()
+        DesktopPlatform.Darwin -> setOf(TargetFormat.Dmg)
+        DesktopPlatform.Windows -> resolveWindowsTargetFormats()
     }
-val linuxJavaOptionsTemplateTarget = "desktop-java-opts.conf.template"
-val linuxAppArgsTemplateTarget = "desktop-app-args.conf.template"
-
-val linuxDesktopReleaseDir = rootProject.layout.projectDirectory.dir("release/linux/desktop")
-val linuxJavaOptionsTemplateFile = linuxDesktopReleaseDir.file("desktop-java-opts.conf").asFile
-val linuxAppArgsTemplateFile = linuxDesktopReleaseDir.file("desktop-app-args.conf").asFile
-
-fun patchLinuxDesktopLauncher(
-    appImageRoot: File,
-    launcherName: String,
-    javaOptionsTemplateFile: File,
-    appArgsTemplateFile: File,
-) {
-    require(javaOptionsTemplateFile.isFile) {
-        "Missing release JVM options template '${javaOptionsTemplateFile.path}'."
-    }
-    require(appArgsTemplateFile.isFile) {
-        "Missing release app args template '${appArgsTemplateFile.path}'."
-    }
-
-    val launcherDir = appImageRoot.resolve("bin")
-    val launcherScript = launcherDir.resolve(launcherName)
-    require(launcherScript.isFile) {
-        "Launcher '${launcherScript.path}' not found in Linux app image."
-    }
-
-    javaOptionsTemplateFile.copyTo(launcherDir.resolve(linuxJavaOptionsTemplateTarget), overwrite = true)
-    appArgsTemplateFile.copyTo(launcherDir.resolve(linuxAppArgsTemplateTarget), overwrite = true)
-}
 
 val generateBuildConfig by tasks.registering {
     val outputDir = layout.buildDirectory.dir("generated/buildConfig/kotlin")
@@ -350,17 +353,10 @@ kotlin {
         }
         val desktopMain by getting {
             dependencies {
-                if (requestedDesktopTarget.isEmpty()) {
+                if (requestedDesktopTarget == null) {
                     implementation(compose.desktop.currentOs)
                 } else {
-                    when (desktopTarget) {
-                        "linux/amd64" -> implementation("org.jetbrains.compose.desktop:desktop-jvm-linux-x64:$composeDesktopVersion")
-                        "linux/arm64" -> implementation("org.jetbrains.compose.desktop:desktop-jvm-linux-arm64:$composeDesktopVersion")
-                        "darwin/amd64" -> implementation("org.jetbrains.compose.desktop:desktop-jvm-macos-x64:$composeDesktopVersion")
-                        "darwin/arm64" -> implementation("org.jetbrains.compose.desktop:desktop-jvm-macos-arm64:$composeDesktopVersion")
-                        "windows/amd64" -> implementation("org.jetbrains.compose.desktop:desktop-jvm-windows-x64:$composeDesktopVersion")
-                        "windows/arm64" -> implementation("org.jetbrains.compose.desktop:desktop-jvm-windows-arm64:$composeDesktopVersion")
-                    }
+                    implementation("${desktopTarget.composeDependencyNotation}:$composeDesktopVersion")
                 }
                 implementation(libs.kotlinx.coroutines.swing)
                 implementation(libs.kotlinx.cli)
@@ -374,23 +370,15 @@ compose.desktop {
     application {
         mainClass = "fr.husi.DesktopMainKt"
         nativeDistributions {
-            targetFormats(*desktopTargetFormats.toTypedArray())
+            if (desktopTargetFormats.isNotEmpty()) {
+                targetFormats(*desktopTargetFormats.toTypedArray())
+            }
             packageName = desktopPackageName
             packageVersion = macPackageVersion
             description = "Husi desktop proxy integration tool"
             vendor = "Husi contributors"
             copyright = "GPL-3.0-or-later"
             licenseFile.set(rootProject.layout.projectDirectory.file("LICENSE"))
-            linux {
-                shortcut = true
-                packageName = desktopPackageName
-                appCategory = "Network"
-                menuGroup = "Network"
-                debMaintainer = "安容"
-                rpmLicenseType = "GPL-3.0-or-later"
-                debPackageVersion = desktopVersion
-                rpmPackageVersion = normalizeRpmPackageVersion(desktopVersion)
-            }
             macOS {
                 dmgPackageVersion = macPackageVersion
             }
@@ -425,49 +413,32 @@ dependencies {
     add("kspDesktop", libs.androidx.room.compiler)
 }
 
-tasks.withType<AbstractJPackageTask>().configureEach {
-    if (targetFormat != TargetFormat.AppImage) {
-        return@configureEach
-    }
-
-    doLast {
-        if (hostDesktopPlatform != "linux") {
-            return@doLast
-        }
-
-        val appImageOutputDir = destinationDir.get().asFile
-        val appImageRoots =
-            appImageOutputDir
-                .walkTopDown()
-                .filter { it.isFile && it.name == desktopPackageName && it.parentFile.name == "bin" }
-                .map { it.parentFile.parentFile }
-                .distinctBy { it.absolutePath }
-                .toList()
-
-        require(appImageRoots.isNotEmpty()) {
-            "No Linux app image launcher '$desktopPackageName' found under '${appImageOutputDir.path}'."
-        }
-
-        appImageRoots.forEach { appImageRoot ->
-            patchLinuxDesktopLauncher(
-                appImageRoot = appImageRoot,
-                launcherName = desktopPackageName,
-                javaOptionsTemplateFile = linuxJavaOptionsTemplateFile,
-                appArgsTemplateFile = linuxAppArgsTemplateFile,
-            )
-        }
-    }
-}
-
 tasks.matching { it.name == "packageUberJarForCurrentOS" }.configureEach {
+    if (this is Jar) {
+        // Exclude other platform's sqlite library from androidx-sqlite-bundled's family bucket
+
+        val nativeKeepPrefixes = desktopTarget.nativeKeepPrefixes
+
+        eachFile {
+            val entryPath = path
+            if (entryPath.startsWith("natives/") && nativeKeepPrefixes.none(entryPath::startsWith)) {
+                exclude()
+            }
+        }
+
+        includeEmptyDirs = false
+    }
+
     doLast {
-        if (requestedDesktopTarget.isEmpty()) {
+        if (requestedDesktopTarget == null) {
             return@doLast
         }
 
         val jarOutputDir = layout.buildDirectory.dir("compose/jars").get().asFile
-        val sourceJarName = "$desktopPackageName-$hostDesktopPlatform-${desktopJarArchToken(hostDesktopArch)}-$desktopVersion.jar"
-        val targetJarName = "$desktopPackageName-$desktopTargetPlatform-${desktopJarArchToken(desktopTargetArch)}-$desktopVersion.jar"
+        val sourceJarName =
+            "$desktopPackageName-${hostDesktopTarget.platform.id}-${hostDesktopTarget.arch.packageJarArchToken}-$desktopVersion.jar"
+        val targetJarName =
+            "$desktopPackageName-${desktopTarget.platform.id}-${desktopTarget.arch.packageJarArchToken}-$desktopVersion.jar"
         val sourceJar = jarOutputDir.resolve(sourceJarName)
         val targetJar = jarOutputDir.resolve(targetJarName)
 
