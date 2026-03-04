@@ -806,7 +806,7 @@ fun SettingsScreen(
                         fun rulesProviderText(index: Int): StringOrRes = when (index) {
                             RuleProvider.OFFICIAL -> StringOrRes.Res(Res.string.route_rules_official)
                             RuleProvider.LOYALSOLDIER -> {
-                                StringOrRes.Direct("Loyalsoldier (xchacha20-poly1305/sing-geo*)")
+                                StringOrRes.Direct("Loyalsoldier (1715173329/sing-geo*)")
                             }
 
                             RuleProvider.CHOCOLATE4U -> {

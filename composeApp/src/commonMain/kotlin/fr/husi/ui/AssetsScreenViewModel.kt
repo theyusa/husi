@@ -67,6 +67,81 @@ private data class GithubRelease(
     val tagName: String = "",
 )
 
+internal data class GithubRepository(
+    val author: String,
+    val name: String,
+    val branch: String = "rule-set",
+    val unstableBranch: String? = null,
+) {
+    val fullName: String
+        get() = "$author/$name"
+
+    fun resolveBranch(useUnstableBranch: Boolean): String {
+        return if (useUnstableBranch && unstableBranch != null) {
+            unstableBranch
+        } else {
+            branch
+        }
+    }
+}
+
+internal data class GithubAssetSource(
+    val repository: GithubRepository,
+    val versionFile: File,
+)
+
+internal fun buildGithubAssetSources(provider: Int, versionFiles: List<File>): List<GithubAssetSource> {
+    return when (provider) {
+        RuleProvider.OFFICIAL -> listOf(
+            GithubAssetSource(
+                repository = GithubRepository(
+                    author = "SagerNet",
+                    name = "sing-geoip",
+                ),
+                versionFile = versionFiles[0],
+            ),
+            GithubAssetSource(
+                repository = GithubRepository(
+                    author = "SagerNet",
+                    name = "sing-geosite",
+                    unstableBranch = "rule-set-unstable",
+                ),
+                versionFile = versionFiles[1],
+            ),
+        )
+
+        RuleProvider.LOYALSOLDIER -> listOf(
+            GithubAssetSource(
+                repository = GithubRepository(
+                    author = "1715173329",
+                    name = "sing-geoip",
+                ),
+                versionFile = versionFiles[0],
+            ),
+            GithubAssetSource(
+                repository = GithubRepository(
+                    author = "1715173329",
+                    name = "sing-geosite",
+                    unstableBranch = "rule-set-unstable",
+                ),
+                versionFile = versionFiles[1],
+            ),
+        )
+
+        RuleProvider.CHOCOLATE4U -> listOf(
+            GithubAssetSource(
+                repository = GithubRepository(
+                    author = "Chocolate4U",
+                    name = "Iran-sing-box-rules",
+                ),
+                versionFile = versionFiles[0],
+            ),
+        )
+
+        else -> throw IllegalStateException("Unknown provider $provider")
+    }
+}
+
 @Stable
 internal class AssetsScreenViewModel : ViewModel() {
 
@@ -226,23 +301,16 @@ internal class AssetsScreenViewModel : ViewModel() {
                 destinationDir,
                 DataStore.customRuleProvider.lines(),
             )
-        } else GithubAssetUpdater(
-            versionFiles,
-            updateProgress,
-            cacheDir,
-            destinationDir,
-            when (provider) {
-                RuleProvider.OFFICIAL -> listOf("SagerNet/sing-geoip", "SagerNet/sing-geosite")
-                RuleProvider.LOYALSOLDIER -> listOf(
-                    "xchacha20-poly1305/sing-geoip",
-                    "xchacha20-poly1305/sing-geosite",
-                )
-
-                RuleProvider.CHOCOLATE4U -> listOf("Chocolate4U/Iran-sing-box-rules")
-                else -> throw IllegalStateException("Unknown provider $provider")
-            },
-            RuleProvider.hasUnstableBranch(provider),
-        )
+        } else {
+            GithubAssetUpdater(
+                versionFiles,
+                updateProgress,
+                cacheDir,
+                destinationDir,
+                buildGithubAssetSources(provider, versionFiles),
+                RuleProvider.hasUnstableBranch(provider),
+            )
+        }
 
         updater.runUpdateIfAvailable()
     }
@@ -386,7 +454,7 @@ internal class AssetsScreenViewModel : ViewModel() {
 private class NoUpdateException : Exception()
 
 internal sealed class UpdateInfo {
-    data class Github(val repo: String, val newVersion: String) : UpdateInfo()
+    data class Github(val source: GithubAssetSource, val newVersion: String) : UpdateInfo()
     data class Custom(val link: String) : UpdateInfo()
 }
 
@@ -475,20 +543,19 @@ internal class GithubAssetUpdater(
     updateProgress: UpdateProgress,
     parent: File,
     toDir: File,
-    val repos: List<String>,
-    val unstableBranch: Boolean,
+    val sources: List<GithubAssetSource>,
+    val useUnstableBranch: Boolean,
 ) : AssetsUpdater(versionFiles, updateProgress, parent, toDir) {
 
     override suspend fun check(): List<UpdateInfo> {
         val updatesNeeded = mutableListOf<UpdateInfo.Github>()
 
-        for ((i, repo) in repos.withIndex()) {
-            val latestVersion = fetchVersion(repo)
-            val currentVersion =
-                versionFiles[i].readText()
+        for (source in sources) {
+            val latestVersion = fetchVersion(source.repository)
+            val currentVersion = source.versionFile.readText()
 
             if (latestVersion.isNotEmpty() && latestVersion != currentVersion) {
-                updatesNeeded.add(UpdateInfo.Github(repo, latestVersion))
+                updatesNeeded.add(UpdateInfo.Github(source, latestVersion))
                 updateProgress(5f)
             }
         }
@@ -505,17 +572,15 @@ internal class GithubAssetUpdater(
             for (update in updates) {
                 update as UpdateInfo.Github
                 // https://codeload.github.com/SagerNet/sing-geosite/tar.gz/refs/heads/rule-set
-                var branchName = "rule-set"
-                if (unstableBranch && update.repo.endsWith("sing-geosite")) {
-                    branchName += "-unstable"
-                }
+                val source = update.source
+                val branchName = source.repository.resolveBranch(useUnstableBranch)
                 val url =
-                    "https://codeload.github.com/${update.repo}/tar.gz/refs/heads/${branchName}"
+                    "https://codeload.github.com/${source.repository.fullName}/tar.gz/refs/heads/${branchName}"
                 val response = newRequest(url).execute()
 
                 val cacheFile = File(
                     cacheDir,
-                    "${update.repo.replace('/', '_')}-${update.newVersion}.tmp",
+                    "${source.repository.fullName.replace('/', '_')}-${update.newVersion}.tmp",
                 )
                 cacheFile.parentFile?.mkdirs()
                 cacheFile.deleteOnExit()
@@ -532,17 +597,14 @@ internal class GithubAssetUpdater(
                 updateProgress(progressPerUnpack)
             }
 
-            if (repos.size == 1) {
+            if (sources.size == 1) {
                 // Chocolate4U
                 val newVersion = (updates.firstOrNull() as? UpdateInfo.Github)?.newVersion ?: return
                 versionFiles.forEach { it.writeText(newVersion) }
             } else {
                 for (update in updates) {
                     update as UpdateInfo.Github
-                    val repoIndex = repos.indexOf(update.repo)
-                    if (repoIndex != -1) {
-                        versionFiles[repoIndex].writeText(update.newVersion)
-                    }
+                    update.source.versionFile.writeText(update.newVersion)
                 }
             }
         } finally {
@@ -552,8 +614,9 @@ internal class GithubAssetUpdater(
         }
     }
 
-    private fun fetchVersion(repo: String): String {
-        val response = newRequest("https://api.github.com/repos/$repo/releases/latest").execute()
+    private fun fetchVersion(repository: GithubRepository): String {
+        val response =
+            newRequest("https://api.github.com/repos/${repository.fullName}/releases/latest").execute()
         return kxs.decodeFromString<GithubRelease>(response.contentString).tagName
     }
 }
