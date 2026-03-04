@@ -51,6 +51,7 @@ import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.contentOrUnset
 import fr.husi.ktx.intListN
 import fr.husi.repository.repo
+import fr.husi.results.ResultEffect
 import fr.husi.resources.Res
 import fr.husi.resources.apply
 import fr.husi.resources.auto_update
@@ -118,12 +119,13 @@ import me.zhanghai.compose.preference.SwitchPreference
 import me.zhanghai.compose.preference.TextFieldPreference
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
+import kotlin.random.Random
 
 @Composable
 internal fun GroupSettingsScreen(
     groupId: Long,
     onBackPress: () -> Unit,
-    onOpenProfileSelect: (preSelected: Long?, onSelected: (Long) -> Unit) -> Unit,
+    onOpenProfileSelect: (NavRoutes.ProfileSelect) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: GroupSettingsViewModel = viewModel { GroupSettingsViewModel() },
 ) {
@@ -145,6 +147,20 @@ internal fun GroupSettingsScreen(
     fun saveAndExit() {
         viewModel.save()
         onBackPress()
+    }
+
+    val resultKeyNumber = remember { groupId.takeIf { it >= 0 } ?: Random.nextLong() }
+    val frontProfileResultKey = remember { "group-front-profile-$resultKeyNumber" }
+    val landingProfileResultKey = remember { "group-landing-profile-$resultKeyNumber" }
+    ResultEffect<Long?>(resultKey = frontProfileResultKey) { id ->
+        if (id == null) return@ResultEffect
+        val profile = ProfileManager.getProfile(id) ?: return@ResultEffect
+        viewModel.setFrontProxy(profile.id)
+    }
+    ResultEffect<Long?>(resultKey = landingProfileResultKey) { id ->
+        if (id == null) return@ResultEffect
+        val profile = ProfileManager.getProfile(id) ?: return@ResultEffect
+        viewModel.setLandingProxy(profile.id)
     }
 
     Scaffold(
@@ -212,18 +228,20 @@ internal fun GroupSettingsScreen(
                         uiState = uiState,
                         viewModel = viewModel,
                         selectFrontProxy = {
-                            onOpenProfileSelect(uiState.frontProxy.takeIf { it > 0 }) { id ->
-                                val profile =
-                                    ProfileManager.getProfile(id) ?: return@onOpenProfileSelect
-                                viewModel.setFrontProxy(profile.id)
-                            }
+                            onOpenProfileSelect(
+                                NavRoutes.ProfileSelect(
+                                    preSelected = uiState.frontProxy.takeIf { it > 0 },
+                                    resultKey = frontProfileResultKey,
+                                ),
+                            )
                         },
                         selectLandingProxy = {
-                            onOpenProfileSelect(uiState.landingProxy.takeIf { it > 0 }) { id ->
-                                val profile =
-                                    ProfileManager.getProfile(id) ?: return@onOpenProfileSelect
-                                viewModel.setLandingProxy(profile.id)
-                            }
+                            onOpenProfileSelect(
+                                NavRoutes.ProfileSelect(
+                                    preSelected = uiState.landingProxy.takeIf { it > 0 },
+                                    resultKey = landingProfileResultKey,
+                                ),
+                            )
                         },
                     )
                 }

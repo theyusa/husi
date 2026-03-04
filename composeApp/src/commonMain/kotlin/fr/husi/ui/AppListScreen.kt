@@ -6,6 +6,7 @@ import androidx.compose.ui.Modifier
 @Composable
 internal expect fun AppListScreen(
     initialPackages: Set<String>,
-    onSave: (Set<String>) -> Unit,
+    resultKey: String,
+    onBack: () -> Unit,
     modifier: Modifier = Modifier,
 )

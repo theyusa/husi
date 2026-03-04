@@ -37,7 +37,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -112,6 +112,9 @@ import fr.husi.resources.standard
 import fr.husi.resources.traffic
 import fr.husi.resources.unavailable
 import fr.husi.resources.warning
+import fr.husi.results.LocalResultEventBus
+import fr.husi.results.ResultEffect
+import fr.husi.ui.NavRoutes
 import fr.husi.ui.StringOrRes
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
@@ -124,6 +127,11 @@ import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 
+private data class PendingProfileEdit(
+    val resultKey: String,
+    val profileId: Long,
+)
+
 @Composable
 internal fun GroupHolderScreen(
     modifier: Modifier = Modifier,
@@ -131,7 +139,7 @@ internal fun GroupHolderScreen(
     bottomPadding: Dp,
     showActions: Boolean = true,
     onProfileSelect: (Long) -> Unit,
-    openProfileEditor: ((type: Int, id: Long, isSubscription: Boolean, onResult: (updated: Boolean) -> Unit) -> Unit)? = null,
+    onOpenProfileEditor: ((NavRoutes.ProfileEditor) -> Unit)? = null,
     needReload: () -> Unit,
     showQR: (name: String, url: String) -> Unit,
     onCopySuccess: () -> Unit,
@@ -140,6 +148,8 @@ internal fun GroupHolderScreen(
     onScrollHideChange: (Boolean) -> Unit = {},
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
+    val resultBus = LocalResultEventBus.current
+    val pendingProfileEdits = remember { mutableStateListOf<PendingProfileEdit>() }
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -187,7 +197,31 @@ internal fun GroupHolderScreen(
         }
     }
 
-    var editingID by remember { mutableLongStateOf(-1L) }
+    for (pending in pendingProfileEdits.toList()) {
+        ResultEffect<Boolean>(resultKey = pending.resultKey) { updated ->
+            if (updated && pending.profileId == DataStore.selectedProxy) {
+                needReload()
+            }
+            pendingProfileEdits.remove(pending)
+        }
+    }
+
+    fun openProfileEditor(profile: ProxyEntity) {
+        val resultKey = "profile-editor-${profile.id}"
+        pendingProfileEdits.removeAll { it.resultKey == resultKey }
+        pendingProfileEdits += PendingProfileEdit(
+            resultKey = resultKey,
+            profileId = profile.id,
+        )
+        onOpenProfileEditor?.invoke(
+            NavRoutes.ProfileEditor(
+                type = profile.type,
+                id = profile.id,
+                subscription = viewModel.group.type == GroupType.SUBSCRIPTION,
+                resultKey = resultKey,
+            ),
+        )
+    }
 
     var exportConfig by remember { mutableStateOf("") }
     val exportFileLauncher = rememberFileSaverLauncher(
@@ -245,16 +279,7 @@ internal fun GroupHolderScreen(
                     profile = item,
                     select = { onProfileSelect(item.profile.id) },
                     edit = {
-                        editingID = item.profile.id
-                        openProfileEditor?.invoke(
-                            item.profile.type,
-                            item.profile.id,
-                            viewModel.group.type == GroupType.SUBSCRIPTION,
-                        ) { updated ->
-                            if (updated && editingID == DataStore.selectedProxy) {
-                                needReload()
-                            }
-                        }
+                        openProfileEditor(item.profile)
                     },
                     delete = { viewModel.undoableRemove(item.profile.id) },
                     showQR = { url ->

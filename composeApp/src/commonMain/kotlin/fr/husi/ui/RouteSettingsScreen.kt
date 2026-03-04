@@ -130,6 +130,7 @@ import fr.husi.resources.warning
 import fr.husi.resources.warning_amber
 import fr.husi.resources.wifi
 import fr.husi.resources.wifi_find
+import fr.husi.results.ResultEffect
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import kotlinx.coroutines.runBlocking
@@ -141,6 +142,7 @@ import me.zhanghai.compose.preference.SwitchPreference
 import me.zhanghai.compose.preference.TextFieldPreference
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
+import kotlin.random.Random
 
 private const val KEY_ACTION_OPTIONS = "action_options"
 
@@ -151,9 +153,9 @@ internal fun RouteSettingsScreen(
     initialState: RouteSettingsUiState?,
     onBackPress: () -> Unit,
     onSaved: () -> Unit,
-    onOpenProfileSelect: (preSelected: Long?, onSelected: (Long) -> Unit) -> Unit,
-    onOpenAppList: (Set<String>, (Set<String>) -> Unit) -> Unit,
-    onOpenConfigEditor: (String, (String) -> Unit) -> Unit,
+    onOpenProfileSelect: (NavRoutes.ProfileSelect) -> Unit,
+    onOpenAppList: (NavRoutes.AppList) -> Unit,
+    onOpenConfigEditor: (NavRoutes.ConfigEditor) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: RouteSettingsViewModel = viewModel { RouteSettingsViewModel() },
 ) {
@@ -178,6 +180,29 @@ internal fun RouteSettingsScreen(
     fun saveAndExit() {
         viewModel.save()
         onSaved()
+    }
+
+    val resultKeyNumber = remember { routeId.takeIf { it >= 0 } ?: Random.nextLong() }
+
+    val appListResultKey = remember { "app-list-${resultKeyNumber}" }
+    val configEditResultKey = remember { "route-config-${resultKeyNumber}" }
+    val dnsConfigEditResultKey = remember { "route-dns-config-${resultKeyNumber}" }
+    val profileSelectResultKey = remember { "route-profile-${resultKeyNumber}" }
+    ResultEffect<Set<String>>(resultKey = appListResultKey) { result ->
+        viewModel.setPackages(result)
+    }
+    ResultEffect<String?>(resultKey = configEditResultKey) { result ->
+        if (result == null) return@ResultEffect
+        viewModel.setCustomConfig(result)
+    }
+    ResultEffect<String?>(resultKey = dnsConfigEditResultKey) { result ->
+        if (result == null) return@ResultEffect
+        viewModel.setCustomDnsConfig(result)
+    }
+    ResultEffect<Long?>(resultKey = profileSelectResultKey) { id ->
+        if (id == null) return@ResultEffect
+        val profile = ProfileManager.getProfile(id) ?: return@ResultEffect
+        viewModel.setOutbound(profile.id)
     }
 
     Scaffold(
@@ -248,8 +273,10 @@ internal fun RouteSettingsScreen(
                                     onClick = {
                                         showExpandedMenu = false
                                         onOpenConfigEditor(
-                                            uiState.customConfig,
-                                            viewModel::setCustomConfig,
+                                            NavRoutes.ConfigEditor(
+                                                initialText = uiState.customConfig,
+                                                resultKey = configEditResultKey,
+                                            ),
                                         )
                                     },
                                 )
@@ -258,8 +285,10 @@ internal fun RouteSettingsScreen(
                                     onClick = {
                                         showExpandedMenu = false
                                         onOpenConfigEditor(
-                                            uiState.customDnsConfig,
-                                            viewModel::setCustomDnsConfig,
+                                            NavRoutes.ConfigEditor(
+                                                initialText = uiState.customDnsConfig,
+                                                resultKey = dnsConfigEditResultKey,
+                                            ),
                                         )
                                     },
                                 )
@@ -292,16 +321,21 @@ internal fun RouteSettingsScreen(
                 uiState = uiState,
                 viewModel = viewModel,
                 onSelectOutboundProfile = { selected ->
-                    onOpenProfileSelect(selected.takeIf { it > 0 }) { id ->
-                        val profile = ProfileManager.getProfile(id) ?: return@onOpenProfileSelect
-                        viewModel.setOutbound(profile.id)
-                    }
+                    onOpenProfileSelect(
+                        NavRoutes.ProfileSelect(
+                            preSelected = selected.takeIf { it > 0 },
+                            resultKey = profileSelectResultKey,
+                        ),
+                    )
                 },
                 onSelectApps = { packages ->
                     if (repo.isAndroid) {
-                        onOpenAppList(packages) { selected ->
-                            viewModel.setPackages(selected)
-                        }
+                        onOpenAppList(
+                            NavRoutes.AppList(
+                                initialPackages = packages,
+                                resultKey = appListResultKey,
+                            ),
+                        )
                     } else {
                         viewModel.setPackages(packages)
                     }

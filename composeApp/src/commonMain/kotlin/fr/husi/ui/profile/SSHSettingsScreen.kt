@@ -37,6 +37,7 @@ import fr.husi.resources.ssh_private_key_passphrase
 import fr.husi.resources.ssh_public_key
 import fr.husi.resources.username
 import fr.husi.resources.vpn_key
+import fr.husi.ui.NavRoutes
 import kotlinx.coroutines.runBlocking
 import me.zhanghai.compose.preference.ListPreference
 import me.zhanghai.compose.preference.ListPreferenceType
@@ -50,7 +51,7 @@ fun SSHSettingsScreen(
     profileId: Long,
     isSubscription: Boolean,
     onResult: (updated: Boolean) -> Unit,
-    onOpenConfigEditor: openConfigEditor,
+    onOpenConfigEditor: (NavRoutes.ConfigEditor) -> Unit,
 ) {
     val viewModel: SSHSettingsViewModel = viewModel { SSHSettingsViewModel() }
 
@@ -63,8 +64,8 @@ fun SSHSettingsScreen(
         viewModel = viewModel,
         onResult = onResult,
         onOpenConfigEditor = onOpenConfigEditor,
-    ) { scope, uiState, _ ->
-        scope.sshSettings(uiState as SshUiState, viewModel)
+    ) { uiState, _ ->
+        sshSettings(uiState as SshUiState, viewModel)
     }
 }
 

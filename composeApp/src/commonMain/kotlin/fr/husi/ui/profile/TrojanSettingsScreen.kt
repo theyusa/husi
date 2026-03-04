@@ -6,7 +6,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.husi.compose.PasswordPreference
-import fr.husi.resources.*
+import fr.husi.resources.Res
+import fr.husi.resources.profile_config
+import fr.husi.ui.NavRoutes
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -14,7 +16,7 @@ fun TrojanSettingsScreen(
     profileId: Long,
     isSubscription: Boolean,
     onResult: (updated: Boolean) -> Unit,
-    onOpenConfigEditor: openConfigEditor,
+    onOpenConfigEditor: (NavRoutes.ConfigEditor) -> Unit,
 ) {
     val viewModel: TrojanSettingsViewModel = viewModel { TrojanSettingsViewModel() }
 
@@ -27,8 +29,8 @@ fun TrojanSettingsScreen(
         viewModel = viewModel,
         onResult = onResult,
         onOpenConfigEditor = onOpenConfigEditor,
-    ) { scope, uiState, scrollTo ->
-        scope.trojanSettings(uiState as TrojanUiState, viewModel, scrollTo)
+    ) { uiState, scrollTo ->
+        trojanSettings(uiState as TrojanUiState, viewModel, scrollTo)
     }
 }
 

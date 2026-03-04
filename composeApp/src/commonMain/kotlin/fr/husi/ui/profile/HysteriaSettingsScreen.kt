@@ -67,6 +67,7 @@ import fr.husi.resources.tuic_disable_sni
 import fr.husi.resources.update
 import fr.husi.resources.vpn_key
 import fr.husi.resources.wb_sunny
+import fr.husi.ui.NavRoutes
 import fr.husi.ui.StringOrRes
 import fr.husi.ui.getStringOrRes
 import fr.husi.ui.stringOrRes
@@ -84,7 +85,7 @@ fun HysteriaSettingsScreen(
     profileId: Long,
     isSubscription: Boolean,
     onResult: (updated: Boolean) -> Unit,
-    onOpenConfigEditor: openConfigEditor,
+    onOpenConfigEditor: (NavRoutes.ConfigEditor) -> Unit,
 ) {
     val viewModel: HysteriaSettingsViewModel = viewModel { HysteriaSettingsViewModel() }
     val protocolNames = listOf(
@@ -102,8 +103,8 @@ fun HysteriaSettingsScreen(
         viewModel = viewModel,
         onResult = onResult,
         onOpenConfigEditor = onOpenConfigEditor,
-    ) { scope, uiState, _ ->
-        scope.hysteriaSettings(uiState as HysteriaUiState, viewModel, protocolNames)
+    ) { uiState, _ ->
+        hysteriaSettings(uiState as HysteriaUiState, viewModel, protocolNames)
     }
 }
 

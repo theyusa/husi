@@ -69,7 +69,8 @@ internal abstract class ProfileEditorViewModel<T : AbstractBean> : ViewModel() {
     protected abstract suspend fun T.writeToUiState()
     protected abstract fun T.loadFromUiState()
 
-    protected var editingId = -1L
+    var editingId = -1L
+        private set
     val isNew get() = editingId < 0L
     lateinit var proxyEntity: ProxyEntity
     lateinit var bean: T
@@ -82,10 +83,9 @@ internal abstract class ProfileEditorViewModel<T : AbstractBean> : ViewModel() {
             return
         }
         initializedFor = args
+        this@ProfileEditorViewModel.editingId = editingId
+        this@ProfileEditorViewModel.isSubscription = isSubscription
         viewModelScope.launch {
-            this@ProfileEditorViewModel.editingId = editingId
-            this@ProfileEditorViewModel.isSubscription = isSubscription
-
             bean = if (isNew) {
                 createBean().applyDefaultValues()
             } else {

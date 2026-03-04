@@ -25,6 +25,7 @@ import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -56,6 +57,8 @@ import fr.husi.ktx.runOnDefaultDispatcher
 import fr.husi.permission.AppPermission
 import fr.husi.permission.LocalPermissionPlatform
 import fr.husi.repository.repo
+import fr.husi.results.LocalResultEventBus
+import fr.husi.results.ResultEventBus
 import fr.husi.resources.Res
 import fr.husi.resources.action_download
 import fr.husi.resources.bug_report
@@ -126,7 +129,7 @@ fun MainScreen(
 
     val savedStateConfiguration = remember { NavRoutes.savedStateConfiguration }
     val backStack = rememberNavBackStack(savedStateConfiguration, NavRoutes.Configuration)
-    var profileSelectRoute by remember { mutableStateOf<NavRoutes.ProfileSelect?>(null) }
+    val resultBus = remember { ResultEventBus() }
     val canCollapseDrawer = drawerIsCollapsible()
     val drawerState = rememberDrawerState(
         if (canCollapseDrawer) {
@@ -138,12 +141,6 @@ fun MainScreen(
     val currentRoute = backStack.lastOrNull() as? NavRoutes
     val isAtStartDestination = currentRoute == NavRoutes.Configuration
     val serviceStatus by BackendState.status.collectAsStateWithLifecycle()
-
-    fun openProfileSelect(preSelected: Long?, onSelected: (Long) -> Unit) {
-        profileSelectRoute = NavRoutes.ProfileSelect(preSelected = preSelected).also {
-            it.onSelected = onSelected
-        }
-    }
 
     fun closeDrawer() {
         if (canCollapseDrawer) {
@@ -370,285 +367,240 @@ fun MainScreen(
             }
         }
 
-        NavDisplay(
-            backStack = backStack,
-            onBack = { popBackStack() },
-            entryProvider = entryProvider(
-                fallback = { key ->
-                    error("Unknown route: $key")
-                },
-            ) {
-                entry<NavRoutes.Configuration> {
-                    ConfigurationScreen(
-                        mainViewModel = viewModel,
-                        onNavigationClick = ::onDrawerClick,
-                        selectCallback = null,
-                        preSelected = null,
-                        openProfileEditor = { type, id, isSubscription, onResult ->
-                            navigateTo(
-                                NavRoutes.ProfileEditor(
-                                    type = type,
-                                    id = id,
-                                    subscription = isSubscription,
-                                ).also {
-                                    it.onResult = onResult
-                                },
-                            )
-                        },
-                    )
-                }
+        CompositionLocalProvider(
+            LocalResultEventBus provides resultBus,
+        ) {
+            NavDisplay(
+                backStack = backStack,
+                onBack = ::popBackStack,
+                entryProvider = entryProvider(
+                    fallback = { key ->
+                        error("Unknown route: $key")
+                    },
+                ) {
+                    entry<NavRoutes.Configuration> {
+                        ConfigurationScreen(
+                            mainViewModel = viewModel,
+                            onNavigationClick = ::onDrawerClick,
+                            selectCallback = null,
+                            preSelected = null,
+                            onOpenProfileEditor = { navigateTo(it) },
+                        )
+                    }
 
-                entry<NavRoutes.Groups> {
-                    GroupScreen(
-                        mainViewModel = viewModel,
-                        onDrawerClick = ::onDrawerClick,
-                        openGroupSettings = { groupId ->
-                            navigateTo(NavRoutes.GroupSettings(groupId = groupId))
-                        },
-                    )
-                }
+                    entry<NavRoutes.Groups> {
+                        GroupScreen(
+                            mainViewModel = viewModel,
+                            onDrawerClick = ::onDrawerClick,
+                            openGroupSettings = { groupId ->
+                                navigateTo(NavRoutes.GroupSettings(groupId = groupId))
+                            },
+                        )
+                    }
 
-                entry<NavRoutes.Route> {
-                    RouteScreen(
-                        mainViewModel = viewModel,
-                        onDrawerClick = ::onDrawerClick,
-                        openRouteSettings = { routeId ->
-                            navigateTo(NavRoutes.RouteSettings(routeId = routeId))
-                        },
-                        openAssets = {
-                            navigateTo(NavRoutes.Assets)
-                        },
-                    )
-                }
+                    entry<NavRoutes.Route> {
+                        RouteScreen(
+                            mainViewModel = viewModel,
+                            onDrawerClick = ::onDrawerClick,
+                            openRouteSettings = { routeId ->
+                                navigateTo(NavRoutes.RouteSettings(routeId = routeId))
+                            },
+                            openAssets = {
+                                navigateTo(NavRoutes.Assets)
+                            },
+                        )
+                    }
 
-                entry<NavRoutes.Settings> {
-                    SettingsScreen(
-                        mainViewModel = viewModel,
-                        onDrawerClick = ::onDrawerClick,
-                        openAppManager = { navigateTo(NavRoutes.AppManager) },
-                    )
-                }
+                    entry<NavRoutes.Settings> {
+                        SettingsScreen(
+                            mainViewModel = viewModel,
+                            onDrawerClick = ::onDrawerClick,
+                            openAppManager = { navigateTo(NavRoutes.AppManager) },
+                        )
+                    }
 
-                entry<NavRoutes.Plugin> {
-                    PluginScreen(
-                        mainViewModel = viewModel,
-                        onDrawerClick = ::onDrawerClick,
-                    )
-                }
+                    entry<NavRoutes.Plugin> {
+                        PluginScreen(
+                            mainViewModel = viewModel,
+                            onDrawerClick = ::onDrawerClick,
+                        )
+                    }
 
-                entry<NavRoutes.Log> {
-                    LogcatScreen(
-                        mainViewModel = viewModel,
-                        onDrawerClick = ::onDrawerClick,
-                    )
-                }
+                    entry<NavRoutes.Log> {
+                        LogcatScreen(
+                            mainViewModel = viewModel,
+                            onDrawerClick = ::onDrawerClick,
+                        )
+                    }
 
-                entry<NavRoutes.Dashboard> {
-                    DashboardScreen(
-                        mainViewModel = viewModel,
-                        onDrawerClick = ::onDrawerClick,
-                        openConnectionDetail = { uuid ->
-                            navigateTo(NavRoutes.ConnectionsDetail(uuid = uuid))
-                        },
-                    )
-                }
+                    entry<NavRoutes.Dashboard> {
+                        DashboardScreen(
+                            mainViewModel = viewModel,
+                            onDrawerClick = ::onDrawerClick,
+                            openConnectionDetail = { uuid ->
+                                navigateTo(NavRoutes.ConnectionsDetail(uuid = uuid))
+                            },
+                        )
+                    }
 
-                entry<NavRoutes.ConnectionsDetail> { key ->
-                    ConnectionDetailScreen(
-                        uuid = key.uuid,
-                        popup = { popBackStack() },
-                        navigateToRoutes = { navigateTo(NavRoutes.Route) },
-                        openRouteSettings = { initialState, onSaved ->
-                            navigateTo(
-                                NavRoutes.RouteSettings(
-                                    routeId = -1L,
-                                    useDraft = true,
-                                ).also {
-                                    it.initialState = initialState
-                                    it.onSaved = onSaved
-                                },
-                            )
-                        },
-                    )
-                }
+                    entry<NavRoutes.ConnectionsDetail> { key ->
+                        ConnectionDetailScreen(
+                            uuid = key.uuid,
+                            popup = ::popBackStack,
+                            openRouteSettings = { initialState ->
+                                navigateTo(
+                                    NavRoutes.RouteSettings(
+                                        routeId = -1L,
+                                        useDraft = true,
+                                        initialState = initialState,
+                                    ),
+                                )
+                            },
+                        )
+                    }
 
-                entry<NavRoutes.ProfileEditor> { key ->
-                    ProfileEditorScreen(
-                        type = key.type,
-                        profileId = key.id,
-                        isSubscription = key.subscription,
-                        onOpenProfileSelect = ::openProfileSelect,
-                        onOpenConfigEditor = { initialText, onResult ->
-                            navigateTo(
-                                NavRoutes.ConfigEditor(initialText = initialText).also {
-                                    it.onResult = onResult
-                                },
-                            )
-                        },
-                        onResult = { updated ->
-                            key.onResult?.invoke(updated)
-                            popBackStack()
-                        },
-                    )
-                }
+                    entry<NavRoutes.ProfileEditor> { route ->
+                        ProfileEditorScreen(
+                            type = route.type,
+                            profileId = route.id,
+                            isSubscription = route.subscription,
+                            onOpenProfileSelect = { navigateTo(it) },
+                            onOpenConfigEditor = { navigateTo(it) },
+                            onResult = { updated ->
+                                resultBus.sendResult(route.resultKey, updated)
+                                popBackStack()
+                            },
+                        )
+                    }
 
-                entry<NavRoutes.AppManager> {
-                    AppManagerScreen(
-                        onBackPress = { popBackStack() },
-                    )
-                }
+                    entry<NavRoutes.ProfileSelect> { route ->
+                        ProfileSelectSheet(
+                            mainViewModel = viewModel,
+                            preSelected = route.preSelected,
+                            onDismiss = ::popBackStack,
+                            onSelected = { id ->
+                                resultBus.sendResult<Long?>(route.resultKey, id)
+                                popBackStack()
+                            },
+                        )
+                    }
 
-                entry<NavRoutes.GroupSettings> { key ->
-                    GroupSettingsScreen(
-                        groupId = key.groupId,
-                        onBackPress = { popBackStack() },
-                        onOpenProfileSelect = ::openProfileSelect,
-                    )
-                }
+                    entry<NavRoutes.AppManager> {
+                        AppManagerScreen(
+                            onBackPress = { popBackStack() },
+                        )
+                    }
 
-                entry<NavRoutes.RouteSettings> { key ->
-                    val initialState = if (key.useDraft) key.initialState else null
-                    RouteSettingsScreen(
-                        routeId = key.routeId,
-                        initialState = initialState,
-                        onBackPress = { popBackStack() },
-                        onSaved = {
-                            key.onSaved?.invoke()
-                            popBackStack()
-                        },
-                        onOpenProfileSelect = ::openProfileSelect,
-                        onOpenAppList = { initialPackages, onResult ->
-                            navigateTo(
-                                NavRoutes.AppList(
-                                    initialPackages = initialPackages,
-                                ).also {
-                                    it.onResult = onResult
-                                },
-                            )
-                        },
-                        onOpenConfigEditor = { initialText, onResult ->
-                            navigateTo(
-                                NavRoutes.ConfigEditor(initialText = initialText).also {
-                                    it.onResult = onResult
-                                },
-                            )
-                        },
-                    )
-                }
+                    entry<NavRoutes.GroupSettings> { key ->
+                        GroupSettingsScreen(
+                            groupId = key.groupId,
+                            onBackPress = { popBackStack() },
+                            onOpenProfileSelect = { navigateTo(it) },
+                        )
+                    }
 
-                entry<NavRoutes.AppList> { key ->
-                    AppListScreen(
-                        initialPackages = key.initialPackages,
-                        onSave = { selectedPackages ->
-                            key.onResult?.invoke(selectedPackages)
-                            popBackStack()
-                        },
-                    )
-                }
+                    entry<NavRoutes.RouteSettings> { key ->
+                        val initialState = if (key.useDraft) key.initialState else null
+                        RouteSettingsScreen(
+                            routeId = key.routeId,
+                            initialState = initialState,
+                            onBackPress = { popBackStack() },
+                            onSaved = ::popBackStack,
+                            onOpenProfileSelect = { navigateTo(it) },
+                            onOpenAppList = { navigateTo(it) },
+                            onOpenConfigEditor = { navigateTo(it) },
+                        )
+                    }
 
-                entry<NavRoutes.ConfigEditor> { key ->
-                    ConfigEditScreen(
-                        initialText = key.initialText,
-                        back = { popBackStack() },
-                        saveAndExit = { text ->
-                            key.onResult?.invoke(text)
-                            popBackStack()
-                        },
-                    )
-                }
+                    entry<NavRoutes.AppList> { route ->
+                        AppListScreen(
+                            initialPackages = route.initialPackages,
+                            resultKey = route.resultKey,
+                            onBack = ::popBackStack,
+                        )
+                    }
 
-                entry<NavRoutes.Assets> {
-                    AssetsScreen(
-                        onBackPress = { popBackStack() },
-                        onOpenAssetEditor = { assetName, onResult ->
-                            navigateTo(
-                                NavRoutes.AssetEdit(assetName = assetName).also {
-                                    it.onFinished = onResult
-                                },
-                            )
-                        },
-                    )
-                }
+                    entry<NavRoutes.ConfigEditor> { route ->
+                        ConfigEditScreen(
+                            initialText = route.initialText,
+                            resultKey = route.resultKey,
+                            onBack = ::popBackStack,
+                        )
+                    }
 
-                entry<NavRoutes.AssetEdit> { key ->
-                    AssetEditScreen(
-                        assetName = key.assetName,
-                        onFinished = { result ->
-                            key.onFinished?.invoke(result)
-                            popBackStack()
-                        },
-                    )
-                }
+                    entry<NavRoutes.Assets> {
+                        AssetsScreen(
+                            onBackPress = { popBackStack() },
+                            onOpenAssetEditor = { route ->
+                                navigateTo(route)
+                            },
+                        )
+                    }
 
-                entry<NavRoutes.Tools> {
-                    ToolsScreen(
-                        mainViewModel = viewModel,
-                        onDrawerClick = ::onDrawerClick,
-                        onOpenTool = { route ->
-                            navigateTo(route)
-                        },
-                    )
-                }
+                    entry<NavRoutes.AssetEdit> { key ->
+                        AssetEditScreen(
+                            assetName = key.assetName,
+                            resultKey = key.resultKey,
+                            onBack = ::popBackStack,
+                        )
+                    }
 
-                entry<NavRoutes.ToolsPage.Stun> {
-                    StunScreen(
-                        onBackPress = { popBackStack() },
-                    )
-                }
+                    entry<NavRoutes.Tools> {
+                        ToolsScreen(
+                            mainViewModel = viewModel,
+                            onDrawerClick = ::onDrawerClick,
+                            onOpenTool = { toolsRoute ->
+                                navigateTo(toolsRoute)
+                            },
+                        )
+                    }
 
-                entry<NavRoutes.ToolsPage.GetCert> {
-                    GetCertScreen(
-                        onBack = { popBackStack() },
-                    )
-                }
+                    entry<NavRoutes.ToolsPage.Stun> {
+                        StunScreen(
+                            onBackPress = ::popBackStack,
+                        )
+                    }
 
-                entry<NavRoutes.ToolsPage.VPNScanner> {
-                    VPNScannerScreen(
-                        onBackPress = { popBackStack() },
-                    )
-                }
+                    entry<NavRoutes.ToolsPage.GetCert> {
+                        GetCertScreen(
+                            onBack = ::popBackStack,
+                        )
+                    }
 
-                entry<NavRoutes.ToolsPage.SpeedTest> {
-                    SpeedtestScreen(
-                        onBackPress = { popBackStack() },
-                    )
-                }
+                    entry<NavRoutes.ToolsPage.VPNScanner> {
+                        VPNScannerScreen(
+                            onBackPress = ::popBackStack,
+                        )
+                    }
 
-                entry<NavRoutes.ToolsPage.RuleSetMatch> {
-                    RuleSetMatchScreen(
-                        onBackPress = { popBackStack() },
-                    )
-                }
+                    entry<NavRoutes.ToolsPage.SpeedTest> {
+                        SpeedtestScreen(
+                            onBackPress = ::popBackStack,
+                        )
+                    }
 
-                entry<NavRoutes.About> {
-                    AboutScreen(
-                        mainViewModel = viewModel,
-                        onDrawerClick = ::onDrawerClick,
-                        onNavigateToLibraries = { navigateTo(NavRoutes.Libraries) },
-                    )
-                }
+                    entry<NavRoutes.ToolsPage.RuleSetMatch> {
+                        RuleSetMatchScreen(
+                            onBackPress = ::popBackStack,
+                        )
+                    }
 
-                entry<NavRoutes.Libraries> {
-                    LibrariesScreen(
-                        onBackPress = { popBackStack() },
-                    )
-                }
-            },
-        )
+                    entry<NavRoutes.About> {
+                        AboutScreen(
+                            mainViewModel = viewModel,
+                            onDrawerClick = ::onDrawerClick,
+                            onNavigateToLibraries = { navigateTo(NavRoutes.Libraries) },
+                        )
+                    }
 
-        val profileSelect = profileSelectRoute
-        if (profileSelect != null) {
-            ProfileSelectSheet(
-                mainViewModel = viewModel,
-                preSelected = profileSelect.preSelected,
-                onDismiss = {
-                    profileSelectRoute = null
-                },
-                onSelected = { id ->
-                    profileSelect.onSelected?.invoke(id)
-                    profileSelectRoute = null
+                    entry<NavRoutes.Libraries> {
+                        LibrariesScreen(
+                            onBackPress = ::popBackStack,
+                        )
+                    }
                 },
             )
+
         }
     }
 

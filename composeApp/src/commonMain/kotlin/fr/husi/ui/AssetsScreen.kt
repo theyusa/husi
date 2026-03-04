@@ -48,6 +48,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -68,6 +69,8 @@ import fr.husi.ktx.Logs
 import fr.husi.ktx.showAndDismissOld
 import fr.husi.libcore.Libcore
 import fr.husi.repository.repo
+import fr.husi.results.LocalResultEventBus
+import fr.husi.results.ResultEffect
 import fr.husi.resources.*
 import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
 import io.github.vinceglb.filekit.name
@@ -75,6 +78,7 @@ import io.github.vinceglb.filekit.readBytes
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlin.random.Random
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 import java.io.File
@@ -94,7 +98,7 @@ private fun geoDir(assetsDir: File): File {
 @Composable
 internal fun AssetsScreen(
     onBackPress: () -> Unit,
-    onOpenAssetEditor: (String, (AssetEditResult) -> Unit) -> Unit,
+    onOpenAssetEditor: (NavRoutes.AssetEdit) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: AssetsScreenViewModel = viewModel { AssetsScreenViewModel() },
 ) {
@@ -102,6 +106,8 @@ internal fun AssetsScreen(
     val assetsDir = repo.externalAssetsDir
     val geoDir = remember { geoDir(assetsDir) }
     val scope = rememberCoroutineScope()
+    val resultBus = LocalResultEventBus.current
+    val activeResultKeys = remember { mutableStateListOf<String>() }
     val rulesProvider by DataStore.configurationStore
         .intFlow(Key.RULES_PROVIDER, RuleProvider.OFFICIAL)
         .collectAsStateWithLifecycle(RuleProvider.OFFICIAL)
@@ -127,6 +133,21 @@ internal fun AssetsScreen(
 
             else -> {}
         }
+    }
+
+    fun openAssetEditor(assetName: String) {
+        val resultKey = assetName.ifEmpty {
+            "asset-edit-new-${Random.nextLong()}"
+        }
+        if (resultKey !in activeResultKeys) {
+            activeResultKeys += resultKey
+        }
+        onOpenAssetEditor(
+            NavRoutes.AssetEdit(
+                assetName = assetName,
+                resultKey = resultKey,
+            ),
+        )
     }
 
     val importFile = rememberFilePickerLauncher { file ->
@@ -175,6 +196,12 @@ internal fun AssetsScreen(
     }
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    for (resultKey in activeResultKeys.toList()) {
+        ResultEffect<AssetEditResult>(resultKey = resultKey) { result ->
+            handleAssetEditResult(result)
+        }
+    }
 
     LaunchedEffect(uiState.pendingDeleteCount) {
         if (uiState.pendingDeleteCount > 0) {
@@ -263,9 +290,7 @@ internal fun AssetsScreen(
                                 label = runBlocking { repo.getString(Res.string.action_import_file) },
                             )
                             clickableItem(
-                                onClick = {
-                                    onOpenAssetEditor("", ::handleAssetEditResult)
-                                },
+                                onClick = { openAssetEditor("") },
                                 icon = {
                                     Icon(vectorResource(Res.drawable.link), null)
                                 },
@@ -342,9 +367,7 @@ internal fun AssetsScreen(
                                 asset = asset,
                                 viewModel = viewModel,
                                 uiState = uiState,
-                                onEditAsset = { name ->
-                                    onOpenAssetEditor(name, ::handleAssetEditResult)
-                                },
+                                onEditAsset = { openAssetEditor(it) },
                             )
                         }
                     } else {
@@ -352,9 +375,7 @@ internal fun AssetsScreen(
                             asset = asset,
                             viewModel = viewModel,
                             uiState = uiState,
-                            onEditAsset = { name ->
-                                onOpenAssetEditor(name, ::handleAssetEditResult)
-                            },
+                            onEditAsset = { openAssetEditor(it) },
                         )
                     }
                 }

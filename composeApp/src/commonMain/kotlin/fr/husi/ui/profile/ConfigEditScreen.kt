@@ -119,6 +119,8 @@ import fr.husi.resources.redo
 import fr.husi.resources.undo
 import fr.husi.resources.unsaved_changes_prompt
 import fr.husi.resources.warning
+import fr.husi.results.LocalResultEventBus
+import fr.husi.results.ResultEventBus
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import kotlinx.coroutines.coroutineScope
@@ -127,6 +129,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
+import kotlin.random.Random
 
 @Composable
 private fun RepeatableIconButton(
@@ -173,12 +176,15 @@ private fun RepeatableIconButton(
     }
 }
 
+/**
+ * Result definition: String? ( null means user cancel, otherwise is the edited config )
+ */
 @Composable
 fun ConfigEditScreen(
     modifier: Modifier = Modifier,
     initialText: String,
-    back: () -> Unit,
-    saveAndExit: (text: String) -> Unit,
+    resultKey: String,
+    onBack: () -> Unit,
 ) {
     val viewModel: ConfigEditViewModel = viewModel { ConfigEditViewModel() }
     LaunchedEffect(initialText) {
@@ -190,8 +196,8 @@ fun ConfigEditScreen(
             modifier = modifier,
             viewModel = viewModel,
             initialText = initialText,
-            back = back,
-            saveAndExit = saveAndExit,
+            resultKey = resultKey,
+            onBack = onBack,
         )
     }
 }
@@ -201,9 +207,10 @@ private fun ConfigEditScreenContent(
     modifier: Modifier = Modifier,
     viewModel: ConfigEditViewModel,
     initialText: String,
-    back: () -> Unit,
-    saveAndExit: (text: String) -> Unit,
+    resultKey: String,
+    onBack: () -> Unit,
 ) {
+    val resultBus = LocalResultEventBus.current
     var alert by remember { mutableStateOf<String?>(null) }
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -211,7 +218,8 @@ private fun ConfigEditScreenContent(
         viewModel.uiEvent.collect { uiEvent ->
             when (uiEvent) {
                 is ConfigEditUiEvent.Finish -> {
-                    saveAndExit(uiEvent.text)
+                    resultBus.sendResult<String?>(resultKey, uiEvent.text)
+                    onBack()
                 }
 
                 is ConfigEditUiEvent.Alert -> alert = uiEvent.message
@@ -232,7 +240,8 @@ private fun ConfigEditScreenContent(
         if (viewModel.textFieldState.text.toString() != initialText) {
             showBackDialog = true
         } else {
-            back()
+            resultBus.sendResult<String?>(resultKey, null)
+            onBack()
         }
     }
 
@@ -291,7 +300,8 @@ private fun ConfigEditScreenContent(
                         imageVector = vectorResource(Res.drawable.close),
                         contentDescription = stringResource(Res.string.close),
                     ) {
-                        back()
+                        resultBus.sendResult<String?>(resultKey, null)
+                        onBack()
                     }
                 },
                 actions = {
@@ -504,7 +514,8 @@ private fun ConfigEditScreenContent(
         },
         dismissButton = {
             TextButton(stringResource(Res.string.no)) {
-                back()
+                resultBus.sendResult<String?>(resultKey, null)
+                onBack()
             }
         },
         icon = { Icon(vectorResource(Res.drawable.warning), null) },
@@ -515,9 +526,13 @@ private fun ConfigEditScreenContent(
 @Preview()
 @Composable
 private fun PreviewConfigEditScreen() {
-    ConfigEditScreen(
-        initialText = "{}",
-        back = {},
-        saveAndExit = {},
-    )
+    CompositionLocalProvider(
+        LocalResultEventBus provides remember { ResultEventBus() },
+    ) {
+        ConfigEditScreen(
+            initialText = "{}",
+            resultKey = "config-edit-${Random.nextLong()}",
+            onBack = {},
+        )
+    }
 }

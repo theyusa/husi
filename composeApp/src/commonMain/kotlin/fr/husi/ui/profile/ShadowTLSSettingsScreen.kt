@@ -6,8 +6,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import org.jetbrains.compose.resources.stringResource
-import org.jetbrains.compose.resources.vectorResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.husi.compose.MultilineTextField
@@ -15,11 +13,37 @@ import fr.husi.compose.PasswordPreference
 import fr.husi.compose.PreferenceCategory
 import fr.husi.compose.UIntegerTextField
 import fr.husi.ktx.contentOrUnset
+import fr.husi.resources.Res
+import fr.husi.resources.allow_insecure
+import fr.husi.resources.alpn
+import fr.husi.resources.cert_public_key_sha256
+import fr.husi.resources.certificates
+import fr.husi.resources.copyright
+import fr.husi.resources.directions_boat
+import fr.husi.resources.emoji_symbols
+import fr.husi.resources.fingerprint
+import fr.husi.resources.lock_open
+import fr.husi.resources.profile_config
+import fr.husi.resources.profile_name
+import fr.husi.resources.protocol_version
+import fr.husi.resources.proxy_cat
+import fr.husi.resources.router
+import fr.husi.resources.security_settings
+import fr.husi.resources.server_address
+import fr.husi.resources.server_port
+import fr.husi.resources.sni
+import fr.husi.resources.toc
+import fr.husi.resources.update
+import fr.husi.resources.utls_fingerprint
+import fr.husi.resources.vpn_key
+import fr.husi.resources.wb_sunny
+import fr.husi.ui.NavRoutes
 import me.zhanghai.compose.preference.ListPreference
 import me.zhanghai.compose.preference.ListPreferenceType
 import me.zhanghai.compose.preference.SwitchPreference
 import me.zhanghai.compose.preference.TextFieldPreference
-import fr.husi.resources.*
+import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.resources.vectorResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -27,7 +51,7 @@ fun ShadowTLSSettingsScreen(
     profileId: Long,
     isSubscription: Boolean,
     onResult: (updated: Boolean) -> Unit,
-    onOpenConfigEditor: openConfigEditor,
+    onOpenConfigEditor: (NavRoutes.ConfigEditor) -> Unit,
 ) {
     val viewModel: ShadowTLSSettingsViewModel = viewModel { ShadowTLSSettingsViewModel() }
 
@@ -40,8 +64,8 @@ fun ShadowTLSSettingsScreen(
         viewModel = viewModel,
         onResult = onResult,
         onOpenConfigEditor = onOpenConfigEditor,
-    ) { scope, uiState, _ ->
-        scope.shadowTlsSettings(uiState as ShadowTLSUiState, viewModel)
+    ) { uiState, _ ->
+        shadowTlsSettings(uiState as ShadowTLSUiState, viewModel)
     }
 }
 

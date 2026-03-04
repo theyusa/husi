@@ -83,6 +83,8 @@ import fr.husi.resources.urltest_interval
 import fr.husi.resources.urltest_tolerance
 import fr.husi.resources.view_list
 import fr.husi.resources.widgets
+import fr.husi.results.ResultEffect
+import fr.husi.ui.NavRoutes
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
@@ -92,15 +94,16 @@ import me.zhanghai.compose.preference.SwitchPreference
 import me.zhanghai.compose.preference.TextFieldPreference
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
+import kotlin.random.Random
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProxySetSettingsScreen(
     profileId: Long,
     isSubscription: Boolean,
-    onOpenProfileSelect: (preSelected: Long?, onSelected: (Long) -> Unit) -> Unit,
+    onOpenProfileSelect: (NavRoutes.ProfileSelect) -> Unit,
     onResult: (updated: Boolean) -> Unit,
-    onOpenConfigEditor: openConfigEditor,
+    onOpenConfigEditor: (NavRoutes.ConfigEditor) -> Unit,
 ) {
     val viewModel: ProxySetSettingsViewModel = viewModel { ProxySetSettingsViewModel() }
 
@@ -108,26 +111,45 @@ fun ProxySetSettingsScreen(
         viewModel.initialize(profileId, isSubscription)
     }
 
+    val resultKeyNumber = remember { profileId.takeIf { it >= 0 } ?: Random.nextLong() }
+    val addProfileResultKey = remember { "proxy-set-add-profile-$resultKeyNumber" }
+    val replaceProfileResultKey = remember { "proxy-set-replace-profile-$resultKeyNumber" }
+    ResultEffect<Long?>(resultKey = addProfileResultKey) { id ->
+        if (id == null) return@ResultEffect
+        viewModel.replacing = -1
+        viewModel.onSelectProfile(id)
+    }
+    ResultEffect<Long?>(resultKey = replaceProfileResultKey) { id ->
+        if (id == null) return@ResultEffect
+        viewModel.onSelectProfile(id)
+    }
+
     ProfileSettingsScreenScaffold(
         title = Res.string.group_settings,
         viewModel = viewModel,
         onResult = onResult,
         onOpenConfigEditor = onOpenConfigEditor,
-    ) { scope, uiState, _ ->
-        scope.proxySetSettings(
+    ) { uiState, _ ->
+        proxySetSettings(
             uiState = uiState as ProxySetUiState,
             viewModel = viewModel,
             onAdd = {
                 viewModel.replacing = -1
-                onOpenProfileSelect(null) { id ->
-                    viewModel.onSelectProfile(id)
-                }
+                onOpenProfileSelect(
+                    NavRoutes.ProfileSelect(
+                        preSelected = null,
+                        resultKey = addProfileResultKey,
+                    ),
+                )
             },
             onReplace = { index, selectedProfileId ->
                 viewModel.replacing = index
-                onOpenProfileSelect(selectedProfileId.takeIf { it > 0 }) { id ->
-                    viewModel.onSelectProfile(id)
-                }
+                onOpenProfileSelect(
+                    NavRoutes.ProfileSelect(
+                        preSelected = selectedProfileId.takeIf { it > 0 },
+                        resultKey = replaceProfileResultKey,
+                    ),
+                )
             },
         )
     }

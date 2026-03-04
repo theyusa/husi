@@ -70,7 +70,7 @@ internal class ConfigSettingsViewModel : ProfileEditorViewModel<ConfigBean>() {
         _uiState.update { it.copy(type = type) }
     }
 
-    fun setConfig(config: String) {
+    fun setConfigForResult(config: String) {
         _uiState.update {
             when (it.type) {
                 ConfigBean.TYPE_CONFIG -> it.copy(customConfig = config)

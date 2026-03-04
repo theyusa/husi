@@ -159,6 +159,7 @@ import fr.husi.resources.sort_mode
 import fr.husi.resources.undo
 import fr.husi.ui.MainViewModel
 import fr.husi.ui.MainViewModelUiEvent
+import fr.husi.ui.NavRoutes
 import fr.husi.ui.getStringOrRes
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
@@ -184,7 +185,7 @@ fun ConfigurationScreen(
         },
     ),
     preSelected: Long?,
-    openProfileEditor: ((type: Int, id: Long, isSubscription: Boolean, onResult: (updated: Boolean) -> Unit) -> Unit)? = null,
+    onOpenProfileEditor: ((NavRoutes.ProfileEditor) -> Unit)? = null,
 ) {
     val scope = rememberCoroutineScope()
     val snackbarState = remember { SnackbarHostState() }
@@ -314,6 +315,43 @@ fun ConfigurationScreen(
         vm.scrollToProxy(preSelected ?: DataStore.selectedProxy)
     }
 
+    val manualProfileEntries = remember {
+        listOf(
+            Res.string.action_socks to ProxyEntity.TYPE_SOCKS,
+            Res.string.action_http to ProxyEntity.TYPE_HTTP,
+            Res.string.action_shadowsocks to ProxyEntity.TYPE_SS,
+            Res.string.action_vmess to ProxyEntity.TYPE_VMESS,
+            Res.string.action_vless to ProxyEntity.TYPE_VLESS,
+            Res.string.action_trojan to ProxyEntity.TYPE_TROJAN,
+            Res.string.action_mieru to ProxyEntity.TYPE_MIERU,
+            Res.string.action_naive to ProxyEntity.TYPE_NAIVE,
+            Res.string.action_hysteria to ProxyEntity.TYPE_HYSTERIA,
+            Res.string.action_tuic to ProxyEntity.TYPE_TUIC,
+            Res.string.action_juicity to ProxyEntity.TYPE_JUICITY,
+            Res.string.action_direct to ProxyEntity.TYPE_DIRECT,
+            Res.string.action_ssh to ProxyEntity.TYPE_SSH,
+            Res.string.action_wireguard to ProxyEntity.TYPE_WG,
+            Res.string.action_shadowtls to ProxyEntity.TYPE_SHADOWTLS,
+            Res.string.action_anytls to ProxyEntity.TYPE_ANYTLS,
+            Res.string.action_shadowquic to ProxyEntity.TYPE_SHADOWQUIC,
+            Res.string.action_trusttunnel to ProxyEntity.TYPE_TRUST_TUNNEL,
+            Res.string.proxy_set to ProxyEntity.TYPE_PROXY_SET,
+            Res.string.custom_config to ProxyEntity.TYPE_CONFIG,
+            Res.string.proxy_chain to ProxyEntity.TYPE_CHAIN,
+        )
+    }
+
+    fun openProfileEditor(type: Int, id: Long = -1L, isSubscription: Boolean = false) {
+        showAddManualMenu = false
+        onOpenProfileEditor?.invoke(
+            NavRoutes.ProfileEditor(
+                type = type,
+                id = id,
+                subscription = isSubscription,
+            ),
+        )
+    }
+
     Scaffold(
         modifier = modifier
             .fillMaxSize()
@@ -409,237 +447,14 @@ fun ConfigurationScreen(
                                 containerColor = MenuDefaults.groupStandardContainerColor,
                                 shape = MenuDefaults.standaloneGroupShape,
                             ) {
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(Res.string.action_socks)) },
-                                    onClick = {
-                                        showAddManualMenu = false
-                                        openProfileEditor?.invoke(
-                                            ProxyEntity.TYPE_SOCKS,
-                                            -1L,
-                                            false,
-                                        ) {}
-                                    },
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(Res.string.action_http)) },
-                                    onClick = {
-                                        showAddManualMenu = false
-                                        openProfileEditor?.invoke(
-                                            ProxyEntity.TYPE_HTTP,
-                                            -1L,
-                                            false,
-                                        ) {}
-                                    },
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(Res.string.action_shadowsocks)) },
-                                    onClick = {
-                                        showAddManualMenu = false
-                                        openProfileEditor?.invoke(
-                                            ProxyEntity.TYPE_SS,
-                                            -1L,
-                                            false,
-                                        ) {}
-                                    },
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(Res.string.action_vmess)) },
-                                    onClick = {
-                                        showAddManualMenu = false
-                                        openProfileEditor?.invoke(
-                                            ProxyEntity.TYPE_VMESS,
-                                            -1L,
-                                            false,
-                                        ) {}
-                                    },
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(Res.string.action_vless)) },
-                                    onClick = {
-                                        showAddManualMenu = false
-                                        openProfileEditor?.invoke(
-                                            ProxyEntity.TYPE_VLESS,
-                                            -1L,
-                                            false,
-                                        ) {}
-                                    },
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(Res.string.action_trojan)) },
-                                    onClick = {
-                                        showAddManualMenu = false
-                                        openProfileEditor?.invoke(
-                                            ProxyEntity.TYPE_TROJAN,
-                                            -1L,
-                                            false,
-                                        ) {}
-                                    },
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(Res.string.action_mieru)) },
-                                    onClick = {
-                                        showAddManualMenu = false
-                                        openProfileEditor?.invoke(
-                                            ProxyEntity.TYPE_MIERU,
-                                            -1L,
-                                            false,
-                                        ) {}
-                                    },
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(Res.string.action_naive)) },
-                                    onClick = {
-                                        showAddManualMenu = false
-                                        openProfileEditor?.invoke(
-                                            ProxyEntity.TYPE_NAIVE,
-                                            -1L,
-                                            false,
-                                        ) {}
-                                    },
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(Res.string.action_hysteria)) },
-                                    onClick = {
-                                        showAddManualMenu = false
-                                        openProfileEditor?.invoke(
-                                            ProxyEntity.TYPE_HYSTERIA,
-                                            -1L,
-                                            false,
-                                        ) {}
-                                    },
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(Res.string.action_tuic)) },
-                                    onClick = {
-                                        showAddManualMenu = false
-                                        openProfileEditor?.invoke(
-                                            ProxyEntity.TYPE_TUIC,
-                                            -1L,
-                                            false,
-                                        ) {}
-                                    },
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(Res.string.action_juicity)) },
-                                    onClick = {
-                                        showAddManualMenu = false
-                                        openProfileEditor?.invoke(
-                                            ProxyEntity.TYPE_JUICITY,
-                                            -1L,
-                                            false,
-                                        ) {}
-                                    },
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(Res.string.action_direct)) },
-                                    onClick = {
-                                        showAddManualMenu = false
-                                        openProfileEditor?.invoke(
-                                            ProxyEntity.TYPE_DIRECT,
-                                            -1L,
-                                            false,
-                                        ) {}
-                                    },
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(Res.string.action_ssh)) },
-                                    onClick = {
-                                        showAddManualMenu = false
-                                        openProfileEditor?.invoke(
-                                            ProxyEntity.TYPE_SSH,
-                                            -1L,
-                                            false,
-                                        ) {}
-                                    },
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(Res.string.action_wireguard)) },
-                                    onClick = {
-                                        showAddManualMenu = false
-                                        openProfileEditor?.invoke(
-                                            ProxyEntity.TYPE_WG,
-                                            -1L,
-                                            false,
-                                        ) {}
-                                    },
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(Res.string.action_shadowtls)) },
-                                    onClick = {
-                                        showAddManualMenu = false
-                                        openProfileEditor?.invoke(
-                                            ProxyEntity.TYPE_SHADOWTLS,
-                                            -1L,
-                                            false,
-                                        ) {}
-                                    },
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(Res.string.action_anytls)) },
-                                    onClick = {
-                                        showAddManualMenu = false
-                                        openProfileEditor?.invoke(
-                                            ProxyEntity.TYPE_ANYTLS,
-                                            -1L,
-                                            false,
-                                        ) {}
-                                    },
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(Res.string.action_shadowquic)) },
-                                    onClick = {
-                                        showAddManualMenu = false
-                                        openProfileEditor?.invoke(
-                                            ProxyEntity.TYPE_SHADOWQUIC,
-                                            -1L,
-                                            false,
-                                        ) {}
-                                    },
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(Res.string.action_trusttunnel)) },
-                                    onClick = {
-                                        showAddManualMenu = false
-                                        openProfileEditor?.invoke(
-                                            ProxyEntity.TYPE_TRUST_TUNNEL,
-                                            -1L,
-                                            false,
-                                        ) {}
-                                    },
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(Res.string.proxy_set)) },
-                                    onClick = {
-                                        showAddManualMenu = false
-                                        openProfileEditor?.invoke(
-                                            ProxyEntity.TYPE_PROXY_SET,
-                                            -1L,
-                                            false,
-                                        ) {}
-                                    },
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(Res.string.custom_config)) },
-                                    onClick = {
-                                        showAddManualMenu = false
-                                        openProfileEditor?.invoke(
-                                            ProxyEntity.TYPE_CONFIG,
-                                            -1L,
-                                            false,
-                                        ) {}
-                                    },
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(Res.string.proxy_chain)) },
-                                    onClick = {
-                                        showAddManualMenu = false
-                                        openProfileEditor?.invoke(
-                                            ProxyEntity.TYPE_CHAIN,
-                                            -1L,
-                                            false,
-                                        ) {}
-                                    },
-                                )
+                                manualProfileEntries.forEach { (title, type) ->
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(title)) },
+                                        onClick = {
+                                            openProfileEditor(type)
+                                        },
+                                    )
+                                }
                             }
                         }
 
@@ -824,7 +639,7 @@ fun ConfigurationScreen(
             selectCallback = selectCallback,
             bottomPadding = bottomPadding,
             onScrollHideChange = { scrollHideVisible = it },
-            openProfileEditor = openProfileEditor,
+            onOpenProfileEditor = onOpenProfileEditor,
         )
     }
 
@@ -868,7 +683,7 @@ fun ConfigurationContent(
     preSelected: Long?,
     selectCallback: ((id: Long) -> Unit)?,
     bottomPadding: Dp,
-    openProfileEditor: ((type: Int, id: Long, isSubscription: Boolean, onResult: (updated: Boolean) -> Unit) -> Unit)? = null,
+    onOpenProfileEditor: ((NavRoutes.ProfileEditor) -> Unit)? = null,
     onScrollHideChange: (Boolean) -> Unit = {},
 ) {
     val scope = rememberCoroutineScope()
@@ -910,7 +725,7 @@ fun ConfigurationContent(
                     showActions = selectCallback == null,
                     bottomPadding = bottomPadding,
                     onProfileSelect = { profileId -> vm.onProfileSelect(profileId) },
-                    openProfileEditor = openProfileEditor,
+                    onOpenProfileEditor = onOpenProfileEditor,
                     needReload = {
                         scope.launch {
                             if (!DataStore.serviceState.started) return@launch

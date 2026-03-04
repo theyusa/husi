@@ -10,23 +10,60 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.ui.Modifier
-import org.jetbrains.compose.resources.stringResource
-import org.jetbrains.compose.resources.vectorResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.husi.compose.HostTextField
 import fr.husi.compose.MultilineTextField
 import fr.husi.compose.PasswordPreference
 import fr.husi.compose.PreferenceCategory
 import fr.husi.compose.UIntegerTextField
 import fr.husi.ktx.contentOrUnset
+import fr.husi.resources.Res
+import fr.husi.resources.code
+import fr.husi.resources.copyright
+import fr.husi.resources.directions_boat
+import fr.husi.resources.disable_post_quantum
+import fr.husi.resources.ech
+import fr.husi.resources.ech_config
+import fr.husi.resources.ech_query_server_name
+import fr.husi.resources.emoji_symbols
+import fr.husi.resources.enable
+import fr.husi.resources.experimental_settings
+import fr.husi.resources.extra_headers
+import fr.husi.resources.grain
+import fr.husi.resources.grid_3x3
+import fr.husi.resources.https
+import fr.husi.resources.naive_insecure_concurrency
+import fr.husi.resources.naive_insecure_concurrency_summary
+import fr.husi.resources.nfc
+import fr.husi.resources.not_set
+import fr.husi.resources.password
+import fr.husi.resources.password_opt
+import fr.husi.resources.person
+import fr.husi.resources.profile_config
+import fr.husi.resources.profile_name
+import fr.husi.resources.protocol
+import fr.husi.resources.proxy_cat
+import fr.husi.resources.router
+import fr.husi.resources.search
+import fr.husi.resources.security
+import fr.husi.resources.server_address
+import fr.husi.resources.server_port
+import fr.husi.resources.sni
+import fr.husi.resources.speed
+import fr.husi.resources.traffic
+import fr.husi.resources.tuic_congestion_controller
+import fr.husi.resources.udp_over_tcp
+import fr.husi.resources.username_opt
+import fr.husi.ui.NavRoutes
 import me.zhanghai.compose.preference.ListPreference
 import me.zhanghai.compose.preference.ListPreferenceType
 import me.zhanghai.compose.preference.SwitchPreference
 import me.zhanghai.compose.preference.TextFieldPreference
-import fr.husi.resources.*
+import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.resources.vectorResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -34,7 +71,7 @@ fun NaiveSettingsScreen(
     profileId: Long,
     isSubscription: Boolean,
     onResult: (updated: Boolean) -> Unit,
-    onOpenConfigEditor: openConfigEditor,
+    onOpenConfigEditor: (NavRoutes.ConfigEditor) -> Unit,
 ) {
     val viewModel: NaiveSettingsViewModel = viewModel { NaiveSettingsViewModel() }
     LaunchedEffect(profileId, isSubscription) {
@@ -46,8 +83,8 @@ fun NaiveSettingsScreen(
         viewModel = viewModel,
         onResult = onResult,
         onOpenConfigEditor = onOpenConfigEditor,
-    ) { scope, uiState, _ ->
-        scope.naiveSettings(uiState as NaiveUiState, viewModel)
+    ) { uiState, _ ->
+        naiveSettings(uiState as NaiveUiState, viewModel)
     }
 }
 

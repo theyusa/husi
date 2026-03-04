@@ -7,20 +7,38 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.lifecycle.viewmodel.compose.viewModel
-import org.jetbrains.compose.resources.stringResource
-import org.jetbrains.compose.resources.vectorResource
 import androidx.compose.ui.text.AnnotatedString
+import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.husi.compose.PasswordPreference
 import fr.husi.compose.PreferenceCategory
 import fr.husi.compose.UIntegerTextField
 import fr.husi.fmt.socks.SOCKSBean
 import fr.husi.ktx.contentOrUnset
+import fr.husi.resources.Res
+import fr.husi.resources.directions_boat
+import fr.husi.resources.emoji_symbols
+import fr.husi.resources.experimental_settings
+import fr.husi.resources.grid_3x3
+import fr.husi.resources.grid_on
+import fr.husi.resources.nfc
+import fr.husi.resources.password_opt
+import fr.husi.resources.person
+import fr.husi.resources.profile_config
+import fr.husi.resources.profile_name
+import fr.husi.resources.protocol_version
+import fr.husi.resources.proxy_cat
+import fr.husi.resources.router
+import fr.husi.resources.server_address
+import fr.husi.resources.server_port
+import fr.husi.resources.udp_over_tcp
+import fr.husi.resources.username_opt
+import fr.husi.ui.NavRoutes
 import me.zhanghai.compose.preference.ListPreference
 import me.zhanghai.compose.preference.ListPreferenceType
 import me.zhanghai.compose.preference.SwitchPreference
 import me.zhanghai.compose.preference.TextFieldPreference
-import fr.husi.resources.*
+import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.resources.vectorResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -28,7 +46,7 @@ fun SocksSettingsScreen(
     profileId: Long,
     isSubscription: Boolean,
     onResult: (updated: Boolean) -> Unit,
-    onOpenConfigEditor: openConfigEditor,
+    onOpenConfigEditor: (NavRoutes.ConfigEditor) -> Unit,
 ) {
     val viewModel: SocksSettingsViewModel = viewModel { SocksSettingsViewModel() }
     LaunchedEffect(profileId, isSubscription) {
@@ -40,8 +58,8 @@ fun SocksSettingsScreen(
         viewModel = viewModel,
         onResult = onResult,
         onOpenConfigEditor = onOpenConfigEditor,
-    ) { scope, uiState, _ ->
-        scope.socksSettings(uiState as SocksUiState, viewModel)
+    ) { uiState, _ ->
+        socksSettings(uiState as SocksUiState, viewModel)
     }
 }
 

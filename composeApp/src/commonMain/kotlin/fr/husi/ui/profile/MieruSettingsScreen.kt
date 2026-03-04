@@ -35,6 +35,7 @@ import fr.husi.resources.router
 import fr.husi.resources.server_address
 import fr.husi.resources.server_port
 import fr.husi.resources.username
+import fr.husi.ui.NavRoutes
 import kotlinx.coroutines.runBlocking
 import me.zhanghai.compose.preference.ListPreference
 import me.zhanghai.compose.preference.ListPreferenceType
@@ -49,7 +50,7 @@ fun MieruSettingsScreen(
     profileId: Long,
     isSubscription: Boolean,
     onResult: (updated: Boolean) -> Unit,
-    onOpenConfigEditor: openConfigEditor,
+    onOpenConfigEditor: (NavRoutes.ConfigEditor) -> Unit,
 ) {
     val viewModel: MieruSettingsViewModel = viewModel { MieruSettingsViewModel() }
     LaunchedEffect(profileId, isSubscription) {
@@ -61,8 +62,8 @@ fun MieruSettingsScreen(
         viewModel = viewModel,
         onResult = onResult,
         onOpenConfigEditor = onOpenConfigEditor,
-    ) { scope, uiState, _ ->
-        scope.mieruSettings(uiState as MieruUiState, viewModel)
+    ) { uiState, _ ->
+        mieruSettings(uiState as MieruUiState, viewModel)
     }
 }
 

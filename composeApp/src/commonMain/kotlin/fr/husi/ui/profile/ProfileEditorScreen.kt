@@ -75,6 +75,8 @@ import fr.husi.resources.outbound
 import fr.husi.resources.question_mark
 import fr.husi.resources.unsaved_changes_prompt
 import fr.husi.resources.warning
+import fr.husi.results.ResultEffect
+import fr.husi.ui.NavRoutes
 import fr.husi.ui.stringOrRes
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
@@ -84,16 +86,15 @@ import me.zhanghai.compose.preference.ProvidePreferenceLocals
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
-
-typealias openConfigEditor = (initialString: String, onResult: (String) -> Unit) -> Unit
+import kotlin.random.Random
 
 @Composable
 fun ProfileEditorScreen(
     type: Int,
     profileId: Long,
     isSubscription: Boolean,
-    onOpenProfileSelect: (preSelected: Long?, onSelected: (Long) -> Unit) -> Unit,
-    onOpenConfigEditor: openConfigEditor,
+    onOpenProfileSelect: (NavRoutes.ProfileSelect) -> Unit,
+    onOpenConfigEditor: (NavRoutes.ConfigEditor) -> Unit,
     onResult: (updated: Boolean) -> Unit,
 ) {
     when (type) {
@@ -255,9 +256,8 @@ internal fun <T : AbstractBean> ProfileSettingsScreenScaffold(
     title: StringResource,
     viewModel: ProfileEditorViewModel<T>,
     onResult: (updated: Boolean) -> Unit,
-    onOpenConfigEditor: openConfigEditor,
-    settings: (
-        scope: LazyListScope,
+    onOpenConfigEditor: (NavRoutes.ConfigEditor) -> Unit,
+    settings: LazyListScope.(
         uiState: ProfileEditorUiState,
         scrollTo: (key: String) -> Unit,
     ) -> Unit,
@@ -282,6 +282,18 @@ internal fun <T : AbstractBean> ProfileSettingsScreenScaffold(
 
     BackHandler(enabled = isDirty) {
         showBackAlert = true
+    }
+
+    val resultNumber = remember { viewModel.editingId.takeIf { it >= 0 } ?: Random.nextLong() }
+    val configResultKey = remember { "config-edit-${resultNumber}" }
+    val outboundConfigResultKey = remember { "outbound-config-edit-${resultNumber}" }
+    ResultEffect<String?>(resultKey = configResultKey) { result ->
+        if (result == null) return@ResultEffect
+        viewModel.setCustomConfig(result)
+    }
+    ResultEffect<String?>(resultKey = outboundConfigResultKey) { result ->
+        if (result == null) return@ResultEffect
+        viewModel.setCustomOutbound(result)
     }
 
     Scaffold(
@@ -380,18 +392,24 @@ internal fun <T : AbstractBean> ProfileSettingsScreenScaffold(
                                     text = { Text(stringResource(Res.string.outbound)) },
                                     onClick = {
                                         showExtendMenu = false
-                                        onOpenConfigEditor(viewModel.uiState.value.customOutbound) { text ->
-                                            viewModel.setCustomOutbound(text)
-                                        }
+                                        onOpenConfigEditor(
+                                            NavRoutes.ConfigEditor(
+                                                initialText = viewModel.uiState.value.customOutbound,
+                                                resultKey = outboundConfigResultKey,
+                                            ),
+                                        )
                                     },
                                 )
                                 DropdownMenuItem(
                                     text = { Text(stringResource(Res.string.full)) },
                                     onClick = {
                                         showExtendMenu = false
-                                        onOpenConfigEditor(viewModel.uiState.value.customConfig) { text ->
-                                            viewModel.setCustomConfig(text)
-                                        }
+                                        onOpenConfigEditor(
+                                            NavRoutes.ConfigEditor(
+                                                initialText = viewModel.uiState.value.customConfig,
+                                                resultKey = configResultKey,
+                                            ),
+                                        )
                                     },
                                 )
                             }

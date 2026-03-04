@@ -22,6 +22,7 @@ import fr.husi.resources.profile_config
 import fr.husi.resources.stream
 import fr.husi.resources.uuid
 import fr.husi.resources.xtls_flow
+import fr.husi.ui.NavRoutes
 import fr.husi.ui.StringOrRes
 import fr.husi.ui.getStringOrRes
 import fr.husi.ui.stringOrRes
@@ -38,7 +39,7 @@ fun VLESSSettingsScreen(
     profileId: Long,
     isSubscription: Boolean,
     onResult: (updated: Boolean) -> Unit,
-    onOpenConfigEditor: openConfigEditor,
+    onOpenConfigEditor: (NavRoutes.ConfigEditor) -> Unit,
 ) {
     val viewModel: VLESSSettingsViewModel = viewModel { VLESSSettingsViewModel() }
 
@@ -51,8 +52,8 @@ fun VLESSSettingsScreen(
         viewModel = viewModel,
         onResult = onResult,
         onOpenConfigEditor = onOpenConfigEditor,
-    ) { scope, uiState, scrollTo ->
-        scope.vlessSettings(uiState as VLESSUiState, viewModel, scrollTo)
+    ) { uiState, scrollTo ->
+        vlessSettings(uiState as VLESSUiState, viewModel, scrollTo)
     }
 }
 

@@ -37,8 +37,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
-import org.jetbrains.compose.resources.stringResource
-import org.jetbrains.compose.resources.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -50,19 +48,30 @@ import fr.husi.compose.TooltipIconButton
 import fr.husi.database.ProxyEntity
 import fr.husi.database.displayType
 import fr.husi.ktx.contentOrUnset
+import fr.husi.resources.Res
+import fr.husi.resources.add_profile
+import fr.husi.resources.chain_settings
+import fr.husi.resources.delete
+import fr.husi.resources.edit
+import fr.husi.resources.emoji_symbols
+import fr.husi.resources.profile_name
+import fr.husi.results.ResultEffect
+import fr.husi.ui.NavRoutes
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.delay
 import me.zhanghai.compose.preference.TextFieldPreference
-import fr.husi.resources.*
+import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.resources.vectorResource
+import kotlin.random.Random
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChainSettingsScreen(
     profileId: Long,
     isSubscription: Boolean,
-    onOpenProfileSelect: (preSelected: Long?, onSelected: (Long) -> Unit) -> Unit,
+    onOpenProfileSelect: (NavRoutes.ProfileSelect) -> Unit,
     onResult: (updated: Boolean) -> Unit,
-    onOpenConfigEditor: openConfigEditor,
+    onOpenConfigEditor: (NavRoutes.ConfigEditor) -> Unit,
 ) {
     val viewModel: ChainSettingsViewModel = viewModel { ChainSettingsViewModel() }
 
@@ -70,26 +79,45 @@ fun ChainSettingsScreen(
         viewModel.initialize(profileId, isSubscription)
     }
 
+    val resultKeyNumber = remember { profileId.takeIf { it >= 0 } ?: Random.nextLong() }
+    val addProfileResultKey = remember { "chain-add-profile-$resultKeyNumber" }
+    val replaceProfileResultKey = remember { "chain-replace-profile-$resultKeyNumber" }
+    ResultEffect<Long?>(resultKey = addProfileResultKey) { id ->
+        if (id == null) return@ResultEffect
+        viewModel.replacing = -1
+        viewModel.onSelectProfile(id)
+    }
+    ResultEffect<Long?>(resultKey = replaceProfileResultKey) { id ->
+        if (id == null) return@ResultEffect
+        viewModel.onSelectProfile(id)
+    }
+
     ProfileSettingsScreenScaffold(
         title = Res.string.chain_settings,
         viewModel = viewModel,
         onResult = onResult,
         onOpenConfigEditor = onOpenConfigEditor,
-    ) { scope, uiState, _ ->
-        scope.chainSettings(
+    ) { uiState, _ ->
+        chainSettings(
             uiState = uiState as ChainUiState,
             viewModel = viewModel,
             onAdd = {
                 viewModel.replacing = -1
-                onOpenProfileSelect(null) { id ->
-                    viewModel.onSelectProfile(id)
-                }
+                onOpenProfileSelect(
+                    NavRoutes.ProfileSelect(
+                        preSelected = null,
+                        resultKey = addProfileResultKey,
+                    ),
+                )
             },
             onReplace = { index, profileIdForPreselect ->
                 viewModel.replacing = index
-                onOpenProfileSelect(profileIdForPreselect.takeIf { it > 0 }) { id ->
-                    viewModel.onSelectProfile(id)
-                }
+                onOpenProfileSelect(
+                    NavRoutes.ProfileSelect(
+                        preSelected = profileIdForPreselect.takeIf { it > 0 },
+                        resultKey = replaceProfileResultKey,
+                    ),
+                )
             },
         )
     }

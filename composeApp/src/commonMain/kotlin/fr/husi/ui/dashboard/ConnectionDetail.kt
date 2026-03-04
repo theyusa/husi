@@ -116,8 +116,7 @@ fun ConnectionDetailScreen(
     viewModel: ConnectionDetailViewModel = viewModel { ConnectionDetailViewModel() },
     uuid: String,
     popup: () -> Unit,
-    navigateToRoutes: () -> Unit,
-    openRouteSettings: (RouteSettingsUiState, () -> Unit) -> Unit,
+    openRouteSettings: (RouteSettingsUiState) -> Unit,
 ) {
     LaunchedEffect(uuid) {
         viewModel.initialize(uuid)
@@ -160,7 +159,6 @@ fun ConnectionDetailScreen(
                                 onClick = {
                                     openRouteSettings(
                                         createRouteDraft(selectedField, connection),
-                                        navigateToRoutes,
                                     )
                                 },
                                 icon = {

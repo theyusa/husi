@@ -1,8 +1,8 @@
 package fr.husi.ui
 
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.only
@@ -27,15 +27,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.husi.compose.BackHandler
+import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.LinkOrContentTextField
 import fr.husi.compose.MoreOverIcon
 import fr.husi.compose.PreferenceType
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.TextButton
-import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.withNavigation
 import fr.husi.ktx.contentOrUnset
 import fr.husi.repository.repo
@@ -58,40 +58,53 @@ import fr.husi.resources.unsaved_changes_prompt
 import fr.husi.resources.url
 import fr.husi.resources.warning
 import fr.husi.resources.warning_amber
+import fr.husi.results.LocalResultEventBus
+import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
+import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.Serializable
 import me.zhanghai.compose.preference.ProvidePreferenceLocals
 import me.zhanghai.compose.preference.TextFieldPreference
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
-import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
-import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 
+@Serializable
 sealed interface AssetEditResult {
+
+    @Serializable
     data object Saved : AssetEditResult
 
+    @Serializable
     data class Created(
         val assetName: String,
     ) : AssetEditResult
 
+    @Serializable
     data class ShouldUpdate(
         val assetName: String,
     ) : AssetEditResult
 
+    @Serializable
     data class Deleted(
         val assetName: String,
     ) : AssetEditResult
 
+    @Serializable
     data object Canceled : AssetEditResult
+
 }
 
 @Composable
 internal fun AssetEditScreen(
     assetName: String,
-    onFinished: (AssetEditResult) -> Unit,
+    resultKey: String,
+    onBack: () -> Unit = {},
     modifier: Modifier = Modifier,
     viewModel: AssetEditViewModel = viewModel { AssetEditViewModel() },
 ) {
+    val resultBus = LocalResultEventBus.current
+
     LaunchedEffect(viewModel, assetName) {
         viewModel.initialize(assetName)
     }
@@ -102,7 +115,8 @@ internal fun AssetEditScreen(
         if (isDirty) {
             showBackAlert = true
         } else {
-            onFinished(AssetEditResult.Canceled)
+            resultBus.sendResult<AssetEditResult>(resultKey, AssetEditResult.Canceled)
+            onBack()
         }
     }
 
@@ -122,7 +136,8 @@ internal fun AssetEditScreen(
             viewModel.shouldUpdateFromInternet -> AssetEditResult.ShouldUpdate(currentName)
             else -> AssetEditResult.Saved
         }
-        onFinished(result)
+        resultBus.sendResult(resultKey, result)
+        onBack()
     }
 
     Scaffold(
@@ -140,7 +155,11 @@ internal fun AssetEditScreen(
                         if (isDirty) {
                             showBackAlert = true
                         } else {
-                            onFinished(AssetEditResult.Canceled)
+                            resultBus.sendResult<AssetEditResult>(
+                                resultKey,
+                                AssetEditResult.Canceled,
+                            )
+                            onBack()
                         }
                     }
                 },
@@ -152,7 +171,11 @@ internal fun AssetEditScreen(
                             onClick = {
                                 val editingAssetName = viewModel.editingName
                                 if (editingAssetName.isEmpty()) {
-                                    onFinished(AssetEditResult.Canceled)
+                                    resultBus.sendResult<AssetEditResult>(
+                                        resultKey,
+                                        AssetEditResult.Canceled,
+                                    )
+                                    onBack()
                                 } else {
                                     showDeleteConfirm = true
                                 }
@@ -224,7 +247,8 @@ internal fun AssetEditScreen(
             },
             dismissButton = {
                 TextButton(stringResource(Res.string.no)) {
-                    onFinished(AssetEditResult.Canceled)
+                    resultBus.sendResult<AssetEditResult>(resultKey, AssetEditResult.Canceled)
+                    onBack()
                 }
             },
             icon = { Icon(vectorResource(Res.drawable.question_mark), null) },
@@ -237,12 +261,17 @@ internal fun AssetEditScreen(
             onDismissRequest = { showDeleteConfirm = false },
             confirmButton = {
                 TextButton(stringResource(Res.string.ok)) {
-                    onFinished(AssetEditResult.Deleted(viewModel.editingName))
+                    resultBus.sendResult<AssetEditResult>(
+                        resultKey,
+                        AssetEditResult.Deleted(viewModel.editingName),
+                    )
+                    onBack()
                 }
             },
             dismissButton = {
                 TextButton(stringResource(Res.string.cancel)) {
-                    onFinished(AssetEditResult.Canceled)
+                    resultBus.sendResult<AssetEditResult>(resultKey, AssetEditResult.Canceled)
+                    onBack()
                 }
             },
             icon = { Icon(vectorResource(Res.drawable.warning), null) },

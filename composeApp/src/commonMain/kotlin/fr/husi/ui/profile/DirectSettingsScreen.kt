@@ -7,11 +7,15 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.viewmodel.compose.viewModel
+import fr.husi.ktx.contentOrUnset
+import fr.husi.resources.Res
+import fr.husi.resources.emoji_symbols
+import fr.husi.resources.profile_config
+import fr.husi.resources.profile_name
+import fr.husi.ui.NavRoutes
+import me.zhanghai.compose.preference.TextFieldPreference
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
-import fr.husi.ktx.contentOrUnset
-import me.zhanghai.compose.preference.TextFieldPreference
-import fr.husi.resources.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -19,7 +23,7 @@ fun DirectSettingsScreen(
     profileId: Long,
     isSubscription: Boolean,
     onResult: (updated: Boolean) -> Unit,
-    onOpenConfigEditor: openConfigEditor,
+    onOpenConfigEditor: (NavRoutes.ConfigEditor) -> Unit,
 ) {
     val viewModel: DirectSettingsViewModel = viewModel { DirectSettingsViewModel() }
     LaunchedEffect(profileId, isSubscription) {
@@ -31,8 +35,8 @@ fun DirectSettingsScreen(
         viewModel = viewModel,
         onResult = onResult,
         onOpenConfigEditor = onOpenConfigEditor,
-    ) { scope, uiState, _ ->
-        scope.directSettings(uiState as DirectUiState, viewModel)
+    ) { uiState, _ ->
+        directSettings(uiState as DirectUiState, viewModel)
     }
 }
 

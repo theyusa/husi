@@ -6,16 +6,31 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import org.jetbrains.compose.resources.stringResource
-import org.jetbrains.compose.resources.vectorResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.husi.compose.MultilineTextField
 import fr.husi.compose.PasswordPreference
 import fr.husi.compose.PreferenceCategory
 import fr.husi.ktx.contentOrUnset
+import fr.husi.resources.Res
+import fr.husi.resources.code
+import fr.husi.resources.experimental_settings
+import fr.husi.resources.grid_3x3
+import fr.husi.resources.grid_on
+import fr.husi.resources.http_headers
+import fr.husi.resources.http_host
+import fr.husi.resources.http_path
+import fr.husi.resources.language
+import fr.husi.resources.password_opt
+import fr.husi.resources.person
+import fr.husi.resources.profile_config
+import fr.husi.resources.route
+import fr.husi.resources.udp_over_tcp
+import fr.husi.resources.username_opt
+import fr.husi.ui.NavRoutes
 import me.zhanghai.compose.preference.SwitchPreference
 import me.zhanghai.compose.preference.TextFieldPreference
-import fr.husi.resources.*
+import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.resources.vectorResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -23,7 +38,7 @@ fun HttpSettingsScreen(
     profileId: Long,
     isSubscription: Boolean,
     onResult: (updated: Boolean) -> Unit,
-    onOpenConfigEditor: openConfigEditor,
+    onOpenConfigEditor: (NavRoutes.ConfigEditor) -> Unit,
 ) {
     val viewModel: HttpSettingsViewModel = viewModel { HttpSettingsViewModel() }
 
@@ -36,8 +51,8 @@ fun HttpSettingsScreen(
         viewModel = viewModel,
         onResult = onResult,
         onOpenConfigEditor = onOpenConfigEditor,
-    ) { scope, uiState, scrollTo ->
-        scope.httpSettings(uiState as HttpUiState, viewModel, scrollTo)
+    ) { uiState, scrollTo ->
+        httpSettings(uiState as HttpUiState, viewModel, scrollTo)
     }
 }
 

@@ -59,6 +59,7 @@ import fr.husi.resources.tuic_reduce_rtt
 import fr.husi.resources.udp_over_stream
 import fr.husi.resources.username
 import fr.husi.resources.wb_sunny
+import fr.husi.ui.NavRoutes
 import kotlinx.coroutines.runBlocking
 import me.zhanghai.compose.preference.ListPreference
 import me.zhanghai.compose.preference.ListPreferenceType
@@ -75,7 +76,7 @@ fun ShadowQUICSettingsScreen(
     profileId: Long,
     isSubscription: Boolean,
     onResult: (updated: Boolean) -> Unit,
-    onOpenConfigEditor: openConfigEditor,
+    onOpenConfigEditor: (NavRoutes.ConfigEditor) -> Unit,
 ) {
     val viewModel: ShadowQUICSettingsViewModel = viewModel { ShadowQUICSettingsViewModel() }
 
@@ -88,8 +89,8 @@ fun ShadowQUICSettingsScreen(
         viewModel = viewModel,
         onResult = onResult,
         onOpenConfigEditor = onOpenConfigEditor,
-    ) { scope, uiState, _ ->
-        scope.shadowQuicSettings(uiState as ShadowQUICUiState, viewModel)
+    ) { uiState, _ ->
+        shadowQuicSettings(uiState as ShadowQUICUiState, viewModel)
     }
 }
 

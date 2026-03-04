@@ -52,6 +52,7 @@ import fr.husi.resources.settings
 import fr.husi.resources.type_specimen
 import fr.husi.resources.udp_over_tcp
 import fr.husi.resources.view_in_ar
+import fr.husi.ui.NavRoutes
 import kotlinx.coroutines.runBlocking
 import me.zhanghai.compose.preference.ListPreference
 import me.zhanghai.compose.preference.ListPreferenceType
@@ -66,7 +67,7 @@ fun ShadowsocksSettingsScreen(
     profileId: Long,
     isSubscription: Boolean,
     onResult: (updated: Boolean) -> Unit,
-    onOpenConfigEditor: openConfigEditor,
+    onOpenConfigEditor: (NavRoutes.ConfigEditor) -> Unit,
 ) {
     val viewModel: ShadowsocksSettingsViewModel = viewModel { ShadowsocksSettingsViewModel() }
     LaunchedEffect(profileId, isSubscription) {
@@ -78,8 +79,8 @@ fun ShadowsocksSettingsScreen(
         viewModel = viewModel,
         onResult = onResult,
         onOpenConfigEditor = onOpenConfigEditor,
-    ) { scope, uiState, scrollTo ->
-        scope.shadowsocksSettings(uiState as ShadowsocksUiState, viewModel, scrollTo)
+    ) { uiState, scrollTo ->
+        shadowsocksSettings(uiState as ShadowsocksUiState, viewModel, scrollTo)
     }
 }
 

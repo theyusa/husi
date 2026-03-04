@@ -6,16 +6,40 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import org.jetbrains.compose.resources.stringResource
-import org.jetbrains.compose.resources.vectorResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.husi.compose.MultilineTextField
 import fr.husi.compose.PasswordPreference
 import fr.husi.compose.PreferenceCategory
 import fr.husi.compose.UIntegerTextField
 import fr.husi.ktx.contentOrUnset
+import fr.husi.resources.Res
+import fr.husi.resources.copyright
+import fr.husi.resources.directions_boat
+import fr.husi.resources.domain
+import fr.husi.resources.emoji_symbols
+import fr.husi.resources.fingerprint
+import fr.husi.resources.listen_port
+import fr.husi.resources.mtu
+import fr.husi.resources.persistent_keepalive_interval
+import fr.husi.resources.profile_config
+import fr.husi.resources.profile_name
+import fr.husi.resources.proxy_cat
+import fr.husi.resources.public_icon
+import fr.husi.resources.replay
+import fr.husi.resources.reserved
+import fr.husi.resources.router
+import fr.husi.resources.server_address
+import fr.husi.resources.server_port
+import fr.husi.resources.ssh_private_key
+import fr.husi.resources.stream
+import fr.husi.resources.vpn_key
+import fr.husi.resources.wireguard_local_address
+import fr.husi.resources.wireguard_psk
+import fr.husi.resources.wireguard_public_key
+import fr.husi.ui.NavRoutes
 import me.zhanghai.compose.preference.TextFieldPreference
-import fr.husi.resources.*
+import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.resources.vectorResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -23,7 +47,7 @@ fun WireGuardSettingsScreen(
     profileId: Long,
     isSubscription: Boolean,
     onResult: (updated: Boolean) -> Unit,
-    onOpenConfigEditor: openConfigEditor,
+    onOpenConfigEditor: (NavRoutes.ConfigEditor) -> Unit,
 ) {
     val viewModel: WireGuardSettingsViewModel = viewModel { WireGuardSettingsViewModel() }
 
@@ -36,8 +60,8 @@ fun WireGuardSettingsScreen(
         viewModel = viewModel,
         onResult = onResult,
         onOpenConfigEditor = onOpenConfigEditor,
-    ) { scope, uiState, _ ->
-        scope.wireGuardSettings(uiState as WireGuardUiState, viewModel)
+    ) { uiState, _ ->
+        wireGuardSettings(uiState as WireGuardUiState, viewModel)
     }
 }
 

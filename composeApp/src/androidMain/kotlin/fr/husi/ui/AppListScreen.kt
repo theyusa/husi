@@ -2,7 +2,6 @@
 
 package fr.husi.ui
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
@@ -13,6 +12,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
@@ -56,46 +56,59 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
-import org.jetbrains.compose.resources.stringResource
-import org.jetbrains.compose.resources.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
-import androidx.compose.foundation.layout.fillMaxHeight
-import io.github.oikvpqya.compose.fastscroller.VerticalScrollbar
-import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
+import fr.husi.compose.BackHandler
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.extraBottomPadding
 import fr.husi.compose.paddingExceptBottom
 import fr.husi.compose.setPlainText
 import fr.husi.repository.FakeRepository
 import fr.husi.repository.repo
+import fr.husi.resources.Res
+import fr.husi.resources.action_copy
+import fr.husi.resources.action_import
+import fr.husi.resources.cleaning_services
+import fr.husi.resources.clear_selections
+import fr.husi.resources.close
+import fr.husi.resources.content_paste
+import fr.husi.resources.copy_all
+import fr.husi.resources.copy_success
+import fr.husi.resources.fiber_smart_record
+import fr.husi.resources.invert_selections
+import fr.husi.resources.more
+import fr.husi.resources.more_vert
+import fr.husi.resources.ok
+import fr.husi.resources.search
+import fr.husi.resources.select_apps
+import fr.husi.results.LocalResultEventBus
+import io.github.oikvpqya.compose.fastscroller.VerticalScrollbar
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
+import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import fr.husi.resources.*
+import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.resources.vectorResource
+import kotlin.random.Random
 
 @Composable
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 internal actual fun AppListScreen(
     initialPackages: Set<String>,
-    onSave: (Set<String>) -> Unit,
+    resultKey: String,
+    onBack: () -> Unit,
     modifier: Modifier,
 ) {
+    val resultBus = LocalResultEventBus.current
     val viewModel: AppListViewModel = viewModel { AppListViewModel() }
     val context = LocalContext.current
     LaunchedEffect(viewModel, initialPackages) {
         viewModel.initialize(context.packageManager, initialPackages)
     }
-    val saveAndExit = remember(viewModel, onSave) {
-        {
-            onSave(viewModel.allPackages().toSet())
-        }
-    }
-    BackHandler(enabled = true) {
-        saveAndExit()
-    }
+
     val clipboard = LocalClipboard.current
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -111,6 +124,14 @@ internal actual fun AppListScreen(
                 )
             }
         }
+    }
+
+    fun saveAndExit() {
+        resultBus.sendResult<Set<String>>(resultKey, viewModel.allPackages().toSet())
+        onBack()
+    }
+    BackHandler(enabled = true) {
+        onBack()
     }
 
     val searchBarState = rememberSearchBarState()
@@ -144,7 +165,11 @@ internal actual fun AppListScreen(
                             SimpleIconButton(
                                 imageVector = vectorResource(Res.drawable.close),
                                 contentDescription = stringResource(Res.string.close),
-                                onClick = saveAndExit,
+                                onClick = {
+                                    scope.launch(Dispatchers.Default) {
+                                        saveAndExit()
+                                    }
+                                },
                             )
                         },
                         actions = {
@@ -355,6 +380,7 @@ private fun PreviewAppListScreen() {
 
     AppListScreen(
         initialPackages = emptySet(),
-        onSave = {},
+        resultKey = "app-list-${Random.nextLong()}",
+        onBack = {},
     )
 }

@@ -27,6 +27,7 @@ import fr.husi.resources.packet_encoding
 import fr.husi.resources.person
 import fr.husi.resources.profile_config
 import fr.husi.resources.uuid
+import fr.husi.ui.NavRoutes
 import fr.husi.ui.StringOrRes
 import fr.husi.ui.getStringOrRes
 import fr.husi.ui.stringOrRes
@@ -44,7 +45,7 @@ fun VMessSettingsScreen(
     profileId: Long,
     isSubscription: Boolean,
     onResult: (updated: Boolean) -> Unit,
-    onOpenConfigEditor: openConfigEditor,
+    onOpenConfigEditor: (NavRoutes.ConfigEditor) -> Unit,
 ) {
     val viewModel: VMessSettingsViewModel = viewModel { VMessSettingsViewModel() }
 
@@ -57,8 +58,8 @@ fun VMessSettingsScreen(
         viewModel = viewModel,
         onResult = onResult,
         onOpenConfigEditor = onOpenConfigEditor,
-    ) { scope, uiState, scrollTo ->
-        scope.vmessSettings(uiState as VMessUiState, viewModel, scrollTo)
+    ) { uiState, scrollTo ->
+        vmessSettings(uiState as VMessUiState, viewModel, scrollTo)
     }
 }
 

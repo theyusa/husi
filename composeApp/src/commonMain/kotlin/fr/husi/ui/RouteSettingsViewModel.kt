@@ -16,7 +16,9 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.Serializable
 
+@Serializable
 @Immutable
 data class RouteSettingsUiState(
     val name: String = "",

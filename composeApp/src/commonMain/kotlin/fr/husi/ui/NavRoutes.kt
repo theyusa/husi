@@ -3,7 +3,6 @@ package fr.husi.ui
 import androidx.navigation3.runtime.NavKey
 import androidx.savedstate.serialization.SavedStateConfiguration
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 
@@ -99,10 +98,8 @@ sealed class NavRoutes : NavKey {
         val type: Int,
         val id: Long = -1L,
         val subscription: Boolean = false,
-    ) : NavRoutes() {
-        @Transient
-        var onResult: ((Boolean) -> Unit)? = null
-    }
+        val resultKey: String = "${type}-${id}-${subscription}",
+    ) : NavRoutes()
 
     @Serializable
     data class ConnectionsDetail(
@@ -118,26 +115,20 @@ sealed class NavRoutes : NavKey {
     @Serializable
     data class AppList(
         val initialPackages: Set<String> = emptySet(),
-    ) : NavRoutes() {
-        @Transient
-        var onResult: ((Set<String>) -> Unit)? = null
-    }
+        val resultKey: String = initialPackages.hashCode().toString(),
+    ) : NavRoutes()
 
     @Serializable
     data class ConfigEditor(
         val initialText: String = "",
-    ) : NavRoutes() {
-        @Transient
-        var onResult: ((String) -> Unit)? = null
-    }
+        val resultKey: String,
+    ) : NavRoutes()
 
     @Serializable
     data class AssetEdit(
         val assetName: String = "",
-    ) : NavRoutes() {
-        @Transient
-        var onFinished: ((AssetEditResult) -> Unit)? = null
-    }
+        val resultKey: String = assetName,
+    ) : NavRoutes()
 
     @Serializable
     data class GroupSettings(
@@ -148,19 +139,13 @@ sealed class NavRoutes : NavKey {
     data class RouteSettings(
         val routeId: Long = -1L,
         val useDraft: Boolean = false,
-    ) : NavRoutes() {
-        @Transient
-        var initialState: RouteSettingsUiState? = null
-
-        @Transient
-        var onSaved: (() -> Unit)? = null
-    }
+        val initialState: RouteSettingsUiState? = null,
+    ) : NavRoutes()
 
     @Serializable
     data class ProfileSelect(
         val preSelected: Long? = null,
-    ) : NavRoutes() {
-        @Transient
-        var onSelected: ((Long) -> Unit)? = null
-    }
+        val resultKey: String,
+    ) : NavRoutes()
+
 }

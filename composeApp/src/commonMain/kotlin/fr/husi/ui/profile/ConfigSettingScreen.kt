@@ -55,6 +55,8 @@ import fr.husi.resources.profile_name
 import fr.husi.resources.question_mark
 import fr.husi.resources.unsaved_changes_prompt
 import fr.husi.resources.warning
+import fr.husi.results.ResultEffect
+import fr.husi.ui.NavRoutes
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import me.zhanghai.compose.preference.Preference
@@ -71,7 +73,7 @@ fun ConfigSettingScreen(
     profileId: Long,
     isSubscription: Boolean,
     onResult: (updated: Boolean) -> Unit,
-    onOpenConfigEditor: openConfigEditor,
+    onOpenConfigEditor: (NavRoutes.ConfigEditor) -> Unit,
 ) {
     val sessionKey = remember { Random.nextInt().toString() }
     val viewModel: ConfigSettingsViewModel = viewModel(
@@ -93,6 +95,16 @@ fun ConfigSettingScreen(
 
     BackHandler(enabled = isDirty) {
         showBackAlert = true
+    }
+
+    val resultKey = if (profileId >= 0L) {
+        "config-settings-result-$profileId"
+    } else {
+        "config-settings-result-new-$sessionKey"
+    }
+    ResultEffect<String?>(resultKey = resultKey) { result ->
+        if (result == null) return@ResultEffect
+        viewModel.setConfigForResult(result)
     }
 
     val config = when (uiState.type) {
@@ -162,13 +174,13 @@ fun ConfigSettingScreen(
                     }
                     item("outbound_only") {
                         SwitchPreference(
-                            value = uiState.type == fr.husi.fmt.config.ConfigBean.TYPE_OUTBOUND,
+                            value = uiState.type == ConfigBean.TYPE_OUTBOUND,
                             onValueChange = {
                                 viewModel.setType(
                                     if (it) {
-                                        fr.husi.fmt.config.ConfigBean.TYPE_OUTBOUND
+                                        ConfigBean.TYPE_OUTBOUND
                                     } else {
-                                        fr.husi.fmt.config.ConfigBean.TYPE_CONFIG
+                                        ConfigBean.TYPE_CONFIG
                                     },
                                 )
                             },
@@ -184,12 +196,20 @@ fun ConfigSettingScreen(
                                 val text = if (config.isBlank()) {
                                     stringResource(Res.string.not_set)
                                 } else {
-                                    stringResource(Res.string.lines, config.count { it == '\n' } + 1)
+                                    stringResource(
+                                        Res.string.lines,
+                                        config.count { it == '\n' } + 1,
+                                    )
                                 }
                                 Text(text)
                             },
                             onClick = {
-                                onOpenConfigEditor(config, viewModel::setConfig)
+                                onOpenConfigEditor(
+                                    NavRoutes.ConfigEditor(
+                                        initialText = config,
+                                        resultKey = resultKey,
+                                    ),
+                                )
                             },
                         )
                     }
