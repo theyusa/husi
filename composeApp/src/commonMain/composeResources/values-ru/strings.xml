@@ -662,4 +662,20 @@
     <string name="mtu_discovery">Определение максимального MTU маршрута</string>
     <string name="extra_paths">Дополнительные маршруты</string>
     <string name="extra_paths_max">Максимум дополнительных маршрутов</string>
+    <string name="no_plugin_found">Плагин не найден!</string>
+    <string name="tun_strict_route">Строгая маршрутизация к TUN</string>
+    <string name="exit">Выход</string>
+    <string name="search_go">Поиск</string>
+    <string name="cancel">Отмена</string>
+    <string name="ok">ОК</string>
+    <string name="desktop_plugins">Десктопные Плагины</string>
+    <string name="no_changes_notice">Ничего не было изменено</string>
+    <string name="no_changes">Без изменений</string>
+    <string name="warn_vmess_md5_auth">Эта конфигурация (аутентификация VMess с MD5) устарела по решению разработчиков из-за слабой защиты от подделки трафика и недостаточной маскировки.\n\nС 1 января 2022 года, сервер по умолчанию перестает принимать MD5-аутентификацию. Клиенты, использующие MD5, не смогут подключиться к серверу, где она отключена.\n\nПодробнее: https://github.com/v2ray/v2ray-core/issues/2523</string>
+    <string name="warn_shadowtls_legacy">Эта конфигурация (ShadowTLS старой версии) более не поддерживается.\n\nПодробнее: https://github.com/ihciah/shadow-tls/blob/master/docs/protocol-v3-en.md#version-evolution</string>
+    <string name="warn_shadowsocks_stream_cipher">Эта конфигурация (Shadowsocks с потоковым шифром) может быть точно обнаружена зондированием; без пароля расшифрована цензорами, и не может быть защищена включением на сервере фильтров повторного использования вектора инициализации (IV).\n\nПодробнее: https://github.com/net4people/bbs/issues/24</string>
+    <string name="warn_quic_0_rtt">Эта конфигурация (QUIC с рукопожатием 0‑RTT) уязвима к атакам повторного воспроизведения.\n\nПодробнее: https://blog.cloudflare.com/even-faster-connection-establishment-with-quic-0-rtt-resumption/#attack-of-the-clones</string>
+    <string name="warn_not_encrypted">Эта конфигурация (без шифрования) крайне легко обнаруживается и идентифицируется, передача полностью видима цензору; отсутствует защита от MITM-вмешательства в содержимое коммуникации.</string>
+    <string name="warn_insecure">Эта конфигурация (небезопасно) может быть обнаружена и идентифицирована; передача полностью видима цензору и не устойчива к MITM-вмешательству в содержимое коммуникации.</string>
+    <string name="warn_hysteria_legacy">Эта конфигурация (Hysteria1) более не поддерживается.\n\nПодробнее: https://v2.hysteria.network/docs/misc/2-vs-1/</string>
 </resources>
