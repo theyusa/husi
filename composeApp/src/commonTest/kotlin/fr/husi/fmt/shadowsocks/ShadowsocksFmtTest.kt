@@ -20,6 +20,16 @@ class ShadowsocksFmtTest {
     }
 
     @Test
+    fun `parseShadowsocks should parse unpadded base64 userinfo`() {
+        val bean = parseShadowsocks(FmtTestConstant.SHADOWSOCKS_UNPADDED_BASE64_URL)
+
+        assertEquals("aes-256-gcm", bean.method)
+        assertEquals("XKFKl2rULjIp74", bean.password)
+        assertEquals("127.0.0.1", bean.serverAddress)
+        assertEquals(8009, bean.serverPort)
+    }
+
+    @Test
     fun `parseShadowsocks should preserve fields in round trip`() {
         val source = ShadowsocksBean().apply {
             serverAddress = "example.com"

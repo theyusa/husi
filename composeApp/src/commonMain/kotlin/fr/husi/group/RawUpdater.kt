@@ -116,23 +116,27 @@ object RawUpdater : GroupUpdater() {
             }
         }
 
-        try {
-            val element = kxs.parseToJsonElement(text)
-            if (element is JsonPrimitive) error("unexpected JSON primitive")
-            parseJSON(element).takeIf { it.isNotEmpty() }?.let { return it }
-        } catch (e: Exception) {
-            Logs.w(e)
+        val trimmed = text.trimStart()
+        if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+            try {
+                val element = kxs.parseToJsonElement(text)
+                if (element is JsonPrimitive) error("unexpected JSON primitive")
+                parseJSON(element).takeIf { it.isNotEmpty() }?.let { return it }
+            } catch (e: Exception) {
+                Logs.w(e)
+            }
+        }
+
+        if (!text.contains("://")) {
+            try {
+                parseProxies(text.b64DecodeToString()).takeIf { it.isNotEmpty() }?.let { return it }
+            } catch (e: Exception) {
+                Logs.w(e)
+            }
         }
 
         try {
-            return parseProxies(text.b64DecodeToString()).takeIf { it.isNotEmpty() }
-                ?: error("Not found")
-        } catch (e: Exception) {
-            Logs.w(e)
-        }
-
-        try {
-            return parseProxies(text).takeIf { it.isNotEmpty() } ?: error("Not found")
+            parseProxies(text).takeIf { it.isNotEmpty() }?.let { return it }
         } catch (e: SubscriptionFoundException) {
             throw e
         } catch (e: Exception) {

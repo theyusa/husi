@@ -45,6 +45,7 @@ import fr.husi.ktx.kxs
 import fr.husi.libcore.Libcore
 import fr.husi.libcore.URL
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonPrimitive
 
 /**
  * A legacy but still be used widely and be updated continually format.
@@ -55,9 +56,9 @@ data class V2rayNVMessShare(
     var v: String = "",
     var ps: String = "",
     var add: String = "",
-    var port: String = "",
+    var port: JsonPrimitive = JsonPrimitive(""),
     var id: String = "",
-    var aid: String = "0",
+    var aid: JsonPrimitive = JsonPrimitive("0"),
     var scy: String = "",
     var net: String = "",
     var type: String = "",
@@ -212,7 +213,7 @@ fun parseV2RayN(link: String): VMessBean {
     // Although V2rayNVMessShare fields are non-null, decoding may still yield empty values
     @Suppress("UselessCallOnNotNull")
     if (vmessData.add.isNullOrEmpty()
-        || vmessData.port.isNullOrBlank()
+        || vmessData.port.content.isBlank()
         || vmessData.id.isNullOrBlank()
         || vmessData.net.isNullOrBlank()
     ) {
@@ -221,10 +222,10 @@ fun parseV2RayN(link: String): VMessBean {
 
     bean.name = vmessData.ps
     bean.serverAddress = vmessData.add
-    bean.serverPort = vmessData.port.toIntOrNull() ?: 10086
+    bean.serverPort = vmessData.port.content.toIntOrNull() ?: 10086
     bean.encryption = vmessData.scy
     bean.uuid = vmessData.id
-    bean.alterId = vmessData.aid.toIntOrNull() ?: 0
+    bean.alterId = vmessData.aid.content.toIntOrNull() ?: 0
     bean.v2rayTransport = vmessData.net
     bean.host = vmessData.host
     bean.path = vmessData.path

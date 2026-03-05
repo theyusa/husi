@@ -26,12 +26,12 @@ fun String.b64EncodeUrlSafe(): String {
 }
 
 fun ByteArray.b64EncodeUrlSafe(): String {
-    return kotlin.io.encoding.Base64.UrlSafe.encode(this)
+    return Base64.UrlSafe.encode(this)
 }
 
 // v2rayN Style
 fun ByteArray.b64EncodeOneLine(): String {
-    return kotlin.io.encoding.Base64.Default.encode(this)
+    return Base64.encode(this)
 }
 
 fun String.b64EncodeOneLine(): String {
@@ -39,23 +39,21 @@ fun String.b64EncodeOneLine(): String {
 }
 
 fun String.b64Decode(): ByteArray {
-    // padding 自动处理，不用理
-    // URLSafe 需要替换这两个，不要用 UrlSafe 否则处理非 Safe 的时候会乱码
-    val str = replace("-", "+").replace("_", "/")
+    val normalized = replace("-", "+").replace("_", "/")
+    val padded = normalized + "=".repeat((4 - normalized.length % 4) % 4)
 
-    val decoders = listOf(
-        Base64.Default,
-        Base64.Mime,
-    )
-
-    for (decoder in decoders) {
-        try {
-            return decoder.decode(str)
-        } catch (_: Exception) {
+    val errors = mutableListOf<String>()
+    return sequenceOf(normalized, padded)
+        .flatMap { text -> sequenceOf(Base64.Default, Base64.Mime).map { text to it } }
+        .firstNotNullOfOrNull { (text, decoder) ->
+            try {
+                decoder.decode(text)
+            } catch (e: Exception) {
+                errors += e.readableMessage
+                null
+            }
         }
-    }
-
-    throw IllegalStateException("Cannot decode base64")
+        ?: throw IllegalStateException("decode base64: ${errors.joinToString(", ")}")
 }
 
 fun String.b64DecodeToString(): String {
