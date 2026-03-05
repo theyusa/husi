@@ -38,22 +38,21 @@ fun String.b64EncodeOneLine(): String {
     return toByteArray().b64EncodeOneLine()
 }
 
-fun String.b64Decode(): ByteArray {
-    val normalized = replace("-", "+").replace("_", "/")
-    val padded = normalized + "=".repeat((4 - normalized.length % 4) % 4)
+val DefaultTolerate = Base64.withPadding(Base64.PaddingOption.ABSENT_OPTIONAL)
+val MimeTolerate = Base64.Mime.withPadding(Base64.PaddingOption.ABSENT_OPTIONAL)
+val URLSafeTolerate = Base64.UrlSafe.withPadding(Base64.PaddingOption.ABSENT_OPTIONAL)
 
+fun String.b64Decode(): ByteArray {
     val errors = mutableListOf<String>()
-    return sequenceOf(normalized, padded)
-        .flatMap { text -> sequenceOf(Base64.Default, Base64.Mime).map { text to it } }
-        .firstNotNullOfOrNull { (text, decoder) ->
-            try {
-                decoder.decode(text)
-            } catch (e: Exception) {
-                errors += e.readableMessage
-                null
-            }
+    // If someone make url safe with mime, go away!
+    for (decoder in listOf(DefaultTolerate, MimeTolerate, URLSafeTolerate)) {
+        try {
+            return decoder.decode(this)
+        } catch (e: Exception) {
+            errors += e.readableMessage
         }
-        ?: throw IllegalStateException("decode base64: ${errors.joinToString(", ")}")
+    }
+    throw IllegalStateException("decode base64: ${errors.joinToString(", ")}")
 }
 
 fun String.b64DecodeToString(): String {
