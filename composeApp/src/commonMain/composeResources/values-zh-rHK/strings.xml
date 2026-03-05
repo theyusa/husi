@@ -38,7 +38,6 @@
     <string name="group_status_empty_subscription">尚未更新</string>
     <string name="group_no_difference">%1$s: 沒有變化</string>
     <plurals name="group_updated">
-        <item quantity="one">%1$s: 更新了 %2$d 個代理</item>
         <item quantity="other">%1$s: 更新了 %2$d 個代理</item>
     </plurals>
     <string name="group_added">已新增：\n%1$s</string>
@@ -83,11 +82,9 @@
     <string name="group_create">創建分組</string>
     <string name="group_delete_confirm_prompt">你確定要移除這個分組嗎？</string>
     <plurals name="group_status_proxies">
-        <item quantity="one">%1$d 個代理</item>
         <item quantity="other">%1$d 個代理</item>
     </plurals>
     <plurals name="group_status_proxies_subscription">
-        <item quantity="one">%1$d 個代理 | 於 %2$s 更新</item>
         <item quantity="other">%1$d 個代理 | 於 %2$s 更新</item>
     </plurals>
     <string name="group_diff">變化 (%1$s)</string>

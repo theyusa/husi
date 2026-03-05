@@ -22,16 +22,13 @@
     <string name="group_status_empty">空組</string>
     <string name="group_status_empty_subscription">尚未更新</string>
     <plurals name="group_status_proxies">
-        <item quantity="one">%1$d 個代理</item>
         <item quantity="other">%1$d 個代理</item>
     </plurals>
     <plurals name="group_status_proxies_subscription">
-        <item quantity="one">%1$d 個代理 | 更新於 %2$s</item>
         <item quantity="other">%1$d 個代理 | 更新於 %2$s</item>
     </plurals>
     <string name="group_no_difference">%1$s: 沒有變化</string>
     <plurals name="group_updated">
-        <item quantity="one">%1$s: 更新了 %2$d 個代理</item>
         <item quantity="other">%1$s: 更新了 %2$d 個代理</item>
     </plurals>
     <string name="group_show_diff">差異</string>
@@ -274,7 +271,6 @@
     <string name="need_reload">重新載入代理服務以套用修改</string>
     <string name="route_warn">請在新增客製化規則前閱讀文件，否則您可能會無法連線至網際網路。</string>
     <plurals name="lines">
-        <item quantity="one">%1$d 行</item>
         <item quantity="other">%1$d 行</item>
     </plurals>
     <string name="night_mode">夜間模式</string>
@@ -346,7 +342,6 @@
     <string name="apps">應用程式</string>
     <string name="select_apps">選擇應用程式</string>
     <plurals name="apps_message">
-        <item quantity="one">%1$d 個應用程式</item>
         <item quantity="other">%1$d 個應用程式</item>
     </plurals>
     <string name="file_manager_missing">您的裝置缺少 Android 標準檔案選擇器, 請安裝一個, 如 Material Files.</string>
@@ -370,11 +365,9 @@
     <string name="copy_package_name">複製軟體包名稱</string>
     <string name="copy_label">複製名稱</string>
     <plurals name="udp_connections">
-        <item quantity="one">%1$d 個 UDP 連線</item>
         <item quantity="other">%1$d 個 UDP 連線</item>
     </plurals>
     <plurals name="tcp_connections">
-        <item quantity="one">%1$d 個 TCP 連線</item>
         <item quantity="other">%1$d 個 TCP 連線</item>
     </plurals>
     <string name="group_order_by_delay">以延遲</string>
