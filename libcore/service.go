@@ -353,6 +353,12 @@ func (s *Service) handleRequest(conn net.Conn) error {
 			return E.Cause(err, "handle url test")
 		}
 		return nil
+	case commandPing:
+		err := s.handlePing(conn)
+		if err != nil {
+			return E.Cause(err, "handle ping")
+		}
+		return nil
 	default:
 		return E.New("unknown command: ", command)
 	}
@@ -393,6 +399,14 @@ func (s *Service) handleQueryStats(conn io.ReadWriter, instance *boxInstance) er
 	err = vario.WriteInt64(conn, stats)
 	if err != nil {
 		return E.Cause(err, "write stats")
+	}
+	return nil
+}
+
+func (s *Service) handlePing(conn io.ReadWriter) error {
+	err := vario.WriteUint8(conn, resultNoError)
+	if err != nil {
+		return E.Cause(err, "write resultNoError")
 	}
 	return nil
 }

@@ -1,5 +1,6 @@
 package fr.husi.repository
 
+import fr.husi.libcore.Service
 import fr.husi.libcore.createBoxService
 import org.jetbrains.compose.resources.PluralStringResource
 import org.jetbrains.compose.resources.StringResource
@@ -7,7 +8,11 @@ import java.io.File
 import org.jetbrains.compose.resources.getPluralString as getComposePluralString
 import org.jetbrains.compose.resources.getString as getComposeString
 
-val desktopRepo get() = repo as DesktopRepository
+var desktopRepo
+    get() = repo as DesktopRepository
+    set(value) {
+        repo = value
+    }
 
 class DesktopRepository(
     val dataDir: File = File(System.getProperty("user.home"), ".husi").also { it.mkdirs() },
@@ -23,7 +28,7 @@ class DesktopRepository(
     override val isWindows = osName.contains("win")
     override val isTv = false
 
-    override val boxService: fr.husi.libcore.Service? by lazy {
+    override val boxService: Service? by lazy {
         createBoxService(isBgProcess)
     }
     internal val serviceRuntime by lazy {

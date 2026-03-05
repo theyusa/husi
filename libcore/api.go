@@ -23,6 +23,7 @@ const (
 	commandResetNetwork
 	commandClearLog
 	commandSubscribeLogs
+	commandPing
 )
 
 const (

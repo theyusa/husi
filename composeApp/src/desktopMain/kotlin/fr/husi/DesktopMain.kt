@@ -34,6 +34,7 @@ import fr.husi.ktx.runOnDefaultDispatcher
 import fr.husi.libcore.Libcore
 import fr.husi.libcore.loadCA
 import fr.husi.repository.DesktopRepository
+import fr.husi.repository.desktopRepo
 import fr.husi.repository.repo
 import fr.husi.resources.Res
 import fr.husi.resources.app_name
@@ -41,6 +42,8 @@ import fr.husi.resources.close
 import fr.husi.resources.exit
 import fr.husi.resources.ic_service_active
 import fr.husi.resources.ic_service_rest
+import fr.husi.resources.instance_already_running
+import fr.husi.resources.instance_already_running_title
 import fr.husi.resources.service_mode
 import fr.husi.resources.service_mode_proxy
 import fr.husi.resources.service_mode_vpn
@@ -56,6 +59,8 @@ import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import java.io.File
+import javax.swing.JOptionPane
+import kotlin.system.exitProcess
 import androidx.compose.ui.input.key.Key as InputKey
 
 private const val MIN_LOG_LEVEL = 0
@@ -210,6 +215,7 @@ fun main(args: Array<String>) {
 private data class DesktopStartupArgs(
     val baseDir: File?,
     val logLevelOverride: Int?,
+    val many: Boolean,
 )
 
 private fun parseDesktopStartupArgs(args: Array<String>): DesktopStartupArgs {
@@ -226,10 +232,17 @@ private fun parseDesktopStartupArgs(args: Array<String>): DesktopStartupArgs {
         shortName = "l",
         description = "Log level override (0-6)",
     )
+    val many by parser.option(
+        type = ArgType.Boolean,
+        fullName = "many",
+        shortName = "m",
+        description = "Ignore exist instance",
+    )
     parser.parse(args)
     return DesktopStartupArgs(
         baseDir = baseDir?.blankAsNull()?.let(::File),
         logLevelOverride = logLevel?.takeIf { it in MIN_LOG_LEVEL..MAX_LOG_LEVEL },
+        many = many == true,
     )
 }
 
@@ -239,11 +252,16 @@ private fun initDesktopRuntime(startupArgs: DesktopStartupArgs) {
 
     val baseDir = startupArgs.baseDir ?: File(System.getProperty("user.home"), ".husi")
     baseDir.mkdirs()
-    repo = DesktopRepository(baseDir)
+    desktopRepo = DesktopRepository(baseDir)
+    val filesDir = repo.filesDir.absolutePath + "/"
+    if (!startupArgs.many) {
+        Libcore.hasAPIInstance(filesDir).blankAsNull()?.let {
+            warnForExistInstance(it)
+        }
+    }
     Thread.setDefaultUncaughtExceptionHandler(CrashHandler)
 
     val cacheDir = repo.cacheDir.absolutePath + "/"
-    val filesDir = repo.filesDir.absolutePath + "/"
     val externalAssetsDir = repo.externalAssetsDir.absolutePath + "/"
 
     val rulesProvider = DataStore.rulesProvider
@@ -265,4 +283,21 @@ private fun initDesktopRuntime(startupArgs: DesktopStartupArgs) {
     )
     loadCA(DataStore.certProvider)
     repo.boxService?.start()
+}
+
+private fun warnForExistInstance(socketPath: String) {
+    val title = runBlocking { repo.getString(Res.string.instance_already_running_title) }
+    val message = runBlocking { repo.getString(Res.string.instance_already_running, socketPath) }
+    try {
+        JOptionPane.showMessageDialog(
+            null,
+            message,
+            title,
+            JOptionPane.WARNING_MESSAGE,
+        )
+    } catch (e: Exception) {
+        System.err.println("$title: $message")
+        System.err.println(e.message)
+    }
+    exitProcess(1)
 }

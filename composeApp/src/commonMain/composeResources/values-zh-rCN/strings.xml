@@ -670,6 +670,8 @@
     <string name="mtu_discovery">路径最大传输单元发现</string>
     <string name="extra_paths">额外传输路径</string>
     <string name="extra_paths_max">最大额外传输路径数量</string>
+    <string name="instance_already_running_title">已在运行</string>
+    <string name="instance_already_running">已有实例在运行。\n检测到活跃的 API socket：\n%1$s\n\n当前实例将退出。</string>
 
     <!-- security warnings -->
     <string name="warn_hysteria_legacy">该配置 (Hysteria1) 已弃用。\n\n了解更多: https://v2.hysteria.network/zh/docs/misc/2-vs-1/</string>
