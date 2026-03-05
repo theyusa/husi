@@ -9,8 +9,8 @@ require (
 	github.com/miekg/dns v1.1.72
 	github.com/sagernet/gvisor v0.0.0-20250909151924-850a370d8506
 	github.com/sagernet/sing v0.8.1
-	github.com/sagernet/sing-box v1.13.1-0.20260303132109-d14417d3929c
-	github.com/sagernet/sing-tun v0.8.1
+	github.com/sagernet/sing-box v1.13.1
+	github.com/sagernet/sing-tun v0.8.2
 	github.com/sagernet/sing-vmess v0.2.8-0.20250909125414-3aed155119a1
 	github.com/xchacha20-poly1305/TLS-scribe v0.12.1
 	github.com/xchacha20-poly1305/anchor v0.7.1
@@ -23,7 +23,7 @@ require (
 
 // replace github.com/sagernet/sing-box => ../../sing-box
 
-replace github.com/sagernet/sing-vmess => github.com/xchacha20-poly1305/sing-vmess v0.2.7-0.20251206154549-ffe038342a81
+replace github.com/sagernet/sing-vmess => github.com/xchacha20-poly1305/sing-vmess v0.2.7-0.20260305142916-7ad18fe0e78b
 
 // cmd
 require (
