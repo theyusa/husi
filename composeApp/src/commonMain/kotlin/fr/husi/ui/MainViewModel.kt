@@ -371,14 +371,26 @@ class MainViewModel : ViewModel(), GroupManager.Interface {
         if (!byUser) {
             _uiEvent.emit(
                 MainViewModelUiEvent.Snackbar(
-                    StringOrRes.ResWithParams(Res.string.group_updated, group.displayName(), changed),
+                    StringOrRes.PluralsRes(
+                        Res.plurals.group_updated,
+                        changed,
+                        group.displayName(),
+                        changed,
+                    ),
                 ),
             )
             return
         }
 
         val parts = buildList {
-            add(StringOrRes.ResWithParams(Res.string.group_updated, group.displayName(), changed))
+            add(
+                StringOrRes.PluralsRes(
+                    Res.plurals.group_updated,
+                    changed,
+                    group.displayName(),
+                    changed,
+                ),
+            )
             if (added.isNotEmpty()) {
                 add(StringOrRes.ResWithParams(Res.string.group_added, added.joinToString("\n")))
             }

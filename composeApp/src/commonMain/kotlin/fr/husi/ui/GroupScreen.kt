@@ -126,6 +126,7 @@ import io.github.vinceglb.filekit.write
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 import java.time.Instant
@@ -774,8 +775,9 @@ private fun DraggableSwipeableItemScope<GroupItemUiState>.GroupCard(
                                         if (state.counts == 0L) {
                                             stringResource(Res.string.group_status_empty)
                                         } else {
-                                            stringResource(
-                                                Res.string.group_status_proxies,
+                                            pluralStringResource(
+                                                Res.plurals.group_status_proxies,
+                                                state.counts.toInt(),
                                                 state.counts,
                                             )
                                         }
@@ -789,8 +791,9 @@ private fun DraggableSwipeableItemScope<GroupItemUiState>.GroupCard(
                                                 Instant.ofEpochMilli(state.group.subscription!!.lastUpdated * 1000L)
                                                     .atZone(ZoneId.systemDefault())
                                                     .format(DateTimeFormatter.ofPattern("M - d"))
-                                            stringResource(
-                                                Res.string.group_status_proxies_subscription,
+                                            pluralStringResource(
+                                                Res.plurals.group_status_proxies_subscription,
+                                                state.counts.toInt(),
                                                 state.counts,
                                                 formattedDate,
                                             )

@@ -31,10 +31,19 @@
     <string name="group_edit_subscription">ویرایش اشتراک</string>
     <string name="group_status_empty">گروه خالی</string>
     <string name="group_status_empty_subscription">هنوز به‌روزرسانی نشده</string>
-    <string name="group_status_proxies">%1$d پروکسی ها</string>
-    <string name="group_status_proxies_subscription">%1$d پروکسی ها | به‌روزرسانی شدند در %2$s</string>
+    <plurals name="group_status_proxies">
+        <item quantity="one">%1$d پروکسی ها</item>
+        <item quantity="other">%1$d پروکسی ها</item>
+    </plurals>
+    <plurals name="group_status_proxies_subscription">
+        <item quantity="one">%1$d پروکسی ها | به‌روزرسانی شدند در %2$s</item>
+        <item quantity="other">%1$d پروکسی ها | به‌روزرسانی شدند در %2$s</item>
+    </plurals>
     <string name="group_no_difference">%1$s: بدون تغییر</string>
-    <string name="group_updated">%1$s: به‌روزرسانی شد %2$d پروکسی ها</string>
+    <plurals name="group_updated">
+        <item quantity="one">%1$s: به‌روزرسانی شد %2$d پروکسی ها</item>
+        <item quantity="other">%1$s: به‌روزرسانی شد %2$d پروکسی ها</item>
+    </plurals>
     <string name="group_show_diff">تفاوت</string>
     <string name="group_diff">تفاوت (%1$s)</string>
     <string name="group_delete_confirm_prompt">آیا مطمئن هستید که می خواهید این گروه را حذف کنید؟</string>
@@ -250,7 +259,10 @@
     <string name="apply">اعمال کردن</string>
     <string name="need_reload">برای اعمال تغییرات، سرویس پروکسی را دوباره بارگذاری کنید</string>
     <string name="route_warn">قبل از افزودن قوانین سفارشی مطمئن شوید که اسناد را مطالعه کرده اید، در غیر این صورت ممکن است نتوانید به اینترنت متصل شوید.</string>
-    <string name="lines">%1$d خط</string>
+    <plurals name="lines">
+        <item quantity="one">%1$d خط</item>
+        <item quantity="other">%1$d خط</item>
+    </plurals>
     <string name="night_mode">حالت شب</string>
     <string name="follow_system">دنبال کردن سیستم</string>
     <string name="enable">فعال کردن</string>
@@ -320,7 +332,10 @@
     <string name="clear_profiles_message">آیا مطمئن هستید که می خواهید این گروه را پاک کنید؟</string>
     <string name="apps">برنامه‌ها</string>
     <string name="select_apps">انتخاب برنامه‌ها</string>
-    <string name="apps_message">%1$d برنامه</string>
+    <plurals name="apps_message">
+        <item quantity="one">%1$d برنامه</item>
+        <item quantity="other">%1$d برنامه</item>
+    </plurals>
     <string name="hysteria_obfs">رمز عبور مبهم‌ساز</string>
     <string name="hysteria_auth_type">نوع احراز هویت</string>
     <string name="hysteria_auth_payload">احراز هویت Payload</string>
@@ -336,8 +351,14 @@
     <string name="group_order_by_delay">براساس تاخیر</string>
     <string name="shadowsocks_plugin_simple_obfs">Obfs ساده (افزونه اندروید شدوساکس)</string>
     <string name="shadowsocks_plugin_v2ray">V2Ray (افزونه اندروید شدوساکس)</string>
-    <string name="tcp_connections">%1$d اتصال TCP</string>
-    <string name="udp_connections">%1$d اتصال UDP</string>
+    <plurals name="tcp_connections">
+        <item quantity="one">%1$d اتصال TCP</item>
+        <item quantity="other">%1$d اتصال TCP</item>
+    </plurals>
+    <plurals name="udp_connections">
+        <item quantity="one">%1$d اتصال UDP</item>
+        <item quantity="other">%1$d اتصال UDP</item>
+    </plurals>
     <string name="copy_label">کپی نام</string>
     <string name="copy_package_name">کپی نام بسته</string>
     <string name="open_app">باز کردن اپ</string>

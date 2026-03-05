@@ -11,6 +11,7 @@ import fr.husi.database.DataStore
 import fr.husi.resources.*
 import me.zhanghai.compose.preference.Preference
 import me.zhanghai.compose.preference.SwitchPreference
+import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 
@@ -26,7 +27,7 @@ internal actual fun LazyListScope.appSelectPreference(
                 val text = when (val size = packages.size) {
                     0 -> stringResource(Res.string.not_set)
                     in 1..5 -> packages.joinToString("\n")
-                    else -> stringResource(Res.string.apps_message, size)
+                    else -> pluralStringResource(Res.plurals.apps_message, size, size)
                 }
                 Text(text)
             },

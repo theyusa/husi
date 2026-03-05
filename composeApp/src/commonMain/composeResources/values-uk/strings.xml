@@ -40,10 +40,19 @@
     <string name="group_delete_confirm_prompt">Ви впевнені, що хочете видалити цю групу\?</string>
     <string name="group_diff">Різниця (%1$s)</string>
     <string name="group_show_diff">Порівняти групи</string>
-    <string name="group_updated">%1$s: Оновлено %2$d проксі</string>
+    <plurals name="group_updated">
+        <item quantity="one">%1$s: Оновлено %2$d проксі</item>
+        <item quantity="other">%1$s: Оновлено %2$d проксі</item>
+    </plurals>
     <string name="group_no_difference">%1$s: Різниці немає</string>
-    <string name="group_status_proxies_subscription">%1$d проксі | Оновлено на %2$s</string>
-    <string name="group_status_proxies">%1$d проксі</string>
+    <plurals name="group_status_proxies_subscription">
+        <item quantity="one">%1$d проксі | Оновлено на %2$s</item>
+        <item quantity="other">%1$d проксі | Оновлено на %2$s</item>
+    </plurals>
+    <plurals name="group_status_proxies">
+        <item quantity="one">%1$d проксі</item>
+        <item quantity="other">%1$d проксі</item>
+    </plurals>
     <string name="group_status_empty_subscription">Ще не оновлено</string>
     <string name="group_status_empty">Порожня група</string>
     <string name="group_edit_subscription">Редагувати підписку</string>
@@ -182,7 +191,10 @@
     <string name="subscription_update_message">Оновлення %1$s …</string>
     <string name="profile_import_message">Ви підтверджуєте, що хочете імпортувати профіль %1$s?</string>
     <string name="hysteria_obfs">Обфускація пароля</string>
-    <string name="apps_message">%1$d застосунків</string>
+    <plurals name="apps_message">
+        <item quantity="one">%1$d застосунків</item>
+        <item quantity="other">%1$d застосунків</item>
+    </plurals>
     <string name="hysteria_disable_mtu_discovery">Вимкнути виявлення MTU шляху</string>
     <string name="hysteria_stream_receive_window">Вікно прийому потоку QUIC</string>
     <string name="group_order_by_delay">За затримкою</string>
@@ -301,7 +313,10 @@
     <string name="no">Ні</string>
     <string name="need_reload">Перезавантажте проксі-сервіс, аби застосувати зміни</string>
     <string name="route_warn">Перед додаванням власних правил переконайтеся, що ви прочитали документацію, інакше підключення до Інтернету може не вдатися.</string>
-    <string name="lines">%1$d рядків</string>
+    <plurals name="lines">
+        <item quantity="one">%1$d рядків</item>
+        <item quantity="other">%1$d рядків</item>
+    </plurals>
     <string name="night_mode">Нічний режим</string>
     <string name="follow_system">Використовувати системну тему</string>
     <string name="enable">Увімкнути</string>
@@ -348,8 +363,14 @@
     <string name="group_order_origin">За походженням</string>
     <string name="group_order_by_name">За назвою</string>
     <string name="shadowsocks_plugin_simple_obfs">Simple Obfs (плагін Shadowsocks для Android)</string>
-    <string name="tcp_connections">%1$d TCP-з\'єднань</string>
-    <string name="udp_connections">%1$d UDP-з\'єднань</string>
+    <plurals name="tcp_connections">
+        <item quantity="one">%1$d TCP-з\'єднань</item>
+        <item quantity="other">%1$d TCP-з\'єднань</item>
+    </plurals>
+    <plurals name="udp_connections">
+        <item quantity="one">%1$d UDP-з\'єднань</item>
+        <item quantity="other">%1$d UDP-з\'єднань</item>
+    </plurals>
     <string name="open_settings">Відкрити налаштування</string>
     <string name="open_market">Показати у маркеті</string>
     <string name="open_app">Відкрити застосунок</string>

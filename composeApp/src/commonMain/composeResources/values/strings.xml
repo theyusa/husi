@@ -56,10 +56,19 @@
     <string name="group_edit_subscription">Edit subscription</string>
     <string name="group_status_empty">Empty group</string>
     <string name="group_status_empty_subscription">Not updated yet</string>
-    <string name="group_status_proxies">%1$d Proxies</string>
-    <string name="group_status_proxies_subscription">%1$d Proxies | Updated on %2$s</string>
+    <plurals name="group_status_proxies">
+        <item quantity="one">%1 Proxy</item>
+        <item quantity="other">%1 Proxies</item>
+    </plurals>
+    <plurals name="group_status_proxies_subscription">
+        <item quantity="one">%1 Proxy | Updated on %2</item>
+        <item quantity="other">%1 Proxies | Updated on %2</item>
+    </plurals>
     <string name="group_no_difference">%1$s: No difference</string>
-    <string name="group_updated">%1$s: Updated %2$d proxies</string>
+    <plurals name="group_updated">
+        <item quantity="one">%1: Updated %2 proxy</item>
+        <item quantity="other">%1: Updated %2 proxies</item>
+    </plurals>
     <string name="group_show_diff">Diff</string>
     <string name="group_diff">Diff (%1$s)</string>
     <string name="group_delete_confirm_prompt">Are you sure you want to remove this group?</string>
@@ -305,7 +314,10 @@
     <string name="apply">Apply</string>
     <string name="need_reload">Reload proxy service to apply changes</string>
     <string name="route_warn">Make sure you have read the documentation before adding custom rules, otherwise you may not be able to connect to the Internet.</string>
-    <string name="lines">%1$d Lines</string>
+    <plurals name="lines">
+        <item quantity="one">%1 Line</item>
+        <item quantity="other">%1 Lines</item>
+    </plurals>
     <string name="night_mode">Night Mode</string>
     <string name="follow_system">Follow System</string>
     <string name="enable">Enable</string>
@@ -383,7 +395,10 @@
     <string name="clear_profiles_message">Are you sure you want to clear this group?</string>
     <string name="apps">Applications</string>
     <string name="select_apps">Select Applications</string>
-    <string name="apps_message">%1$d Applications</string>
+    <plurals name="apps_message">
+        <item quantity="one">%1 Application</item>
+        <item quantity="other">%1 Applications</item>
+    </plurals>
     <string name="hysteria_obfs">Obfuscation Password</string>
     <string name="hysteria_auth_type">Authentication Type</string>
     <string name="hysteria_auth_payload">Authentication Payload</string>
@@ -403,8 +418,14 @@
     <string name="traffic_downlink" translatable="false">%1$s | %2$s/s ↓</string>
     <string name="traffic_uplink_total" translatable="false">%1$s ↑</string>
     <string name="traffic_downlink_total" translatable="false">%1$s ↓</string>
-    <string name="tcp_connections">%1$d TCP connections</string>
-    <string name="udp_connections">%1$d UDP connections</string>
+    <plurals name="tcp_connections">
+        <item quantity="one">%1 TCP connection</item>
+        <item quantity="other">%1 TCP connections</item>
+    </plurals>
+    <plurals name="udp_connections">
+        <item quantity="one">%1 UDP connection</item>
+        <item quantity="other">%1 UDP connections</item>
+    </plurals>
     <string name="copy_label">Copy Name</string>
     <string name="copy_package_name">Copy Package Name</string>
     <string name="open_app">Open App</string>

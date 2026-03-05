@@ -119,6 +119,7 @@ import fr.husi.resources.undo
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 
@@ -543,7 +544,7 @@ private fun RuleEntity.summary(): String {
     if (clientType.isNotEmpty()) summary += "client: $clientType\n"
     if (packages.isNotEmpty()) {
         summary += if (repo.isAndroid) {
-            stringResource(Res.string.apps_message, packages.size,)
+            pluralStringResource(Res.plurals.apps_message, packages.size, packages.size)
         } else {
             "${stringResource(Res.string.process)}: ${packages.joinToString(", ")}"
         } + "\n"

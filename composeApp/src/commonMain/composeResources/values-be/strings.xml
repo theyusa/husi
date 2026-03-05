@@ -68,10 +68,19 @@
     <string name="group_delete_confirm_prompt">Вы ўпэўненыя, што хочаце выдаліць гэтую групу\?</string>
     <string name="group_diff">Розніца (%1$s)</string>
     <string name="group_show_diff">Розніца</string>
-    <string name="group_updated">%1$s: Абноўлены %2$d проксі</string>
+    <plurals name="group_updated">
+        <item quantity="one">%1$s: Абноўлены %2$d проксі</item>
+        <item quantity="other">%1$s: Абноўлены %2$d проксі</item>
+    </plurals>
     <string name="group_no_difference">%1$s: няма розніцы</string>
-    <string name="group_status_proxies_subscription">%1$d проксі | Абноўлена %2$s</string>
-    <string name="group_status_proxies">%1$d проксі</string>
+    <plurals name="group_status_proxies_subscription">
+        <item quantity="one">%1$d проксі | Абноўлена %2$s</item>
+        <item quantity="other">%1$d проксі | Абноўлена %2$s</item>
+    </plurals>
+    <plurals name="group_status_proxies">
+        <item quantity="one">%1$d проксі</item>
+        <item quantity="other">%1$d проксі</item>
+    </plurals>
     <string name="group_status_empty_subscription">Пакуль не абноўлена</string>
     <string name="group_status_empty">Пустая група</string>
     <string name="group_edit_subscription">Рэдагаваць падпіску</string>

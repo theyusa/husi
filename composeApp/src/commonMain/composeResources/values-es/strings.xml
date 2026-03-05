@@ -30,10 +30,19 @@
     <string name="group_edit_subscription">Editar suscripción</string>
     <string name="group_status_empty">Grupo vacío</string>
     <string name="group_status_empty_subscription">Aún no actualizado</string>
-    <string name="group_status_proxies">%1$d proxies</string>
-    <string name="group_status_proxies_subscription">%1$d proxies | Actualizado el %2$s</string>
+    <plurals name="group_status_proxies">
+        <item quantity="one">%1$d proxies</item>
+        <item quantity="other">%1$d proxies</item>
+    </plurals>
+    <plurals name="group_status_proxies_subscription">
+        <item quantity="one">%1$d proxies | Actualizado el %2$s</item>
+        <item quantity="other">%1$d proxies | Actualizado el %2$s</item>
+    </plurals>
     <string name="group_no_difference">%1$s: Sin diferencia</string>
-    <string name="group_updated">%1$s: Actualizados %2$d proxies</string>
+    <plurals name="group_updated">
+        <item quantity="one">%1$s: Actualizados %2$d proxies</item>
+        <item quantity="other">%1$s: Actualizados %2$d proxies</item>
+    </plurals>
     <string name="group_show_diff">Diferencia</string>
     <string name="group_diff">Diferencia (%1$s)</string>
     <string name="group_delete_confirm_prompt">¿Realmente quieres eliminar este grupo?</string>
@@ -253,7 +262,10 @@
     <string name="apply">Aplicar</string>
     <string name="need_reload">Vuelve a cargar el servicio de proxy para aplicar los cambios</string>
     <string name="route_warn">Asegúrate de haber leído la documentación antes de añadir reglas personalizadas; de lo contrario, es posible que no puedas conectarte a Internet.</string>
-    <string name="lines">%1$d líneas</string>
+    <plurals name="lines">
+        <item quantity="one">%1$d líneas</item>
+        <item quantity="other">%1$d líneas</item>
+    </plurals>
     <string name="night_mode">Modo nocturno</string>
     <string name="follow_system">Seguir al sistema</string>
     <string name="enable">Activar</string>
@@ -328,7 +340,10 @@
     <string name="clear_profiles_message">¿Realmente quieres borrar este grupo?</string>
     <string name="apps">Aplicaciones</string>
     <string name="select_apps">Seleccionar aplicaciones</string>
-    <string name="apps_message">%1$d aplicaciones</string>
+    <plurals name="apps_message">
+        <item quantity="one">%1$d aplicaciones</item>
+        <item quantity="other">%1$d aplicaciones</item>
+    </plurals>
     <string name="hysteria_obfs">Contraseña de ofuscación</string>
     <string name="hysteria_auth_type">Tipo de autenticación</string>
     <string name="hysteria_auth_payload">Payload de autenticación</string>
@@ -347,8 +362,14 @@
     <string name="traffic_downlink" translatable="false">%1$s | %2$s/s ↓</string>
     <string name="traffic_uplink_total" translatable="false">%1$s ↑</string>
     <string name="traffic_downlink_total" translatable="false">%1$s ↓</string>
-    <string name="tcp_connections">%1$d conexiones TCP</string>
-    <string name="udp_connections">%1$d conexiones UDP</string>
+    <plurals name="tcp_connections">
+        <item quantity="one">%1$d conexiones TCP</item>
+        <item quantity="other">%1$d conexiones TCP</item>
+    </plurals>
+    <plurals name="udp_connections">
+        <item quantity="one">%1$d conexiones UDP</item>
+        <item quantity="other">%1$d conexiones UDP</item>
+    </plurals>
     <string name="copy_label">Copiar nombre</string>
     <string name="copy_package_name">Copiar nombre del paquete</string>
     <string name="open_app">Abrir la app</string>

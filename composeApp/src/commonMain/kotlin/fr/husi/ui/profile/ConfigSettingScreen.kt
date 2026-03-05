@@ -63,6 +63,7 @@ import me.zhanghai.compose.preference.Preference
 import me.zhanghai.compose.preference.ProvidePreferenceLocals
 import me.zhanghai.compose.preference.SwitchPreference
 import me.zhanghai.compose.preference.TextFieldPreference
+import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 import kotlin.random.Random
@@ -196,10 +197,8 @@ fun ConfigSettingScreen(
                                 val text = if (config.isBlank()) {
                                     stringResource(Res.string.not_set)
                                 } else {
-                                    stringResource(
-                                        Res.string.lines,
-                                        config.count { it == '\n' } + 1,
-                                    )
+                                    val count = config.count { it == '\n' } + 1
+                                    pluralStringResource(Res.plurals.lines, count, count)
                                 }
                                 Text(text)
                             },

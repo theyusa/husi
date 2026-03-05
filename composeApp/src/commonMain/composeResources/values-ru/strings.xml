@@ -49,10 +49,19 @@
     <string name="group_delete_confirm_prompt">Вы уверены, что хотите удалить эту группу\?</string>
     <string name="group_diff">различия (%1$s)</string>
     <string name="group_show_diff">Сравнить группы</string>
-    <string name="group_updated">%1$s: Обновлено %2$d прокси</string>
+    <plurals name="group_updated">
+        <item quantity="one">%1$s: Обновлено %2$d прокси</item>
+        <item quantity="other">%1$s: Обновлено %2$d прокси</item>
+    </plurals>
     <string name="group_no_difference">%1$s: Не отличаются</string>
-    <string name="group_status_proxies_subscription">%1$d Прокси | Обновлено %2$s</string>
-    <string name="group_status_proxies">%1$d Прокси</string>
+    <plurals name="group_status_proxies_subscription">
+        <item quantity="one">%1$d Прокси | Обновлено %2$s</item>
+        <item quantity="other">%1$d Прокси | Обновлено %2$s</item>
+    </plurals>
+    <plurals name="group_status_proxies">
+        <item quantity="one">%1$d Прокси</item>
+        <item quantity="other">%1$d Прокси</item>
+    </plurals>
     <string name="group_status_empty_subscription">Еще не обновлено</string>
     <string name="group_status_empty">Пустая группа</string>
     <string name="group_edit_subscription">Редактировать подписку</string>
@@ -95,7 +104,10 @@
         <item quantity="many">%1$d элементов удалено</item>
         <item quantity="other">%1$d элементов удалено</item>
     </plurals>
-    <string name="apps_message">%1$d приложений</string>
+    <plurals name="apps_message">
+        <item quantity="one">%1$d приложений</item>
+        <item quantity="other">%1$d приложений</item>
+    </plurals>
     <string name="select_apps">Выберите приложения</string>
     <string name="apps">Приложения</string>
     <string name="clear_profiles_message">Вы уверены, что хотите очистить эту группу\?</string>
@@ -164,7 +176,10 @@
     <string name="enable">Включить</string>
     <string name="follow_system">Система</string>
     <string name="night_mode">Ночной режим</string>
-    <string name="lines">%1$d строк</string>
+    <plurals name="lines">
+        <item quantity="one">%1$d строк</item>
+        <item quantity="other">%1$d строк</item>
+    </plurals>
     <string name="route_warn">Перед добавлением собственных правил убедитесь, что вы прочитали документацию, иначе подключение к Интернету может не удасться.</string>
     <string name="need_reload">Перезагрузите прокси-сервис, чтобы применить изменения</string>
     <string name="apply">Применить</string>
@@ -321,8 +336,14 @@
     <string name="open_app">Открыть приложение</string>
     <string name="copy_package_name">Копировать имя пакета</string>
     <string name="copy_label">Копировать имя</string>
-    <string name="udp_connections">%1$d UDP-соединений</string>
-    <string name="tcp_connections">%1$d TCP-соединений</string>
+    <plurals name="udp_connections">
+        <item quantity="one">%1$d UDP-соединений</item>
+        <item quantity="other">%1$d UDP-соединений</item>
+    </plurals>
+    <plurals name="tcp_connections">
+        <item quantity="one">%1$d TCP-соединений</item>
+        <item quantity="other">%1$d TCP-соединений</item>
+    </plurals>
     <string name="shadowsocks_plugin_v2ray">V2Ray (плагин Shadowsocks для Android)</string>
     <string name="shadowsocks_plugin_simple_obfs">Simple Obfs (плагин Shadowsocks для Android)</string>
     <string name="group_order_by_delay">По задержке</string>

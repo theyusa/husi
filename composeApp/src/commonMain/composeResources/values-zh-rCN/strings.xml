@@ -23,10 +23,19 @@
     <string name="group_edit_subscription">编辑订阅</string>
     <string name="group_status_empty">空</string>
     <string name="group_status_empty_subscription">从未更新</string>
-    <string name="group_status_proxies">%1$d 个配置</string>
-    <string name="group_status_proxies_subscription">%1$d 个配置 | 更新于 %2$s</string>
+    <plurals name="group_status_proxies">
+        <item quantity="one">%1$d 个配置</item>
+        <item quantity="other">%1$d 个配置</item>
+    </plurals>
+    <plurals name="group_status_proxies_subscription">
+        <item quantity="one">%1$d 个配置 | 更新于 %2$s</item>
+        <item quantity="other">%1$d 个配置 | 更新于 %2$s</item>
+    </plurals>
     <string name="group_no_difference">%1$s: 没有变化</string>
-    <string name="group_updated">%1$s: 更新了 %2$d 个节点</string>
+    <plurals name="group_updated">
+        <item quantity="one">%1$s: 更新了 %2$d 个节点</item>
+        <item quantity="other">%1$s: 更新了 %2$d 个节点</item>
+    </plurals>
     <string name="group_show_diff">变化</string>
     <string name="group_delete_confirm_prompt">您确定要删除这个分组吗?</string>
     <string name="group_added">新增:\n%1$s</string>
@@ -257,7 +266,10 @@
     <string name="allow_insecure_sum">禁用证书检查. 启用后该配置安全性相当于明文</string>
     <string name="config_type">配置类型</string>
     <string name="edit_config">编辑配置</string>
-    <string name="lines">%1$d 行</string>
+    <plurals name="lines">
+        <item quantity="one">%1$d 行</item>
+        <item quantity="other">%1$d 行</item>
+    </plurals>
     <string name="route_asset_no_update">已为最新</string>
     <string name="route_asset_updated">已更新</string>
     <string name="route_asset_status">本地版本: %1$s</string>
@@ -341,7 +353,10 @@
     <string name="dns_only">仅 DNS</string>
     <string name="apps">应用</string>
     <string name="select_apps">选择应用</string>
-    <string name="apps_message">%1$d 个应用</string>
+    <plurals name="apps_message">
+        <item quantity="one">%1$d 个应用</item>
+        <item quantity="other">%1$d 个应用</item>
+    </plurals>
     <string name="hysteria_obfs">混淆密码</string>
     <string name="hysteria_auth_type">认证类型</string>
     <string name="hysteria_auth_payload">认证载荷</string>
@@ -368,8 +383,14 @@
     <string name="open_app">打开应用</string>
     <string name="copy_package_name">复制包名</string>
     <string name="copy_label">复制应用名</string>
-    <string name="udp_connections">%1$d UDP 连接</string>
-    <string name="tcp_connections">%1$d TCP 连接</string>
+    <plurals name="udp_connections">
+        <item quantity="one">%1$d UDP 连接</item>
+        <item quantity="other">%1$d UDP 连接</item>
+    </plurals>
+    <plurals name="tcp_connections">
+        <item quantity="one">%1$d TCP 连接</item>
+        <item quantity="other">%1$d TCP 连接</item>
+    </plurals>
     <string name="route_need_vpn">路由规则 %1$s 依赖 VPN 以生效，所以其已被忽略。</string>
     <string name="no_statistics">暂无数据</string>
     <string name="ssh_private_key_passphrase">私钥密码短语</string>
