@@ -24,6 +24,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -76,7 +77,7 @@ fun ConfigSettingScreen(
     onResult: (updated: Boolean) -> Unit,
     onOpenConfigEditor: (NavRoutes.ConfigEditor) -> Unit,
 ) {
-    val sessionKey = remember { Random.nextInt().toString() }
+    val sessionKey = rememberSaveable { Random.nextInt().toString() }
     val viewModel: ConfigSettingsViewModel = viewModel(
         key = if (profileId >= 0L) {
             "config-settings-$profileId"

@@ -24,6 +24,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -149,7 +150,7 @@ internal fun GroupSettingsScreen(
         onBackPress()
     }
 
-    val resultKeyNumber = remember { groupId.takeIf { it >= 0 } ?: Random.nextLong() }
+    val resultKeyNumber = rememberSaveable { groupId.takeIf { it >= 0 } ?: Random.nextLong() }
     val frontProfileResultKey = remember { "group-front-profile-$resultKeyNumber" }
     val landingProfileResultKey = remember { "group-landing-profile-$resultKeyNumber" }
     ResultEffect<Long?>(resultKey = frontProfileResultKey) { id ->

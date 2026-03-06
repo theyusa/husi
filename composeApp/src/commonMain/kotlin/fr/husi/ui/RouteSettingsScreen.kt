@@ -35,6 +35,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -182,7 +183,7 @@ internal fun RouteSettingsScreen(
         onSaved()
     }
 
-    val resultKeyNumber = remember { routeId.takeIf { it >= 0 } ?: Random.nextLong() }
+    val resultKeyNumber = rememberSaveable { routeId.takeIf { it >= 0 } ?: Random.nextLong() }
 
     val appListResultKey = remember { "app-list-${resultKeyNumber}" }
     val configEditResultKey = remember { "route-config-${resultKeyNumber}" }

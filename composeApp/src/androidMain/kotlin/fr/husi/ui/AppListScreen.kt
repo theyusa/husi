@@ -88,7 +88,6 @@ import fr.husi.results.LocalResultEventBus
 import io.github.oikvpqya.compose.fastscroller.VerticalScrollbar
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
@@ -103,7 +102,7 @@ internal actual fun AppListScreen(
     modifier: Modifier,
 ) {
     val resultBus = LocalResultEventBus.current
-    val viewModel: AppListViewModel = viewModel { AppListViewModel() }
+    val viewModel: AppListViewModel = viewModel(key = resultKey) { AppListViewModel() }
     val context = LocalContext.current
     LaunchedEffect(viewModel, initialPackages) {
         viewModel.initialize(context.packageManager, initialPackages)
@@ -131,7 +130,7 @@ internal actual fun AppListScreen(
         onBack()
     }
     BackHandler(enabled = true) {
-        onBack()
+        saveAndExit()
     }
 
     val searchBarState = rememberSearchBarState()
@@ -165,11 +164,7 @@ internal actual fun AppListScreen(
                             SimpleIconButton(
                                 imageVector = vectorResource(Res.drawable.close),
                                 contentDescription = stringResource(Res.string.close),
-                                onClick = {
-                                    scope.launch(Dispatchers.Default) {
-                                        saveAndExit()
-                                    }
-                                },
+                                onClick = ::saveAndExit,
                             )
                         },
                         actions = {

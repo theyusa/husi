@@ -42,6 +42,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -284,7 +285,7 @@ internal fun <T : AbstractBean> ProfileSettingsScreenScaffold(
         showBackAlert = true
     }
 
-    val resultNumber = remember { viewModel.editingId.takeIf { it >= 0 } ?: Random.nextLong() }
+    val resultNumber = rememberSaveable { viewModel.editingId.takeIf { it >= 0 } ?: Random.nextLong() }
     val configResultKey = remember { "config-edit-${resultNumber}" }
     val outboundConfigResultKey = remember { "outbound-config-edit-${resultNumber}" }
     ResultEffect<String?>(resultKey = configResultKey) { result ->

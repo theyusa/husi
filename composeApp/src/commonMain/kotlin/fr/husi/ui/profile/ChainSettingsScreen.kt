@@ -31,6 +31,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -79,7 +80,7 @@ fun ChainSettingsScreen(
         viewModel.initialize(profileId, isSubscription)
     }
 
-    val resultKeyNumber = remember { profileId.takeIf { it >= 0 } ?: Random.nextLong() }
+    val resultKeyNumber = rememberSaveable { profileId.takeIf { it >= 0 } ?: Random.nextLong() }
     val addProfileResultKey = remember { "chain-add-profile-$resultKeyNumber" }
     val replaceProfileResultKey = remember { "chain-replace-profile-$resultKeyNumber" }
     ResultEffect<Long?>(resultKey = addProfileResultKey) { id ->

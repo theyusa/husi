@@ -48,6 +48,15 @@ internal class AppListViewModel : ViewModel() {
         }
     }
 
+    init {
+        viewModelScope.launch {
+            snapshotFlow { textFieldState.text.toString() }
+                .drop(1)
+                .distinctUntilChanged()
+                .collect { reload() }
+        }
+    }
+
     fun initialize(pm: PackageManager, packages: Set<String>) {
         packageManager = pm
 
@@ -55,6 +64,7 @@ internal class AppListViewModel : ViewModel() {
             _uiState.update {
                 it.copy(isLoading = true, apps = emptyList())
             }
+            proxiedUids.clear()
             val cachedApps = cachedApps
             for ((packageName, packageInfo) in cachedApps) {
                 if (packages.contains(packageName)) {
@@ -62,12 +72,6 @@ internal class AppListViewModel : ViewModel() {
                 }
             }
             reload(cachedApps)
-        }
-        viewModelScope.launch {
-            snapshotFlow { textFieldState.text.toString() }
-                .drop(1)
-                .distinctUntilChanged()
-                .collect { reload() }
         }
     }
 
@@ -177,12 +181,11 @@ internal class AppListViewModel : ViewModel() {
         val proxiedPackageName = mutableListOf<String>()
         // Bypass mode: choose all apps that not mentioned in list
         if (bypass) {
-            for (packageName in apps) {
-                cachedApps.remove(packageName)
-            }
             for ((packageName, packageInfo) in cachedApps) {
-                proxiedUids.add(packageInfo.applicationInfo!!.uid)
-                proxiedPackageName.add(packageName)
+                if (packageName !in apps) {
+                    proxiedUids.add(packageInfo.applicationInfo!!.uid)
+                    proxiedPackageName.add(packageName)
+                }
             }
         } else {
             for (packageName in apps) {
