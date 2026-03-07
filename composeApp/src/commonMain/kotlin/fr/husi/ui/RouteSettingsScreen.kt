@@ -153,7 +153,7 @@ import java.io.File
 import kotlin.random.Random
 
 private const val KEY_ACTION_OPTIONS = "action_options"
-// If too big, the performance is low and no one will check it patience.
+// If too big, the performance is low and no one will check it patiently.
 private const val RULE_SET_SUGGESTION_LIMIT = 64
 
 @ExperimentalMaterial3Api

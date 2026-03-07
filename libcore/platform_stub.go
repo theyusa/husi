@@ -131,3 +131,15 @@ func (i interfaceMonitorStub) RegisterCallback(_ tun.DefaultInterfaceUpdateCallb
 
 func (i interfaceMonitorStub) UnregisterCallback(_ *list.Element[tun.DefaultInterfaceUpdateCallback]) {
 }
+
+func (p platformInterfaceStub) UsePlatformNeighborResolver() bool {
+	return false
+}
+
+func (p platformInterfaceStub) StartNeighborMonitor(_ adapter.NeighborUpdateListener) error {
+	return os.ErrInvalid
+}
+
+func (p platformInterfaceStub) CloseNeighborMonitor(_ adapter.NeighborUpdateListener) error {
+	return os.ErrInvalid
+}

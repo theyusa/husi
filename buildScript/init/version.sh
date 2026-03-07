@@ -1,10 +1,10 @@
 #!/bin/bash
 
-GO_VERSION="1.26.0"
+GO_VERSION="1.26.1"
 
 # https://github.com/Dreamacro/maxmind-geoip
 GEOIP_VERSION="20260212"
 
 # https://github.com/v2fly/domain-list-community
 # or https://github.com/SagerNet/sing-geosite
-GEOSITE_VERSION="20260305070605"
+GEOSITE_VERSION="20260307033015"

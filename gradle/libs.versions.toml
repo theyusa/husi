@@ -1,6 +1,6 @@
 [versions]
 ksp = "2.3.6"
-kotlinComposePlugin = "2.3.20-RC"
+kotlinComposePlugin = "2.3.20-RC2"
 composeMultiplatform = "1.10.1"
 composeMaterial3 = "1.11.0-alpha03"
 kotlinCoroutines = "1.10.2"
@@ -31,8 +31,8 @@ ini4j = "0.5.4"
 desugarJdkLibs = "2.1.5"
 junitBom = "6.0.3"
 aboutlibraries = "14.0.0-b02"
-agp = "9.0.1"
-kotlinGradlePlugin = "2.3.20-RC"
+agp = "9.1.0"
+kotlinGradlePlugin = "2.3.20-RC2"
 
 [libraries]
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinCoroutines" }

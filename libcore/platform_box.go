@@ -2,6 +2,7 @@ package libcore
 
 import (
 	"net/netip"
+	"os"
 	"sync"
 
 	"github.com/sagernet/sing-box/adapter"
@@ -239,4 +240,17 @@ func (w *boxPlatformInterfaceWrapper) SendNotification(_ *adapter.Notification) 
 func (w *boxPlatformInterfaceWrapper) SystemCertificates() []string {
 	// Already set in certs.go
 	return nil
+}
+
+func (w *boxPlatformInterfaceWrapper) UsePlatformNeighborResolver() bool {
+	// Require root in Android
+	return false
+}
+
+func (w *boxPlatformInterfaceWrapper) StartNeighborMonitor(listener adapter.NeighborUpdateListener) error {
+	return os.ErrInvalid
+}
+
+func (w *boxPlatformInterfaceWrapper) CloseNeighborMonitor(listener adapter.NeighborUpdateListener) error {
+	return os.ErrInvalid
 }
