@@ -21,6 +21,11 @@ require (
 	golang.org/x/sys v0.41.0
 )
 
+tool (
+	github.com/xchacha20-poly1305/anja/cmd/anja
+	github.com/xchacha20-poly1305/anja/cmd/anjb
+)
+
 // replace github.com/sagernet/sing-box => ../../sing-box
 
 replace github.com/sagernet/sing-vmess => github.com/xchacha20-poly1305/sing-vmess v0.2.7-0.20260305142916-7ad18fe0e78b

@@ -3,23 +3,6 @@
 set -e
 # set -x
 
-get_go_bin_version() {
-    local bin_path="$1"
-    go version -m "$bin_path" | awk '/^[ \t]*mod/ {print $3}' || echo "unknown"
-}
-
-# Returns 1 if same
-compare_version() {
-  local bin_path="$1"
-  local expected_version="$2"
-  local actual_version=$(get_go_bin_version "$bin_path")
-  if [ "$actual_version" == "$expected_version" ]; then
-    echo "1"
-  else
-    echo "0"
-  fi
-}
-
 TAGS=(
     "with_gvisor"
     "with_quic"
@@ -118,19 +101,7 @@ if [ "$PLATFORM_SPECIFIED" == "0" ]; then
 fi
 
 # Just install anja & anjb if not have or version not same
-ANJA_VERSION="$(go list -m -f '{{if eq .Path "github.com/xchacha20-poly1305/anja"}}{{.Version}}{{end}}' github.com/xchacha20-poly1305/anja)"
-if [ -z "$ANJA_VERSION" ]; then
-    echo "Failed to resolve github.com/xchacha20-poly1305/anja version from go.mod"
-    exit 1
-fi
-if [ "$(compare_version "$(command -v anja)" "$ANJA_VERSION")" == "0" ]; then
-    echo ">> Installing gomobile"
-    CGO_ENABLED=0 go install -v -trimpath -ldflags="-w -s" github.com/xchacha20-poly1305/anja/cmd/anja@$ANJA_VERSION
-fi
-if [ "$(compare_version "$(command -v anjb)" "$ANJA_VERSION")" == "0" ]; then
-    echo ">> Installing gobind"
-    CGO_ENABLED=0 go install -v -trimpath -ldflags="-w -s" github.com/xchacha20-poly1305/anja/cmd/anjb@$ANJA_VERSION
-fi
+go install tool
 
 box_version=$(go run ./cmd/boxversion/)
 export CGO_ENABLED=1
