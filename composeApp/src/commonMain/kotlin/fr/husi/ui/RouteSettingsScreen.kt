@@ -34,15 +34,18 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import fr.husi.compose.AutoCompleteTextField
 import fr.husi.compose.BackHandler
 import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.DurationTextField
@@ -56,9 +59,11 @@ import fr.husi.compose.withNavigation
 import fr.husi.database.ProfileManager
 import fr.husi.database.RuleEntity
 import fr.husi.database.SagerDatabase
+import fr.husi.fmt.RuleItem
 import fr.husi.fmt.SingBoxOptions
 import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.contentOrUnset
+import fr.husi.ktx.onIoDispatcher
 import fr.husi.repository.repo
 import fr.husi.resources.Res
 import fr.husi.resources.add_road
@@ -143,9 +148,12 @@ import me.zhanghai.compose.preference.SwitchPreference
 import me.zhanghai.compose.preference.TextFieldPreference
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
+import java.io.File
 import kotlin.random.Random
 
 private const val KEY_ACTION_OPTIONS = "action_options"
+// If too big, the performance is low and no one will check it patience.
+private const val RULE_SET_SUGGESTION_LIMIT = 64
 
 @ExperimentalMaterial3Api
 @Composable
@@ -417,6 +425,10 @@ private fun RouteSettings(
     onSelectApps: (Set<String>) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val geoDir = remember(repo, repo.externalAssetsDir) {
+        repo.externalAssetsDir.resolve("geo").takeIf { it.isDirectory }
+    }
+
     val listState = rememberLazyListState()
     val contentPadding = paddings.withNavigation()
     Row(modifier = modifier.fillMaxSize()) {
@@ -490,7 +502,12 @@ private fun RouteSettings(
                     summary = { Text(contentOrUnset(uiState.domains)) },
                     valueToText = { it },
                     textField = { value, onValueChange, onOk ->
-                        MultilineTextField(value, onValueChange, onOk)
+                        RuleSetAutoCompleteTextField(
+                            value = value,
+                            onValueChange = onValueChange,
+                            onOk = onOk,
+                            geoDir = geoDir,
+                        )
                     },
                 )
             }
@@ -504,7 +521,12 @@ private fun RouteSettings(
                     summary = { Text(contentOrUnset(uiState.ip)) },
                     valueToText = { it },
                     textField = { value, onValueChange, onOk ->
-                        MultilineTextField(value, onValueChange, onOk)
+                        RuleSetAutoCompleteTextField(
+                            value = value,
+                            onValueChange = onValueChange,
+                            onOk = onOk,
+                            geoDir = geoDir,
+                        )
                     },
                 )
             }
@@ -937,3 +959,148 @@ private val sniffers = listOf(
     SingBoxOptions.SNIFF_RDP,
     SingBoxOptions.SNIFF_NTP,
 )
+
+internal data class SelectedLine(
+    val start: Int,
+    val end: Int,
+    val cursor: Int,
+    val raw: String,
+) {
+    val text = raw.removeSuffix("\r")
+    val suffix = if (raw.endsWith('\r')) "\r" else ""
+}
+
+internal fun TextFieldValue.selectedLine(): SelectedLine? {
+    if (!selection.collapsed) return null
+
+    val cursor = selection.end.coerceIn(0, annotatedString.length)
+    val text = annotatedString.text
+    val end = text.indexOf('\n', cursor).let {
+        if (it >= 0) {
+            it
+        } else {
+            text.length
+        }
+    }
+    val start = if (cursor == 0) {
+        0
+    } else {
+        text.lastIndexOf('\n', cursor - 1).let {
+            if (it >= 0) {
+                it + 1
+            } else {
+                0
+            }
+        }
+    }
+    return SelectedLine(
+        start = start,
+        end = end,
+        cursor = cursor,
+        raw = text.substring(start, end),
+    )
+}
+
+@Composable
+private fun RuleSetAutoCompleteTextField(
+    value: TextFieldValue,
+    onValueChange: (TextFieldValue) -> Unit,
+    onOk: () -> Unit,
+    geoDir: File?,
+    modifier: Modifier = Modifier,
+) {
+    var ruleSets by remember { mutableStateOf(emptyList<String>()) }
+    LaunchedEffect(geoDir) {
+        ruleSets = onIoDispatcher {
+            geoDir?.listFiles()
+                ?.filter { it.isFile && it.extension == "srs" }
+                ?.map { it.nameWithoutExtension }
+                ?.sorted()
+                .orEmpty()
+        }
+    }
+
+    val suggestions = remember(value, ruleSets) {
+        val prefix = value.selectedLine()?.ruleSetSuggestionPrefix() ?: return@remember emptyList()
+        ruleSets.findRuleSetSuggestions(prefix, RULE_SET_SUGGESTION_LIMIT)
+    }
+
+    AutoCompleteTextField(
+        value = value,
+        onValueChange = onValueChange,
+        onOk = onOk,
+        suggestions = suggestions,
+        onChooseSuggestion = { suggestion ->
+            val line = value.selectedLine() ?: return@AutoCompleteTextField
+            val linePrefix = line.raw.substringBefore(':', missingDelimiterValue = "")
+            if (linePrefix.isBlank()) return@AutoCompleteTextField
+            val replacement = "$linePrefix:$suggestion${line.suffix}"
+            onValueChange(
+                value.copy(
+                    annotatedString = AnnotatedString(
+                        value.annotatedString.text.replaceRange(line.start, line.end, replacement),
+                    ),
+                    selection = TextRange(line.start + replacement.length),
+                    composition = null,
+                ),
+            )
+        },
+        modifier = modifier,
+        displaySuggestion = { it },
+    )
+}
+
+// Implement a mini parser to improve performance.
+internal fun SelectedLine.ruleSetSuggestionPrefix(): String? {
+    if (cursor != end) return null
+
+    val delimiterIndex = text.indexOf(':')
+    if (delimiterIndex <= 0) return null
+
+    val rawType = text.substring(0, delimiterIndex)
+    val type = when {
+        rawType.endsWith(RuleItem.TYPE_FLAG_PLUS_DNS) -> {
+            rawType.removeSuffix(RuleItem.TYPE_FLAG_PLUS_DNS)
+        }
+
+        rawType.endsWith(RuleItem.TYPE_FLAG_MINUS_DNS) -> {
+            rawType.removeSuffix(RuleItem.TYPE_FLAG_MINUS_DNS)
+        }
+
+        else -> rawType
+    }
+    if (type != RuleItem.TYPE_FLAG_RULE_SET) return null
+
+    return text.substring(delimiterIndex + 1)
+}
+
+internal fun List<String>.findRuleSetSuggestions(prefix: String, limit: Int): List<String> {
+    if (isEmpty() || limit <= 0) return emptyList()
+
+    val startIndex = lowerBound(prefix)
+    if (startIndex == size || !this[startIndex].startsWith(prefix)) return emptyList()
+
+    val suggestions = ArrayList<String>(limit.coerceAtMost(size - startIndex))
+    for (index in startIndex until size) {
+        val candidate = this[index]
+        if (!candidate.startsWith(prefix)) break
+
+        suggestions += candidate
+        if (suggestions.size >= limit) break
+    }
+    return suggestions
+}
+
+private fun List<String>.lowerBound(prefix: String): Int {
+    var low = 0
+    var high = size
+    while (low < high) {
+        val mid = (low + high).ushr(1)
+        if (this[mid] < prefix) {
+            low = mid + 1
+        } else {
+            high = mid
+        }
+    }
+    return low
+}
