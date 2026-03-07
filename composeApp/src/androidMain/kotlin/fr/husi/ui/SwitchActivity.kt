@@ -37,6 +37,8 @@ import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.fastCoerceAtLeast
+import androidx.compose.ui.util.fastCoerceIn
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -90,7 +92,7 @@ class SwitchActivity : ComposeActivity() {
                     val pagerState = rememberPagerState(
                         initialPage = uiState.groups
                             .indexOfFirst { it.id == selectedGroup }
-                            .coerceIn(0, (uiState.groups.size - 1).coerceAtLeast(0)),
+                            .fastCoerceIn(0, (uiState.groups.size - 1).fastCoerceAtLeast(0)),
                         pageCount = { uiState.groups.size },
                     )
                     var isPageRestored by remember { mutableStateOf(false) }
@@ -98,7 +100,7 @@ class SwitchActivity : ComposeActivity() {
                     LaunchedEffect(selectedGroup, hasGroups) {
                         if (!hasGroups) return@LaunchedEffect
                         val index = uiState.groups.indexOfFirst { it.id == selectedGroup }
-                        val target = index.coerceIn(0, pagerState.pageCount - 1)
+                        val target = index.fastCoerceIn(0, pagerState.pageCount - 1)
                         if (target != pagerState.currentPage) {
                             pagerState.scrollToPage(target)
                         }
@@ -144,7 +146,7 @@ class SwitchActivity : ComposeActivity() {
                                 .height(windowHeight * 0.6f),
                         ) {
                             if (hasGroups && uiState.groups.size > 1) PrimaryScrollableTabRow(
-                                selectedTabIndex = pagerState.currentPage.coerceIn(
+                                selectedTabIndex = pagerState.currentPage.fastCoerceIn(
                                     0,
                                     uiState.groups.size - 1,
                                 ),

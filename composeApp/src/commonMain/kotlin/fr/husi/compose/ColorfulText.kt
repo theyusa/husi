@@ -10,6 +10,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.util.fastCoerceIn
 import fr.husi.compose.theme.LogColors
 import fr.husi.compose.theme.LocalAppDarkMode
 
@@ -151,9 +152,9 @@ private fun getStyleForCode(code: String?): SpanStyle? = when (code) {
 
 private fun Color.dim(factor: Float): Color {
     return Color(
-        (red * factor).coerceIn(0f, 1f),
-        (green * factor).coerceIn(0f, 1f),
-        (blue * factor).coerceIn(0f, 1f),
+        (red * factor).fastCoerceIn(0f, 1f),
+        (green * factor).fastCoerceIn(0f, 1f),
+        (blue * factor).fastCoerceIn(0f, 1f),
         alpha,
     )
 }

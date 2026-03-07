@@ -67,6 +67,7 @@ import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.util.fastCoerceAtLeast
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 import androidx.compose.ui.unit.dp
@@ -301,7 +302,7 @@ fun LogcatScreen(
                 if (scaffoldHeightPx <= 0 || fabTopPx.isNaN()) {
                     0
                 } else {
-                    (scaffoldHeightPx - fabTopPx.toInt()).coerceAtLeast(0)
+                    (scaffoldHeightPx - fabTopPx.toInt()).fastCoerceAtLeast(0)
                 }
             }
         }

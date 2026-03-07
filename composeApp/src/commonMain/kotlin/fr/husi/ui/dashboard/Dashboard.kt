@@ -52,6 +52,8 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.util.fastCoerceAtLeast
+import androidx.compose.ui.util.fastCoerceIn
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -107,7 +109,7 @@ fun DashboardScreen(
         targetValue = lerp(
             topAppBarColors.containerColor,
             topAppBarColors.scrolledContainerColor,
-            scrollBehavior.state.overlappedFraction.coerceIn(0f, 1f),
+            scrollBehavior.state.overlappedFraction.fastCoerceIn(0f, 1f),
         ),
         animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
         label = "appBarContainerColor",
@@ -329,7 +331,7 @@ fun DashboardScreen(
                 if (scaffoldHeightPx <= 0 || fabTopPx.isNaN()) {
                     0
                 } else {
-                    (scaffoldHeightPx - fabTopPx.toInt()).coerceAtLeast(0)
+                    (scaffoldHeightPx - fabTopPx.toInt()).fastCoerceAtLeast(0)
                 }
             }
         }
@@ -350,7 +352,7 @@ fun DashboardScreen(
         ) {
             derivedStateOf {
                 if (bottomVisible && fabHeightPx > 0) {
-                    (effectiveFabReservedBottomPx - innerBottomPx - fabHeightPx).coerceAtLeast(0)
+                    (effectiveFabReservedBottomPx - innerBottomPx - fabHeightPx).fastCoerceAtLeast(0)
                 } else {
                     0
                 }

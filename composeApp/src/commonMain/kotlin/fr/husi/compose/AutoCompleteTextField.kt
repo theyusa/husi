@@ -23,6 +23,8 @@ import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.fastCoerceAtLeast
+import androidx.compose.ui.util.fastCoerceAtMost
 
 @Composable
 fun <T> AutoCompleteTextField(
@@ -68,14 +70,15 @@ fun <T> AutoCompleteTextField(
                     when (keyEvent.key) {
                         Key.DirectionDown -> {
                             if (keyEvent.type == KeyEventType.KeyDown) {
-                                selectedIndex = (selectedIndex + 1).coerceAtMost(suggestions.lastIndex)
+                                selectedIndex =
+                                    (selectedIndex + 1).fastCoerceAtMost(suggestions.lastIndex)
                             }
                             true
                         }
 
                         Key.DirectionUp -> {
                             if (keyEvent.type == KeyEventType.KeyDown) {
-                                selectedIndex = (selectedIndex - 1).coerceAtLeast(-1)
+                                selectedIndex = (selectedIndex - 1).fastCoerceAtLeast(-1)
                             }
                             true
                         }

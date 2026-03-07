@@ -12,6 +12,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.util.fastCoerceAtLeast
 import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.husi.compose.MultilineTextField
 import fr.husi.compose.PasswordPreference
@@ -329,7 +330,7 @@ private fun LazyListScope.shadowQuicSettings(
                 onSliderValueChange = { previewValue = it },
                 title = { Text(stringResource(Res.string.extra_paths_max)) },
                 valueRange = 0f..currentPathCount.toFloat(),
-                valueSteps = currentPathCount.coerceAtLeast(1) - 1,
+                valueSteps = currentPathCount.fastCoerceAtLeast(1) - 1,
                 enabled = currentPathCount > 0,
                 icon = { Icon(vectorResource(Res.drawable.multiple_stop), null) },
                 summary = { Text(contentOrUnset(uiState.maxPaths)) },
@@ -338,4 +339,3 @@ private fun LazyListScope.shadowQuicSettings(
         }
     }
 }
-

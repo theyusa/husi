@@ -43,6 +43,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.fastCoerceIn
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.husi.compose.AutoCompleteTextField
@@ -973,7 +974,7 @@ internal data class SelectedLine(
 internal fun TextFieldValue.selectedLine(): SelectedLine? {
     if (!selection.collapsed) return null
 
-    val cursor = selection.end.coerceIn(0, annotatedString.length)
+    val cursor = selection.end.fastCoerceIn(0, annotatedString.length)
     val text = annotatedString.text
     val end = text.indexOf('\n', cursor).let {
         if (it >= 0) {

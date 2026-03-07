@@ -64,6 +64,8 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.util.fastCoerceAtLeast
+import androidx.compose.ui.util.fastCoerceIn
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
@@ -235,7 +237,7 @@ fun ConfigurationScreen(
     val pagerState = rememberPagerState(
         initialPage = uiState.groups
             .indexOfFirst { it.id == selectedGroup }
-            .coerceIn(0, (uiState.groups.size - 1).coerceAtLeast(0)),
+            .fastCoerceIn(0, (uiState.groups.size - 1).fastCoerceAtLeast(0)),
         pageCount = { uiState.groups.size },
     )
     var isPageRestored by remember { mutableStateOf(false) }
@@ -289,7 +291,7 @@ fun ConfigurationScreen(
             if (scrollBehavior.scrollOffsetLimit != 0f) {
                 1 -
                         ((scrollBehavior.scrollOffsetLimit - scrollBehavior.contentOffset)
-                            .coerceIn(
+                            .fastCoerceIn(
                                 scrollBehavior.scrollOffsetLimit,
                                 0f,
                             ) / scrollBehavior.scrollOffsetLimit)
@@ -302,7 +304,7 @@ fun ConfigurationScreen(
         targetValue = lerp(
             appBarWithSearchColors.appBarContainerColor,
             appBarWithSearchColors.scrolledAppBarContainerColor,
-            overlappedFraction.coerceIn(0f, 1f),
+            overlappedFraction.fastCoerceIn(0f, 1f),
         ),
         animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
         label = "appBarContainerColor",
@@ -575,7 +577,7 @@ fun ConfigurationScreen(
                 )
 
                 if (hasGroups && uiState.groups.size > 1) PrimaryScrollableTabRow(
-                    selectedTabIndex = pagerState.currentPage.coerceIn(0, uiState.groups.size - 1),
+                    selectedTabIndex = pagerState.currentPage.fastCoerceIn(0, uiState.groups.size - 1),
                     edgePadding = 0.dp,
                     containerColor = appBarContainerColor,
                 ) {
