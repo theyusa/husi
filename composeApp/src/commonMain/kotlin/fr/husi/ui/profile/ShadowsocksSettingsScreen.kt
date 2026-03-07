@@ -9,6 +9,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
@@ -53,6 +54,7 @@ import fr.husi.resources.type_specimen
 import fr.husi.resources.udp_over_tcp
 import fr.husi.resources.view_in_ar
 import fr.husi.ui.NavRoutes
+import kotlin.random.Random
 import kotlinx.coroutines.runBlocking
 import me.zhanghai.compose.preference.ListPreference
 import me.zhanghai.compose.preference.ListPreferenceType
@@ -69,7 +71,11 @@ fun ShadowsocksSettingsScreen(
     onResult: (updated: Boolean) -> Unit,
     onOpenConfigEditor: (NavRoutes.ConfigEditor) -> Unit,
 ) {
-    val viewModel: ShadowsocksSettingsViewModel = viewModel { ShadowsocksSettingsViewModel() }
+    val sessionKey = rememberSaveable { Random.nextLong().toString() }
+    val viewModel: ShadowsocksSettingsViewModel = viewModel(
+        key = if (profileId >= 0L) "shadowsocks-settings-$profileId" else "shadowsocks-settings-new-$sessionKey",
+    ) { ShadowsocksSettingsViewModel() }
+
     LaunchedEffect(profileId, isSubscription) {
         viewModel.initialize(profileId, isSubscription)
     }

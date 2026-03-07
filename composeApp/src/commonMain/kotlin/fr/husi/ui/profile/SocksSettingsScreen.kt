@@ -7,6 +7,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.text.AnnotatedString
 import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.husi.compose.PasswordPreference
@@ -33,6 +34,7 @@ import fr.husi.resources.server_port
 import fr.husi.resources.udp_over_tcp
 import fr.husi.resources.username_opt
 import fr.husi.ui.NavRoutes
+import kotlin.random.Random
 import me.zhanghai.compose.preference.ListPreference
 import me.zhanghai.compose.preference.ListPreferenceType
 import me.zhanghai.compose.preference.SwitchPreference
@@ -48,7 +50,11 @@ fun SocksSettingsScreen(
     onResult: (updated: Boolean) -> Unit,
     onOpenConfigEditor: (NavRoutes.ConfigEditor) -> Unit,
 ) {
-    val viewModel: SocksSettingsViewModel = viewModel { SocksSettingsViewModel() }
+    val sessionKey = rememberSaveable { Random.nextLong().toString() }
+    val viewModel: SocksSettingsViewModel = viewModel(
+        key = if (profileId >= 0L) "socks-settings-$profileId" else "socks-settings-new-$sessionKey",
+    ) { SocksSettingsViewModel() }
+
     LaunchedEffect(profileId, isSubscription) {
         viewModel.initialize(profileId, isSubscription)
     }

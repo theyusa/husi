@@ -9,6 +9,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.AnnotatedString
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -69,6 +70,7 @@ import me.zhanghai.compose.preference.TextFieldPreference
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 import kotlin.math.roundToInt
+import kotlin.random.Random
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -78,7 +80,10 @@ fun ShadowQUICSettingsScreen(
     onResult: (updated: Boolean) -> Unit,
     onOpenConfigEditor: (NavRoutes.ConfigEditor) -> Unit,
 ) {
-    val viewModel: ShadowQUICSettingsViewModel = viewModel { ShadowQUICSettingsViewModel() }
+    val sessionKey = rememberSaveable { Random.nextLong().toString() }
+    val viewModel: ShadowQUICSettingsViewModel = viewModel(
+        key = if (profileId >= 0L) "shadowquic-settings-$profileId" else "shadowquic-settings-new-$sessionKey",
+    ) { ShadowQUICSettingsViewModel() }
 
     LaunchedEffect(profileId, isSubscription) {
         viewModel.initialize(profileId, isSubscription)

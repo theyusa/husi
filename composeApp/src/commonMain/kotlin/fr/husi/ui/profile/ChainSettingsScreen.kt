@@ -74,7 +74,10 @@ fun ChainSettingsScreen(
     onResult: (updated: Boolean) -> Unit,
     onOpenConfigEditor: (NavRoutes.ConfigEditor) -> Unit,
 ) {
-    val viewModel: ChainSettingsViewModel = viewModel { ChainSettingsViewModel() }
+    val sessionKey = rememberSaveable { Random.nextLong().toString() }
+    val viewModel: ChainSettingsViewModel = viewModel(
+        key = if (profileId >= 0L) "chain-settings-$profileId" else "chain-settings-new-$sessionKey",
+    ) { ChainSettingsViewModel() }
 
     LaunchedEffect(profileId, isSubscription) {
         viewModel.initialize(profileId, isSubscription)

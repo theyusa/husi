@@ -106,7 +106,10 @@ fun ProxySetSettingsScreen(
     onResult: (updated: Boolean) -> Unit,
     onOpenConfigEditor: (NavRoutes.ConfigEditor) -> Unit,
 ) {
-    val viewModel: ProxySetSettingsViewModel = viewModel { ProxySetSettingsViewModel() }
+    val sessionKey = rememberSaveable { Random.nextLong().toString() }
+    val viewModel: ProxySetSettingsViewModel = viewModel(
+        key = if (profileId >= 0L) "proxy-set-settings-$profileId" else "proxy-set-settings-new-$sessionKey",
+    ) { ProxySetSettingsViewModel() }
 
     LaunchedEffect(profileId, isSubscription) {
         viewModel.initialize(profileId, isSubscription)

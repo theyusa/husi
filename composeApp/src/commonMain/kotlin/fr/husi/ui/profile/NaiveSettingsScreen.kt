@@ -10,6 +10,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
@@ -58,6 +59,7 @@ import fr.husi.resources.tuic_congestion_controller
 import fr.husi.resources.udp_over_tcp
 import fr.husi.resources.username_opt
 import fr.husi.ui.NavRoutes
+import kotlin.random.Random
 import me.zhanghai.compose.preference.ListPreference
 import me.zhanghai.compose.preference.ListPreferenceType
 import me.zhanghai.compose.preference.SwitchPreference
@@ -73,7 +75,11 @@ fun NaiveSettingsScreen(
     onResult: (updated: Boolean) -> Unit,
     onOpenConfigEditor: (NavRoutes.ConfigEditor) -> Unit,
 ) {
-    val viewModel: NaiveSettingsViewModel = viewModel { NaiveSettingsViewModel() }
+    val sessionKey = rememberSaveable { Random.nextLong().toString() }
+    val viewModel: NaiveSettingsViewModel = viewModel(
+        key = if (profileId >= 0L) "naive-settings-$profileId" else "naive-settings-new-$sessionKey",
+    ) { NaiveSettingsViewModel() }
+
     LaunchedEffect(profileId, isSubscription) {
         viewModel.initialize(profileId, isSubscription)
     }

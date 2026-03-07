@@ -6,6 +6,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.husi.ktx.contentOrUnset
 import fr.husi.resources.Res
@@ -13,6 +14,7 @@ import fr.husi.resources.emoji_symbols
 import fr.husi.resources.profile_config
 import fr.husi.resources.profile_name
 import fr.husi.ui.NavRoutes
+import kotlin.random.Random
 import me.zhanghai.compose.preference.TextFieldPreference
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
@@ -25,7 +27,11 @@ fun DirectSettingsScreen(
     onResult: (updated: Boolean) -> Unit,
     onOpenConfigEditor: (NavRoutes.ConfigEditor) -> Unit,
 ) {
-    val viewModel: DirectSettingsViewModel = viewModel { DirectSettingsViewModel() }
+    val sessionKey = rememberSaveable { Random.nextLong().toString() }
+    val viewModel: DirectSettingsViewModel = viewModel(
+        key = if (profileId >= 0L) "direct-settings-$profileId" else "direct-settings-new-$sessionKey",
+    ) { DirectSettingsViewModel() }
+
     LaunchedEffect(profileId, isSubscription) {
         viewModel.initialize(profileId, isSubscription)
     }

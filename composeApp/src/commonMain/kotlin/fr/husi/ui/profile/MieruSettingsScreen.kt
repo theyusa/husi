@@ -6,6 +6,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.text.AnnotatedString
 import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.husi.compose.PasswordPreference
@@ -36,6 +37,7 @@ import fr.husi.resources.server_address
 import fr.husi.resources.server_port
 import fr.husi.resources.username
 import fr.husi.ui.NavRoutes
+import kotlin.random.Random
 import kotlinx.coroutines.runBlocking
 import me.zhanghai.compose.preference.ListPreference
 import me.zhanghai.compose.preference.ListPreferenceType
@@ -52,7 +54,11 @@ fun MieruSettingsScreen(
     onResult: (updated: Boolean) -> Unit,
     onOpenConfigEditor: (NavRoutes.ConfigEditor) -> Unit,
 ) {
-    val viewModel: MieruSettingsViewModel = viewModel { MieruSettingsViewModel() }
+    val sessionKey = rememberSaveable { Random.nextLong().toString() }
+    val viewModel: MieruSettingsViewModel = viewModel(
+        key = if (profileId >= 0L) "mieru-settings-$profileId" else "mieru-settings-new-$sessionKey",
+    ) { MieruSettingsViewModel() }
+
     LaunchedEffect(profileId, isSubscription) {
         viewModel.initialize(profileId, isSubscription)
     }

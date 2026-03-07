@@ -6,6 +6,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.husi.compose.MultilineTextField
 import fr.husi.compose.PasswordPreference
@@ -37,6 +38,7 @@ import fr.husi.resources.wireguard_local_address
 import fr.husi.resources.wireguard_psk
 import fr.husi.resources.wireguard_public_key
 import fr.husi.ui.NavRoutes
+import kotlin.random.Random
 import me.zhanghai.compose.preference.TextFieldPreference
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
@@ -49,7 +51,10 @@ fun WireGuardSettingsScreen(
     onResult: (updated: Boolean) -> Unit,
     onOpenConfigEditor: (NavRoutes.ConfigEditor) -> Unit,
 ) {
-    val viewModel: WireGuardSettingsViewModel = viewModel { WireGuardSettingsViewModel() }
+    val sessionKey = rememberSaveable { Random.nextLong().toString() }
+    val viewModel: WireGuardSettingsViewModel = viewModel(
+        key = if (profileId >= 0L) "wireguard-settings-$profileId" else "wireguard-settings-new-$sessionKey",
+    ) { WireGuardSettingsViewModel() }
 
     LaunchedEffect(profileId, isSubscription) {
         viewModel.initialize(profileId, isSubscription)
