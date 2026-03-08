@@ -9,6 +9,8 @@ DESKTOP_TARGETS_LINUX = linux/amd64 linux/arm64
 LINUX_PACKAGE_FORMATS ?= deb,rpm,pacman
 DESKTOP_TARGET_GRADLE_ARG = $(if $(DESKTOP_TARGET),-PdesktopTarget=$(DESKTOP_TARGET),)
 DESKTOP_TARGET_SCRIPT_ARG = $(if $(DESKTOP_TARGET),--target $(DESKTOP_TARGET),)
+JNI_INCLUDE_SCRIPT_ARG = $(if $(JNI_INCLUDE),--jniinclude "$(JNI_INCLUDE)",)
+DARWIN_SDK_SCRIPT_ARG = $(if $(DARWIN_SDK),--darwinsdk "$(DARWIN_SDK)",)
 LAUNCHER_ZIG_TARGET = $(subst linux/amd64,x86_64-linux-musl,$(subst linux/arm64,aarch64-linux-musl,$(DESKTOP_TARGET)))
 LAUNCHER_ZIG_TARGET_ARG = $(if $(LAUNCHER_ZIG_TARGET),-Dtarget=$(LAUNCHER_ZIG_TARGET),)
 
@@ -17,7 +19,7 @@ LAUNCHER_ZIG_TARGET_ARG = $(if $(LAUNCHER_ZIG_TARGET),-Dtarget=$(LAUNCHER_ZIG_TA
 build: libcore_android assets apk
 
 libcore:
-	./run lib core --desktop
+	./run lib core --desktop $(JNI_INCLUDE_SCRIPT_ARG) $(DARWIN_SDK_SCRIPT_ARG)
 
 libcore_android:
 	./run lib core --android
@@ -30,7 +32,7 @@ libcore_desktop:
 		echo "DESKTOP_TARGETS is required, e.g. make libcore_desktop DESKTOP_TARGETS=linux/amd64,darwin/arm64"; \
 		exit 1; \
 	fi
-	./run lib core --desktop --desktoptargets $(DESKTOP_TARGETS)
+	./run lib core --desktop --desktoptargets $(DESKTOP_TARGETS) $(JNI_INCLUDE_SCRIPT_ARG) $(DARWIN_SDK_SCRIPT_ARG)
 
 desktop:
 	BUILD_PLUGIN=none ./gradlew -p composeApp run

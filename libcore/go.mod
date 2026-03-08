@@ -14,7 +14,7 @@ require (
 	github.com/sagernet/sing-vmess v0.2.8-0.20250909125414-3aed155119a1
 	github.com/xchacha20-poly1305/TLS-scribe v0.12.1
 	github.com/xchacha20-poly1305/anchor v0.7.1
-	github.com/xchacha20-poly1305/anja v0.21.12
+	github.com/xchacha20-poly1305/anja v0.1.13-0.20260308014442-10be91512659
 	github.com/xchacha20-poly1305/libping v0.10.1
 	github.com/xchacha20-poly1305/sing-trusttunnel v0.2.0
 	golang.org/x/sync v0.19.0

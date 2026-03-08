@@ -2,7 +2,6 @@ package libcore
 
 import (
 	"net"
-	"unsafe"
 
 	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-tun"
@@ -167,19 +166,4 @@ func linkFlags(rawFlags uint32) net.Flags {
 		f |= net.FlagMulticast
 	}
 	return f
-}
-
-func tunnelName(fd int32) (string, error) {
-	const ifReqSize = unix.IFNAMSIZ + 64
-	var ifr [ifReqSize]byte
-	_, _, errno := unix.Syscall(
-		unix.SYS_IOCTL,
-		uintptr(fd),
-		uintptr(unix.TUNGETIFF),
-		uintptr(unsafe.Pointer(&ifr[0])),
-	)
-	if errno != 0 {
-		return "", E.Cause(errno, "get name of TUN device")
-	}
-	return unix.ByteSliceToString(ifr[:]), nil
 }

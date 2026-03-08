@@ -92,18 +92,40 @@ Or for specific targets:
 make libcore_desktop DESKTOP_TARGETS=linux/amd64,darwin/arm64
 ```
 
+If desktop build needs an explicit JNI headers directory, pass `JNI_INCLUDE`:
+
+```shell
+make libcore_desktop DESKTOP_TARGETS=linux/amd64 JNI_INCLUDE=/path/to/jni
+```
+
+For Darwin targets on non-Darwin hosts, also pass the macOS SDK explicitly:
+
+```shell
+make libcore_desktop DESKTOP_TARGETS=darwin/arm64 JNI_INCLUDE=/path/to/jni DARWIN_SDK=/path/to/MacOSX.sdk
+```
+
 Common desktop targets:
 
 * `linux/amd64`
 * `linux/arm64`
+* `darwin/amd64`
+* `darwin/arm64`
 
-For Linux targets, the build includes `with_naive_outbound` and requires a
-[`cronet-go`](https://github.com/sagernet/cronet-go) checkout with the naiveproxy toolchain prepared. By default it is expected at
+For Linux desktop targets, the build includes `with_naive_outbound` and consults a
+[`cronet-go`](https://github.com/sagernet/cronet-go) checkout via `build-naive env`. By default it is expected at
 `$HOME/cronet-go`; override with `CRONET_GO_ROOT`:
 
 ```shell
 CRONET_GO_ROOT=/path/to/cronet-go make libcore
 ```
+
+For Linux targets, `cronet-go` exports the naiveproxy cross-toolchain environment directly.
+For Darwin targets on a Darwin host, `libcore/build.sh` keeps `with_naive_outbound` and derives `CC`/`CXX`/`CGO_*`
+from the Chromium clang and hermetic Xcode toolchain inside the `cronet-go` checkout. If the Darwin SDK/linker tree
+is missing, the desktop build fails immediately.
+For Darwin targets on non-Darwin hosts, `libcore/build.sh` uses `zig cc` / `zig c++`, requires an explicit macOS SDK
+path via `DARWIN_SDK` or `--darwinsdk`, exports the matching `CGO_*` sysroot/library flags, keeps
+`with_naive_outbound`, and does not require a `cronet-go` checkout, so `zig` must be available in `PATH`.
 
 Desktop Gradle builds select `composeApp/libs/libcore-desktop-<platform>-<arch>.jar` automatically from the current
 `os.name` and `os.arch`.
@@ -121,6 +143,8 @@ If you run `libcore/build.sh` directly:
 * `--android`: build Android only
 * `--desktop`: build desktop only (default target: `host`)
 * `--android --desktop`: build both
+* `--jniinclude <path>`: pass JNI headers include path to desktop `anja bind -target=jvm`
+* `--darwinsdk <path>`: pass a macOS SDK path for Darwin desktop targets on non-Darwin hosts
 * no platform args: defaults to Android only
 
 If anja is not in GOPATH, it will be automatically downloaded and compiled.
