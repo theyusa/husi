@@ -402,7 +402,7 @@ class BaseService {
             }
 
             data.changeState(ServiceState.Connecting)
-            runOnDefaultDispatcher {
+            data.connectingJob = runOnDefaultDispatcher {
                 try {
                     data.notification.onTitle(profile.displayNameForService())
 
