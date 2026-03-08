@@ -57,8 +57,6 @@ import fr.husi.ktx.runOnDefaultDispatcher
 import fr.husi.permission.AppPermission
 import fr.husi.permission.LocalPermissionPlatform
 import fr.husi.repository.repo
-import fr.husi.results.LocalResultEventBus
-import fr.husi.results.ResultEventBus
 import fr.husi.resources.Res
 import fr.husi.resources.action_download
 import fr.husi.resources.bug_report
@@ -95,6 +93,8 @@ import fr.husi.resources.settings
 import fr.husi.resources.transform
 import fr.husi.resources.view_list
 import fr.husi.resources.warning_amber
+import fr.husi.results.LocalResultEventBus
+import fr.husi.results.ResultEventBus
 import fr.husi.ui.configuration.ConfigurationScreen
 import fr.husi.ui.configuration.ProfileSelectSheet
 import fr.husi.ui.dashboard.ConnectionDetailScreen
@@ -642,7 +642,13 @@ fun MainScreen(
                         confirmButton = {
                             TextButton(stringResource(Res.string.action_download)) {
                                 showServiceAlert = null
-                                uriHandler.openUri(plugin.downloadSource.apk)
+                                uriHandler.openUri(
+                                    if (repo.isAndroid) {
+                                        plugin.downloadSource.apk
+                                    } else {
+                                        plugin.downloadSource.binary
+                                    },
+                                )
                             }
                         },
                         dismissButton = {

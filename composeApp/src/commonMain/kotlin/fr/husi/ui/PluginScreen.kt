@@ -228,12 +228,21 @@ private fun LazyListScope.installedPlugins(
                     for (plugin in plugins) {
                         PluginCardItem(
                             icon = { Icon(vectorResource(Res.drawable.nfc), null) },
-                            title = stringResource(Res.string.version_x, plugin.id) + " (${plugin.provider})",
+                            title = stringResource(
+                                Res.string.version_x,
+                                plugin.id,
+                            ) + " (${plugin.provider})",
                             description = "v${plugin.version}",
                             onClick = { openPluginCard(plugin) },
                             onLongClick = {
                                 plugin.entry?.let {
-                                    openUri(it.downloadSource.apk)
+                                    openUri(
+                                        if (repo.isAndroid) {
+                                            it.downloadSource.apk
+                                        } else {
+                                            it.downloadSource.binary
+                                        },
+                                    )
                                 }
                             },
                         )

@@ -18,7 +18,7 @@ enum class PluginEntry(
         "mieru-plugin",
         Res.string.action_mieru,
         DownloadSource(
-            apk = "https://github.com/xchacha20-poly1305/husi/releases?q=plugin-mieru",
+            apk = "https://codeberg.org/xchacha20-poly1305/husi/releases?q=plugin-mieru",
             binary = "https://github.com/enfein/mieru/releases",
         ),
     ),
