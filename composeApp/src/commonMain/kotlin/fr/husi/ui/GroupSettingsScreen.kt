@@ -24,7 +24,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -45,14 +44,12 @@ import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.TextButton
 import fr.husi.compose.UIntegerTextField
 import fr.husi.compose.withNavigation
-import fr.husi.database.ProfileManager
 import fr.husi.database.SagerDatabase
 import fr.husi.ktx.USER_AGENT
 import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.contentOrUnset
 import fr.husi.ktx.intListN
 import fr.husi.repository.repo
-import fr.husi.results.ResultEffect
 import fr.husi.resources.Res
 import fr.husi.resources.apply
 import fr.husi.resources.auto_update
@@ -120,13 +117,12 @@ import me.zhanghai.compose.preference.SwitchPreference
 import me.zhanghai.compose.preference.TextFieldPreference
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
-import kotlin.random.Random
 
 @Composable
 internal fun GroupSettingsScreen(
     groupId: Long,
     onBackPress: () -> Unit,
-    onOpenProfileSelect: (NavRoutes.ProfileSelect) -> Unit,
+    onOpenProfileSelect: OpenProfilePicker,
     modifier: Modifier = Modifier,
     viewModel: GroupSettingsViewModel = viewModel { GroupSettingsViewModel() },
 ) {
@@ -148,20 +144,6 @@ internal fun GroupSettingsScreen(
     fun saveAndExit() {
         viewModel.save()
         onBackPress()
-    }
-
-    val resultKeyNumber = rememberSaveable { groupId.takeIf { it >= 0 } ?: Random.nextLong() }
-    val frontProfileResultKey = remember { "group-front-profile-$resultKeyNumber" }
-    val landingProfileResultKey = remember { "group-landing-profile-$resultKeyNumber" }
-    ResultEffect<Long?>(resultKey = frontProfileResultKey) { id ->
-        if (id == null) return@ResultEffect
-        val profile = ProfileManager.getProfile(id) ?: return@ResultEffect
-        viewModel.setFrontProxy(profile.id)
-    }
-    ResultEffect<Long?>(resultKey = landingProfileResultKey) { id ->
-        if (id == null) return@ResultEffect
-        val profile = ProfileManager.getProfile(id) ?: return@ResultEffect
-        viewModel.setLandingProxy(profile.id)
     }
 
     Scaffold(
@@ -229,20 +211,14 @@ internal fun GroupSettingsScreen(
                         uiState = uiState,
                         viewModel = viewModel,
                         selectFrontProxy = {
-                            onOpenProfileSelect(
-                                NavRoutes.ProfileSelect(
-                                    preSelected = uiState.frontProxy.takeIf { it > 0 },
-                                    resultKey = frontProfileResultKey,
-                                ),
-                            )
+                            onOpenProfileSelect(uiState.frontProxy.takeIf { it > 0 }) { id ->
+                                viewModel.setFrontProxy(id)
+                            }
                         },
                         selectLandingProxy = {
-                            onOpenProfileSelect(
-                                NavRoutes.ProfileSelect(
-                                    preSelected = uiState.landingProxy.takeIf { it > 0 },
-                                    resultKey = landingProfileResultKey,
-                                ),
-                            )
+                            onOpenProfileSelect(uiState.landingProxy.takeIf { it > 0 }) { id ->
+                                viewModel.setLandingProxy(id)
+                            }
                         },
                     )
                 }

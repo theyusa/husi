@@ -120,7 +120,7 @@ enum class TestType {
 }
 
 @Stable
-class ConfigurationScreenViewModel(val selectCallback: ((id: Long) -> Unit)?) : ViewModel() {
+class ConfigurationScreenViewModel : ViewModel() {
 
 
     private val _uiState = MutableStateFlow(ConfigurationUiState())
@@ -396,10 +396,6 @@ class ConfigurationScreenViewModel(val selectCallback: ((id: Long) -> Unit)?) : 
     private val reloadAccess = Mutex()
 
     fun onProfileSelect(new: Long) = viewModelScope.launch {
-        if (selectCallback != null) {
-            selectCallback(new)
-            return@launch
-        }
         var lastSelected: Long
         var updated: Boolean
         profileAccess.withLock {

@@ -1,47 +1,38 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package fr.husi.ui.configuration
 
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewmodel.CreationExtras
-import androidx.lifecycle.viewmodel.compose.viewModel
-import fr.husi.ui.MainViewModel
-import kotlin.random.Random
-import kotlin.reflect.KClass
-
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 
 @Composable
 fun ProfileSelectSheet(
-    mainViewModel: MainViewModel,
     preSelected: Long?,
     onDismiss: () -> Unit,
     onSelected: (Long) -> Unit,
 ) {
-    val sessionKey = remember { Random.nextInt().toString() }
-    val vm: ConfigurationScreenViewModel = viewModel(
-        key = "profile-select-$sessionKey",
-        factory = object : ViewModelProvider.Factory {
-            @Suppress("UNCHECKED_CAST")
-            override fun <T : ViewModel> create(modelClass: KClass<T>, extras: CreationExtras): T {
-                return ConfigurationScreenViewModel(onSelected) as T
-            }
-        },
-    )
+    val state = rememberProfilePickerState(preSelected = preSelected)
+
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(
             skipPartiallyExpanded = true,
         ),
     ) {
-        ConfigurationScreen(
-            mainViewModel = mainViewModel,
-            onNavigationClick = onDismiss,
-            selectCallback = onSelected,
-            vm = vm,
-            preSelected = preSelected,
+        ProfilePickerContent(
+            state = state,
+            onDismiss = onDismiss,
+            onSelected = onSelected,
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(0.9f),
+            bottomPadding = 0.dp,
         )
     }
 }

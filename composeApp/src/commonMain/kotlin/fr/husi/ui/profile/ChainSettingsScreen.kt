@@ -56,8 +56,8 @@ import fr.husi.resources.delete
 import fr.husi.resources.edit
 import fr.husi.resources.emoji_symbols
 import fr.husi.resources.profile_name
-import fr.husi.results.ResultEffect
 import fr.husi.ui.NavRoutes
+import fr.husi.ui.OpenProfilePicker
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.delay
 import me.zhanghai.compose.preference.TextFieldPreference
@@ -70,7 +70,7 @@ import kotlin.random.Random
 fun ChainSettingsScreen(
     profileId: Long,
     isSubscription: Boolean,
-    onOpenProfileSelect: (NavRoutes.ProfileSelect) -> Unit,
+    onOpenProfileSelect: OpenProfilePicker,
     onResult: (updated: Boolean) -> Unit,
     onOpenConfigEditor: (NavRoutes.ConfigEditor) -> Unit,
 ) {
@@ -81,19 +81,6 @@ fun ChainSettingsScreen(
 
     LaunchedEffect(profileId, isSubscription) {
         viewModel.initialize(profileId, isSubscription)
-    }
-
-    val resultKeyNumber = rememberSaveable { profileId.takeIf { it >= 0 } ?: Random.nextLong() }
-    val addProfileResultKey = remember { "chain-add-profile-$resultKeyNumber" }
-    val replaceProfileResultKey = remember { "chain-replace-profile-$resultKeyNumber" }
-    ResultEffect<Long?>(resultKey = addProfileResultKey) { id ->
-        if (id == null) return@ResultEffect
-        viewModel.replacing = -1
-        viewModel.onSelectProfile(id)
-    }
-    ResultEffect<Long?>(resultKey = replaceProfileResultKey) { id ->
-        if (id == null) return@ResultEffect
-        viewModel.onSelectProfile(id)
     }
 
     ProfileSettingsScreenScaffold(
@@ -107,21 +94,16 @@ fun ChainSettingsScreen(
             viewModel = viewModel,
             onAdd = {
                 viewModel.replacing = -1
-                onOpenProfileSelect(
-                    NavRoutes.ProfileSelect(
-                        preSelected = null,
-                        resultKey = addProfileResultKey,
-                    ),
-                )
+                onOpenProfileSelect(null) { id ->
+                    viewModel.replacing = -1
+                    viewModel.onSelectProfile(id)
+                }
             },
             onReplace = { index, profileIdForPreselect ->
                 viewModel.replacing = index
-                onOpenProfileSelect(
-                    NavRoutes.ProfileSelect(
-                        preSelected = profileIdForPreselect.takeIf { it > 0 },
-                        resultKey = replaceProfileResultKey,
-                    ),
-                )
+                onOpenProfileSelect(profileIdForPreselect.takeIf { it > 0 }) { id ->
+                    viewModel.onSelectProfile(id)
+                }
             },
         )
     }

@@ -177,16 +177,7 @@ fun ConfigurationScreen(
     modifier: Modifier = Modifier,
     mainViewModel: MainViewModel,
     onNavigationClick: () -> Unit,
-    selectCallback: ((id: Long) -> Unit)?,
-    vm: ConfigurationScreenViewModel = viewModel(
-        factory = object : ViewModelProvider.Factory {
-            @Suppress("UNCHECKED_CAST")
-            override fun <T : ViewModel> create(modelClass: KClass<T>, extras: CreationExtras): T {
-                return ConfigurationScreenViewModel(selectCallback) as T
-            }
-        },
-    ),
-    preSelected: Long?,
+    vm: ConfigurationScreenViewModel = viewModel { ConfigurationScreenViewModel() },
     onOpenProfileEditor: ((NavRoutes.ProfileEditor) -> Unit)? = null,
 ) {
     val scope = rememberCoroutineScope()
@@ -314,7 +305,7 @@ fun ConfigurationScreen(
     val serviceStatus by BackendState.status.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
-        vm.scrollToProxy(preSelected ?: DataStore.selectedProxy)
+        vm.scrollToProxy(DataStore.selectedProxy)
     }
 
     val manualProfileEntries = remember {
@@ -393,18 +384,13 @@ fun ConfigurationScreen(
                         )
                     },
                     navigationIcon = {
-                        if (selectCallback != null) SimpleIconButton(
-                            imageVector = vectorResource(Res.drawable.close),
-                            contentDescription = stringResource(Res.string.close),
-                            onClick = onNavigationClick,
-                        ) else PlatformMenuIcon(
+                        PlatformMenuIcon(
                             imageVector = vectorResource(Res.drawable.menu),
                             contentDescription = stringResource(Res.string.menu),
                             onClick = onNavigationClick,
                         )
                     },
                     actions = {
-                        if (selectCallback != null) return@AppBarWithSearch
                         Box {
                             SimpleIconButton(
                                 imageVector = vectorResource(Res.drawable.note_add),
@@ -597,25 +583,23 @@ fun ConfigurationScreen(
         },
         snackbarHost = { SnackbarHost(snackbarState) },
         floatingActionButton = {
-            if (selectCallback == null) {
-                SagerFab(
-                    visible = scrollHideVisible,
-                    state = serviceStatus.state,
-                    showSnackbar = { message ->
-                        scope.launch {
-                            snackbarState.showSnackbar(
-                                message = getStringOrRes(message),
-                                actionLabel = repo.getString(Res.string.ok),
-                                duration = SnackbarDuration.Short,
-                            )
-                        }
-                    },
-                    onSizeChanged = { fabHeight = it },
-                )
-            }
+            SagerFab(
+                visible = scrollHideVisible,
+                state = serviceStatus.state,
+                showSnackbar = { message ->
+                    scope.launch {
+                        snackbarState.showSnackbar(
+                            message = getStringOrRes(message),
+                            actionLabel = repo.getString(Res.string.ok),
+                            duration = SnackbarDuration.Short,
+                        )
+                    }
+                },
+                onSizeChanged = { fabHeight = it },
+            )
         },
         bottomBar = {
-            if (selectCallback == null && serviceStatus.state == ServiceState.Connected) {
+            if (serviceStatus.state == ServiceState.Connected) {
                 StatsBar(
                     status = serviceStatus,
                     visible = scrollHideVisible,
@@ -625,11 +609,8 @@ fun ConfigurationScreen(
         },
     ) { innerPadding ->
         val density = LocalDensity.current
-        val bottomPadding = if (selectCallback == null) {
+        val bottomPadding =
             innerPadding.calculateBottomPadding() + with(density) { fabHeight.toDp() }
-        } else {
-            innerPadding.calculateBottomPadding()
-        }
         ConfigurationContent(
             modifier = Modifier
                 .fillMaxSize()
@@ -637,8 +618,9 @@ fun ConfigurationScreen(
             vm = vm,
             snackbarState = snackbarState,
             pagerState = pagerState,
-            preSelected = preSelected,
-            selectCallback = selectCallback,
+            preSelected = null,
+            showActions = true,
+            onProfileSelect = vm::onProfileSelect,
             bottomPadding = bottomPadding,
             onScrollHideChange = { scrollHideVisible = it },
             onOpenProfileEditor = onOpenProfileEditor,
@@ -683,7 +665,8 @@ fun ConfigurationContent(
     snackbarState: SnackbarHostState,
     pagerState: androidx.compose.foundation.pager.PagerState,
     preSelected: Long?,
-    selectCallback: ((id: Long) -> Unit)?,
+    showActions: Boolean,
+    onProfileSelect: (Long) -> Unit,
     bottomPadding: Dp,
     onOpenProfileEditor: ((NavRoutes.ProfileEditor) -> Unit)? = null,
     onScrollHideChange: (Boolean) -> Unit = {},
@@ -724,9 +707,9 @@ fun ConfigurationContent(
 
                 GroupHolderScreen(
                     viewModel = pageViewModel,
-                    showActions = selectCallback == null,
+                    showActions = showActions,
                     bottomPadding = bottomPadding,
-                    onProfileSelect = { profileId -> vm.onProfileSelect(profileId) },
+                    onProfileSelect = onProfileSelect,
                     onOpenProfileEditor = onOpenProfileEditor,
                     needReload = {
                         scope.launch {

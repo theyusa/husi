@@ -4,58 +4,35 @@ package fr.husi.ui
 
 import android.os.Bundle
 import androidx.activity.compose.setContent
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsIgnoringVisibility
-import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.PrimaryScrollableTabRow
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Tab
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.lerp
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.util.fastCoerceAtLeast
-import androidx.compose.ui.util.fastCoerceIn
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.CreationExtras
-import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.husi.compose.theme.AppTheme
 import fr.husi.database.DataStore
 import fr.husi.permission.LocalPermissionPlatform
 import fr.husi.permission.rememberAndroidPermissionPlatform
 import fr.husi.repository.repo
-import fr.husi.ui.configuration.ConfigurationContent
-import fr.husi.ui.configuration.ConfigurationScreenViewModel
-import kotlinx.coroutines.launch
+import fr.husi.ui.configuration.ProfilePickerContent
+import fr.husi.ui.configuration.rememberProfilePickerState
 
 class SwitchActivity : ComposeActivity() {
 
-    @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -65,115 +42,41 @@ class SwitchActivity : ComposeActivity() {
                 LocalPermissionPlatform provides platformPermission,
             ) {
                 AppTheme {
-                    val sheetState = rememberModalBottomSheetState()
-
-                    val density = LocalDensity.current
-                    val windowHeight = with(density) {
-                        LocalWindowInfo.current.containerSize.height.toDp()
-                    }
-
-                    val vm: ConfigurationScreenViewModel = viewModel(
-                        factory = object : ViewModelProvider.Factory {
-                            @Suppress("UNCHECKED_CAST")
-                            override fun <T : ViewModel> create(
-                                modelClass: Class<T>,
-                                extras: CreationExtras,
-                            ): T {
-                                return ConfigurationScreenViewModel(::returnProfile) as T
-                            }
-                        },
+                    val dismissInteractionSource = remember { MutableInteractionSource() }
+                    val pickerState = rememberProfilePickerState(
+                        preSelected = DataStore.selectedProxy,
                     )
-                    val snackbarState = remember { SnackbarHostState() }
-                    val scope = rememberCoroutineScope()
+                    val bottomPadding = WindowInsets.navigationBarsIgnoringVisibility
+                        .asPaddingValues()
+                        .calculateBottomPadding()
 
-                    val uiState by vm.uiState.collectAsStateWithLifecycle()
-                    val selectedGroup by vm.selectedGroup.collectAsStateWithLifecycle(DataStore.selectedGroup)
-                    val hasGroups = uiState.groups.isNotEmpty()
-                    val pagerState = rememberPagerState(
-                        initialPage = uiState.groups
-                            .indexOfFirst { it.id == selectedGroup }
-                            .fastCoerceIn(0, (uiState.groups.size - 1).fastCoerceAtLeast(0)),
-                        pageCount = { uiState.groups.size },
-                    )
-                    var isPageRestored by remember { mutableStateOf(false) }
-
-                    LaunchedEffect(selectedGroup, hasGroups) {
-                        if (!hasGroups) return@LaunchedEffect
-                        val index = uiState.groups.indexOfFirst { it.id == selectedGroup }
-                        val target = index.fastCoerceIn(0, pagerState.pageCount - 1)
-                        if (target != pagerState.currentPage) {
-                            pagerState.scrollToPage(target)
-                        }
-                        isPageRestored = true
-                    }
-                    LaunchedEffect(pagerState.currentPage, hasGroups, isPageRestored) {
-                        if (!hasGroups || pagerState.currentPage >= uiState.groups.size) {
-                            return@LaunchedEffect
-                        }
-                        val groupID = uiState.groups[pagerState.currentPage].id
-                        if (isPageRestored) {
-                            DataStore.selectedGroup = groupID
-                        }
-                        vm.requestFocusIfNotHave(groupID)
-                    }
-
-                    val topAppBarColors = TopAppBarDefaults.topAppBarColors()
-                    val appBarContainerColor by animateColorAsState(
-                        targetValue = lerp(
-                            topAppBarColors.containerColor,
-                            topAppBarColors.scrolledContainerColor,
-                            0f,
-                        ),
-                        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
-                        label = "appBarContainerColor",
-                    )
-
-                    LaunchedEffect(Unit) {
-                        vm.scrollToProxy(DataStore.selectedProxy)
-                    }
-
-                    ModalBottomSheet(
-                        onDismissRequest = ::finish,
-                        sheetState = sheetState,
-                        scrimColor = Color.Black.copy(alpha = 0.5f),
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Black.copy(alpha = 0.5f)),
                     ) {
-                        val bottomPadding = WindowInsets.navigationBarsIgnoringVisibility
-                            .asPaddingValues()
-                            .calculateBottomPadding()
-                        Column(
+                        Box(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .height(windowHeight * 0.6f),
-                        ) {
-                            if (hasGroups && uiState.groups.size > 1) PrimaryScrollableTabRow(
-                                selectedTabIndex = pagerState.currentPage.fastCoerceIn(
-                                    0,
-                                    uiState.groups.size - 1,
+                                .matchParentSize()
+                                .clickable(
+                                    interactionSource = dismissInteractionSource,
+                                    indication = null,
+                                    onClick = ::finish,
                                 ),
-                                edgePadding = 0.dp,
-                                containerColor = appBarContainerColor,
-                            ) {
-                                uiState.groups.forEachIndexed { index, group ->
-                                    Tab(
-                                        text = { Text(group.displayName()) },
-                                        selected = pagerState.currentPage == index,
-                                        onClick = {
-                                            vm.requestFocusIfNotHave(group.id)
-                                            scope.launch {
-                                                pagerState.animateScrollToPage(index)
-                                            }
-                                        },
-                                    )
-                                }
-                            }
+                        )
 
-                            ConfigurationContent(
+                        Surface(
+                            modifier = Modifier
+                                .align(Alignment.BottomCenter)
+                                .fillMaxWidth()
+                                .fillMaxHeight(0.75f),
+                            shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+                        ) {
+                            ProfilePickerContent(
+                                state = pickerState,
+                                onDismiss = ::finish,
+                                onSelected = ::returnProfile,
                                 modifier = Modifier.fillMaxSize(),
-                                vm = vm,
-                                snackbarState = snackbarState,
-                                pagerState = pagerState,
-                                preSelected = null,
-                                selectCallback = ::returnProfile,
                                 bottomPadding = bottomPadding,
                             )
                         }

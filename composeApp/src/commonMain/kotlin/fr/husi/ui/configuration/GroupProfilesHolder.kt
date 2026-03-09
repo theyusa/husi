@@ -148,7 +148,7 @@ internal fun GroupHolderScreen(
     onScrollHideChange: (Boolean) -> Unit = {},
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
-    val resultBus = LocalResultEventBus.current
+    val resultBus = onOpenProfileEditor?.let { LocalResultEventBus.current }
     val pendingProfileEdits = remember { mutableStateListOf<PendingProfileEdit>() }
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -197,12 +197,17 @@ internal fun GroupHolderScreen(
         }
     }
 
-    for (pending in pendingProfileEdits.toList()) {
-        ResultEffect<Boolean>(resultKey = pending.resultKey) { updated ->
-            if (updated && pending.profileId == DataStore.selectedProxy) {
-                needReload()
+    resultBus?.let { bus ->
+        for (pending in pendingProfileEdits.toList()) {
+            ResultEffect<Boolean>(
+                resultEventBus = bus,
+                resultKey = pending.resultKey,
+            ) { updated ->
+                if (updated && pending.profileId == DataStore.selectedProxy) {
+                    needReload()
+                }
+                pendingProfileEdits.remove(pending)
             }
-            pendingProfileEdits.remove(pending)
         }
     }
 

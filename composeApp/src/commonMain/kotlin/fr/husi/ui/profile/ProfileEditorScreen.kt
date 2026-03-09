@@ -78,6 +78,7 @@ import fr.husi.resources.unsaved_changes_prompt
 import fr.husi.resources.warning
 import fr.husi.results.ResultEffect
 import fr.husi.ui.NavRoutes
+import fr.husi.ui.OpenProfilePicker
 import fr.husi.ui.stringOrRes
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
@@ -94,7 +95,7 @@ fun ProfileEditorScreen(
     type: Int,
     profileId: Long,
     isSubscription: Boolean,
-    onOpenProfileSelect: (NavRoutes.ProfileSelect) -> Unit,
+    onOpenProfileSelect: OpenProfilePicker,
     onOpenConfigEditor: (NavRoutes.ConfigEditor) -> Unit,
     onResult: (updated: Boolean) -> Unit,
 ) {

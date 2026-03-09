@@ -57,7 +57,6 @@ import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.TextButton
 import fr.husi.compose.UIntegerTextField
 import fr.husi.compose.withNavigation
-import fr.husi.database.ProfileManager
 import fr.husi.database.RuleEntity
 import fr.husi.database.SagerDatabase
 import fr.husi.fmt.RuleItem
@@ -163,7 +162,7 @@ internal fun RouteSettingsScreen(
     initialState: RouteSettingsUiState?,
     onBackPress: () -> Unit,
     onSaved: () -> Unit,
-    onOpenProfileSelect: (NavRoutes.ProfileSelect) -> Unit,
+    onOpenProfileSelect: OpenProfilePicker,
     onOpenAppList: (NavRoutes.AppList) -> Unit,
     onOpenConfigEditor: (NavRoutes.ConfigEditor) -> Unit,
     modifier: Modifier = Modifier,
@@ -197,7 +196,6 @@ internal fun RouteSettingsScreen(
     val appListResultKey = remember { "app-list-${resultKeyNumber}" }
     val configEditResultKey = remember { "route-config-${resultKeyNumber}" }
     val dnsConfigEditResultKey = remember { "route-dns-config-${resultKeyNumber}" }
-    val profileSelectResultKey = remember { "route-profile-${resultKeyNumber}" }
     ResultEffect<Set<String>>(resultKey = appListResultKey) { result ->
         viewModel.setPackages(result)
     }
@@ -208,11 +206,6 @@ internal fun RouteSettingsScreen(
     ResultEffect<String?>(resultKey = dnsConfigEditResultKey) { result ->
         if (result == null) return@ResultEffect
         viewModel.setCustomDnsConfig(result)
-    }
-    ResultEffect<Long?>(resultKey = profileSelectResultKey) { id ->
-        if (id == null) return@ResultEffect
-        val profile = ProfileManager.getProfile(id) ?: return@ResultEffect
-        viewModel.setOutbound(profile.id)
     }
 
     Scaffold(
@@ -331,12 +324,9 @@ internal fun RouteSettingsScreen(
                 uiState = uiState,
                 viewModel = viewModel,
                 onSelectOutboundProfile = { selected ->
-                    onOpenProfileSelect(
-                        NavRoutes.ProfileSelect(
-                            preSelected = selected.takeIf { it > 0 },
-                            resultKey = profileSelectResultKey,
-                        ),
-                    )
+                    onOpenProfileSelect(selected.takeIf { it > 0 }) { id ->
+                        viewModel.setOutbound(id)
+                    }
                 },
                 onSelectApps = { packages ->
                     if (repo.isAndroid) {

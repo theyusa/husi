@@ -141,11 +141,16 @@ fun MainScreen(
     val currentRoute = backStack.lastOrNull() as? NavRoutes
     val isAtStartDestination = currentRoute == NavRoutes.Configuration
     val serviceStatus by BackendState.status.collectAsStateWithLifecycle()
+    var profilePickerSession by remember { mutableStateOf<ProfilePickerSession?>(null) }
 
     fun closeDrawer() {
         if (canCollapseDrawer) {
             scope.launch { drawerState.close() }
         }
+    }
+
+    fun dismissProfilePicker() {
+        profilePickerSession = null
     }
 
     fun popBackStack(): Boolean {
@@ -167,6 +172,13 @@ fun MainScreen(
         if (backStack.lastOrNull() != route) {
             backStack.add(route)
         }
+    }
+
+    val openProfilePicker: OpenProfilePicker = { preSelected, onSelected ->
+        profilePickerSession = ProfilePickerSession(
+            preSelected = preSelected,
+            onSelected = onSelected,
+        )
     }
 
     /**
@@ -382,8 +394,6 @@ fun MainScreen(
                         ConfigurationScreen(
                             mainViewModel = viewModel,
                             onNavigationClick = ::onDrawerClick,
-                            selectCallback = null,
-                            preSelected = null,
                             onOpenProfileEditor = { navigateTo(it) },
                         )
                     }
@@ -464,22 +474,10 @@ fun MainScreen(
                             type = route.type,
                             profileId = route.id,
                             isSubscription = route.subscription,
-                            onOpenProfileSelect = { navigateTo(it) },
+                            onOpenProfileSelect = openProfilePicker,
                             onOpenConfigEditor = { navigateTo(it) },
                             onResult = { updated ->
                                 resultBus.sendResult(route.resultKey, updated)
-                                popBackStack()
-                            },
-                        )
-                    }
-
-                    entry<NavRoutes.ProfileSelect> { route ->
-                        ProfileSelectSheet(
-                            mainViewModel = viewModel,
-                            preSelected = route.preSelected,
-                            onDismiss = ::popBackStack,
-                            onSelected = { id ->
-                                resultBus.sendResult<Long?>(route.resultKey, id)
                                 popBackStack()
                             },
                         )
@@ -495,7 +493,7 @@ fun MainScreen(
                         GroupSettingsScreen(
                             groupId = key.groupId,
                             onBackPress = { popBackStack() },
-                            onOpenProfileSelect = { navigateTo(it) },
+                            onOpenProfileSelect = openProfilePicker,
                         )
                     }
 
@@ -506,7 +504,7 @@ fun MainScreen(
                             initialState = initialState,
                             onBackPress = { popBackStack() },
                             onSaved = ::popBackStack,
-                            onOpenProfileSelect = { navigateTo(it) },
+                            onOpenProfileSelect = openProfilePicker,
                             onOpenAppList = { navigateTo(it) },
                             onOpenConfigEditor = { navigateTo(it) },
                         )
@@ -600,6 +598,17 @@ fun MainScreen(
                     }
                 },
             )
+
+            profilePickerSession?.let { session ->
+                ProfileSelectSheet(
+                    preSelected = session.preSelected,
+                    onDismiss = ::dismissProfilePicker,
+                    onSelected = { id ->
+                        session.onSelected(id)
+                        dismissProfilePicker()
+                    },
+                )
+            }
 
         }
     }
@@ -789,3 +798,8 @@ private fun NavRoutes?.matchesRoute(
     val current = this ?: return false
     return current::class == route::class
 }
+
+private data class ProfilePickerSession(
+    val preSelected: Long?,
+    val onSelected: (Long) -> Unit,
+)

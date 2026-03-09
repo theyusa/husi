@@ -178,7 +178,6 @@ class TaskerActivity : ComposeActivity() {
                     val session = profileSelectSession
                     if (session != null) {
                         ProfileSelectSheet(
-                            mainViewModel = mainViewModel,
                             preSelected = session.preSelected,
                             onDismiss = { profileSelectSession = null },
                             onSelected = { id ->

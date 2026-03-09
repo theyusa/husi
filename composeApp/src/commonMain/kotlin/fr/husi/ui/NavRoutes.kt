@@ -38,7 +38,6 @@ sealed class NavRoutes : NavKey {
                         subclass(AssetEdit::class, AssetEdit.serializer())
                         subclass(GroupSettings::class, GroupSettings.serializer())
                         subclass(RouteSettings::class, RouteSettings.serializer())
-                        subclass(ProfileSelect::class, ProfileSelect.serializer())
                     }
                 }
             }
@@ -140,12 +139,6 @@ sealed class NavRoutes : NavKey {
         val routeId: Long = -1L,
         val useDraft: Boolean = false,
         val initialState: RouteSettingsUiState? = null,
-    ) : NavRoutes()
-
-    @Serializable
-    data class ProfileSelect(
-        val preSelected: Long? = null,
-        val resultKey: String,
     ) : NavRoutes()
 
 }
