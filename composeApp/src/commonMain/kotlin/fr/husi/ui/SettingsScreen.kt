@@ -1701,7 +1701,7 @@ private inline fun LazyListScope.colorPickerPreference(
                             text = stringResource(Res.string.theme),
                             style = MaterialTheme.typography.headlineSmall,
                         )
-                        Text(
+                        if (repo.isAndroid) Text(
                             text = stringResource(Res.string.long_click_to_see_name),
                             modifier = Modifier.padding(bottom = 16.dp),
                             style = MaterialTheme.typography.labelSmallEmphasized,
