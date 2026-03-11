@@ -1,18 +1,15 @@
 package fr.husi.compose.theme
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.InternalComposeUiApi
-import androidx.compose.ui.LocalSystemTheme
-import androidx.compose.ui.SystemTheme
 import fr.husi.ktx.blankAsNull
 import fr.husi.repository.repo
 import kotlinx.coroutines.delay
+import org.jetbrains.skiko.SystemTheme
+import org.jetbrains.skiko.currentSystemTheme
 import java.util.concurrent.TimeUnit
 
 internal actual fun isDynamicThemeSupported(): Boolean = false
@@ -20,32 +17,50 @@ internal actual fun isDynamicThemeSupported(): Boolean = false
 @Composable
 internal actual fun rememberDynamicColorScheme(isDarkMode: Boolean): ColorScheme? = null
 
+private const val REFRESH_INTERVAL = 10_000L
 
 @OptIn(InternalComposeUiApi::class)
 @Composable
 actual fun rememberPlatformSystemDarkMode(): Boolean {
-    val systemTheme = LocalSystemTheme.current
-    if (systemTheme == SystemTheme.Dark) return true
-    if (systemTheme == SystemTheme.Light) return false
-    if (!repo.isLinux) return false
+    // Inspired by:
+    // https://youtrack.jetbrains.com/issue/CMP-1986/isSystemInDarkTheme-should-dynamically-update-when-system-theme-is-changed#focus=Comments-27-12665870.0-0
 
-    var fallbackDarkMode by remember { mutableStateOf(false) }
-
-    LaunchedEffect(Unit) {
-        val (result, probe) = resolveDesktopDarkModeProbe()
-        fallbackDarkMode = result
-        if (probe == null) return@LaunchedEffect
-
-        while (true) {
-            delay(10_000)
-            fallbackDarkMode = probe()
-        }
+    if (repo.isMacOs || repo.isWindows) {
+        return produceState(initialValue = currentSystemTheme == SystemTheme.DARK) {
+            while (true) {
+                delay(REFRESH_INTERVAL)
+                value = currentSystemTheme == SystemTheme.DARK
+            }
+        }.value
     }
 
-    return fallbackDarkMode
+    if (repo.isLinux) {
+        return produceState(initialValue = currentSystemTheme == SystemTheme.DARK) {
+            val (result, probe) = resolveDesktopDarkModeProbe()
+            value = result
+            if (probe == null) return@produceState
+
+            while (true) {
+                delay(REFRESH_INTERVAL)
+                value = probe()
+            }
+        }.value
+    }
+
+    return isSystemInDarkTheme()
 }
 
 private fun resolveDesktopDarkModeProbe(): Pair<Boolean, (() -> Boolean)?> {
+    // If not unknown, skiko's result is correct.
+    fun probeSkiko(): Boolean? {
+        return when (currentSystemTheme) {
+            SystemTheme.DARK -> true
+            SystemTheme.LIGHT -> false
+            else -> null
+        }
+    }
+    probeSkiko()?.let { return it to { probeSkiko() ?: false } }
+
     fun probeEnvGTKTheme(): Boolean? {
         return System.getenv("GTK_THEME")?.blankAsNull()?.contains("dark", ignoreCase = true)
     }
