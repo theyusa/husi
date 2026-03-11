@@ -9,7 +9,7 @@ pub fn build(b: *std.Build) void {
     options.addOption([]const u8, "package_name", package_name);
 
     const exe = b.addExecutable(.{
-        .name = b.fmt("launcher-{s}", .{@tagName(target.result.cpu.arch)}),
+        .name = b.fmt("launcher-{s}-{s}", .{ @tagName(target.result.os.tag), @tagName(target.result.cpu.arch) }),
         .root_module = b.createModule(.{
             .root_source_file = b.path("src/main.zig"),
             .target = target,

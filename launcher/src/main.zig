@@ -1,14 +1,17 @@
 const std = @import("std");
 const builtin = @import("builtin");
-const linux = std.os.linux;
 const posix = std.posix;
 const fs = std.fs;
 const mem = std.mem;
 const process = std.process;
 const ArrayList = std.ArrayList;
+const native_os = builtin.os.tag;
 
 comptime {
-    if (builtin.os.tag != .linux) @compileError("This launcher requires Linux.");
+    switch (native_os) {
+        .linux, .macos => {},
+        else => @compileError("This launcher requires Linux or macOS."),
+    }
 }
 
 const config = @import("config");
@@ -16,99 +19,122 @@ const husi_package_name = config.package_name;
 const husi_config_dir_name = "husi";
 const husi_exit_restart = 50;
 
-const CAP_VERSION_3: u32 = 0x20080522;
-const CAP_DAC_READ_SEARCH = 2;
-const CAP_NET_BIND_SERVICE = 10;
-const CAP_NET_ADMIN = 12;
-const CAP_NET_RAW = 13;
-const CAP_SETPCAP = 8;
-const CAP_SYS_PTRACE = 19;
+const LinuxCaps = if (native_os == .linux) struct {
+    const linux = std.os.linux;
 
-const PR_CAP_AMBIENT = 47;
-const PR_CAP_AMBIENT_RAISE = 2;
+    const CAP_VERSION_3: u32 = 0x20080522;
+    const CAP_DAC_READ_SEARCH = 2;
+    const CAP_NET_BIND_SERVICE = 10;
+    const CAP_NET_ADMIN = 12;
+    const CAP_NET_RAW = 13;
+    const CAP_SETPCAP = 8;
+    const CAP_SYS_PTRACE = 19;
 
-const CapHeader = extern struct {
-    version: u32,
-    pid: c_int,
-};
+    const PR_CAP_AMBIENT = 47;
+    const PR_CAP_AMBIENT_RAISE = 2;
 
-const CapData = extern struct {
-    effective: u32,
-    permitted: u32,
-    inheritable: u32,
-};
-
-fn capget(header: *CapHeader, data: *[2]CapData) !void {
-    const result = linux.syscall2(.capget, @intFromPtr(header), @intFromPtr(data));
-    switch (posix.errno(result)) {
-        .SUCCESS => {},
-        else => |err| return posix.unexpectedErrno(err),
-    }
-}
-
-fn capset(header: *const CapHeader, data: *const [2]CapData) !void {
-    const result = linux.syscall2(.capset, @intFromPtr(header), @intFromPtr(data));
-    switch (posix.errno(result)) {
-        .SUCCESS => {},
-        else => |err| return posix.unexpectedErrno(err),
-    }
-}
-
-fn setInheritableCaps(caps: []const c_int) !void {
-    var header = CapHeader{
-        .version = CAP_VERSION_3,
-        .pid = 0,
-    };
-    var data = [2]CapData{
-        .{ .effective = 0, .permitted = 0, .inheritable = 0 },
-        .{ .effective = 0, .permitted = 0, .inheritable = 0 },
+    const CapHeader = extern struct {
+        version: u32,
+        pid: c_int,
     };
 
-    try capget(&header, &data);
+    const CapData = extern struct {
+        effective: u32,
+        permitted: u32,
+        inheritable: u32,
+    };
 
-    for (caps) |cap| {
-        const index: u32 = @intCast(@as(u32, @bitCast(cap)) / 32);
-        const bit: u32 = @as(u32, 1) << @intCast(@as(u32, @bitCast(cap)) % 32);
-
-        if (index >= 2) {
-            std.debug.print("unsupported capability index: {d}\n", .{cap});
-            return error.UnsupportedCap;
-        }
-        if ((data[index].permitted & bit) == 0) {
-            std.debug.print("missing permitted capability: {d}\n", .{cap});
-            return error.MissingPermittedCap;
-        }
-        data[index].inheritable |= bit;
-    }
-
-    try capset(&header, &data);
-}
-
-fn raiseAmbientCaps(caps: []const c_int) !void {
-    for (caps) |cap| {
-        const rc = linux.prctl(PR_CAP_AMBIENT, PR_CAP_AMBIENT_RAISE, @intCast(cap), 0, 0);
-        switch (posix.errno(rc)) {
+    fn capget(header: *CapHeader, data: *[2]CapData) !void {
+        const result = linux.syscall2(.capget, @intFromPtr(header), @intFromPtr(data));
+        switch (posix.errno(result)) {
             .SUCCESS => {},
             else => |err| return posix.unexpectedErrno(err),
         }
     }
-}
 
-fn dropSetpcap() !void {
-    var header = CapHeader{ .version = CAP_VERSION_3, .pid = 0 };
-    var data = [2]CapData{ .{ .effective = 0, .permitted = 0, .inheritable = 0 }, .{ .effective = 0, .permitted = 0, .inheritable = 0 } };
+    fn capset(header: *const CapHeader, data: *const [2]CapData) !void {
+        const result = linux.syscall2(.capset, @intFromPtr(header), @intFromPtr(data));
+        switch (posix.errno(result)) {
+            .SUCCESS => {},
+            else => |err| return posix.unexpectedErrno(err),
+        }
+    }
 
-    try capget(&header, &data);
+    fn setInheritableCaps(caps: []const c_int) !void {
+        var header = CapHeader{
+            .version = CAP_VERSION_3,
+            .pid = 0,
+        };
+        var data = [2]CapData{
+            .{ .effective = 0, .permitted = 0, .inheritable = 0 },
+            .{ .effective = 0, .permitted = 0, .inheritable = 0 },
+        };
 
-    const index: u32 = @as(u32, CAP_SETPCAP) / 32;
-    const bit: u32 = @as(u32, 1) << @intCast(@as(u32, CAP_SETPCAP) % 32);
+        try capget(&header, &data);
 
-    data[index].effective &= ~bit;
-    data[index].permitted &= ~bit;
-    data[index].inheritable &= ~bit;
+        for (caps) |cap| {
+            const index: u32 = @intCast(@as(u32, @bitCast(cap)) / 32);
+            const bit: u32 = @as(u32, 1) << @intCast(@as(u32, @bitCast(cap)) % 32);
 
-    try capset(&header, &data);
-}
+            if (index >= 2) {
+                std.debug.print("unsupported capability index: {d}\n", .{cap});
+                return error.UnsupportedCap;
+            }
+            if ((data[index].permitted & bit) == 0) {
+                std.debug.print("missing permitted capability: {d}\n", .{cap});
+                return error.MissingPermittedCap;
+            }
+            data[index].inheritable |= bit;
+        }
+
+        try capset(&header, &data);
+    }
+
+    fn raiseAmbientCaps(caps: []const c_int) !void {
+        for (caps) |cap| {
+            const result = linux.prctl(PR_CAP_AMBIENT, PR_CAP_AMBIENT_RAISE, @intCast(cap), 0, 0);
+            switch (posix.errno(result)) {
+                .SUCCESS => {},
+                else => |err| return posix.unexpectedErrno(err),
+            }
+        }
+    }
+
+    fn dropSetpcap() !void {
+        var header = CapHeader{ .version = CAP_VERSION_3, .pid = 0 };
+        var data = [2]CapData{
+            .{ .effective = 0, .permitted = 0, .inheritable = 0 },
+            .{ .effective = 0, .permitted = 0, .inheritable = 0 },
+        };
+
+        try capget(&header, &data);
+
+        const index: u32 = @as(u32, CAP_SETPCAP) / 32;
+        const bit: u32 = @as(u32, 1) << @intCast(@as(u32, CAP_SETPCAP) % 32);
+
+        data[index].effective &= ~bit;
+        data[index].permitted &= ~bit;
+        data[index].inheritable &= ~bit;
+
+        try capset(&header, &data);
+    }
+
+    fn prepare() !void {
+        const ambient_caps = [_]c_int{
+            CAP_NET_ADMIN,
+            CAP_NET_RAW,
+            CAP_NET_BIND_SERVICE,
+            CAP_SYS_PTRACE,
+            CAP_DAC_READ_SEARCH,
+        };
+
+        try setInheritableCaps(&ambient_caps);
+        try raiseAmbientCaps(&ambient_caps);
+        try dropSetpcap();
+    }
+} else struct {
+    fn prepare() !void {}
+};
 
 fn readArgsFile(allocator: mem.Allocator, path: []const u8, list: *ArrayList([]u8)) !void {
     const file = try fs.openFileAbsolute(path, .{});
@@ -192,13 +218,23 @@ const UserConfigPaths = struct {
 };
 
 fn resolveConfigBase(allocator: mem.Allocator) ![]u8 {
-    if (process.getEnvVarOwned(allocator, "XDG_CONFIG_HOME") catch null) |xdg| {
-        if (xdg.len > 0) return xdg;
-        allocator.free(xdg);
+    switch (native_os) {
+        .linux => {
+            if (process.getEnvVarOwned(allocator, "XDG_CONFIG_HOME") catch null) |xdg| {
+                if (xdg.len > 0) return xdg;
+                allocator.free(xdg);
+            }
+            const home = try process.getEnvVarOwned(allocator, "HOME");
+            defer allocator.free(home);
+            return std.fmt.allocPrint(allocator, "{s}/.config", .{home});
+        },
+        .macos => {
+            const home = try process.getEnvVarOwned(allocator, "HOME");
+            defer allocator.free(home);
+            return std.fmt.allocPrint(allocator, "{s}/Library/Application Support", .{home});
+        },
+        else => unreachable,
     }
-    const home = try process.getEnvVarOwned(allocator, "HOME");
-    defer allocator.free(home);
-    return std.fmt.allocPrint(allocator, "{s}/.config", .{home});
 }
 
 fn resolveUserConfigPaths(allocator: mem.Allocator) !UserConfigPaths {
@@ -220,6 +256,37 @@ fn resolveUserConfigPaths(allocator: mem.Allocator) !UserConfigPaths {
     };
 }
 
+fn resolveMacOSJavaHome(allocator: mem.Allocator) !?[]const u8 {
+    if (native_os != .macos) return null;
+
+    const java_version = "21";
+    const result = std.process.Child.run(.{
+        .allocator = allocator,
+        .argv = &.{ "/usr/libexec/java_home", "-v", java_version },
+    }) catch |err| switch (err) {
+        error.FileNotFound => return null,
+        else => |e| return e,
+    };
+    defer allocator.free(result.stdout);
+    defer allocator.free(result.stderr);
+
+    switch (result.term) {
+        .Exited => |code| {
+            if (code != 0) return null;
+        },
+        else => return null,
+    }
+
+    const java_home = mem.trim(u8, result.stdout, &std.ascii.whitespace);
+    if (java_home.len == 0) return null;
+
+    const java_bin = try std.fmt.allocPrint(allocator, "{s}/bin/java", .{java_home});
+    if (fileExists(java_bin)) return java_bin;
+
+    allocator.free(java_bin);
+    return null;
+}
+
 fn selectJavaCommand(allocator: mem.Allocator) ![]const u8 {
     if (process.getEnvVarOwned(allocator, "JAVA_HOME") catch null) |java_home| {
         defer allocator.free(java_home);
@@ -236,6 +303,11 @@ fn selectJavaCommand(allocator: mem.Allocator) ![]const u8 {
         if (java_env.len > 0) return java_env;
         allocator.free(java_env);
     }
+    if (native_os == .macos) {
+        if (try resolveMacOSJavaHome(allocator)) |java_bin| {
+            return java_bin;
+        }
+    }
     return allocator.dupe(u8, "java");
 }
 
@@ -244,24 +316,8 @@ pub fn main() !u8 {
     defer arena.deinit();
     const allocator = arena.allocator();
 
-    const ambient_caps = [_]c_int{
-        CAP_NET_ADMIN,
-        CAP_NET_RAW,
-        CAP_NET_BIND_SERVICE,
-        CAP_SYS_PTRACE,
-        CAP_DAC_READ_SEARCH,
-    };
-
-    setInheritableCaps(&ambient_caps) catch |err| {
-        std.debug.print("set_inheritable_caps failed: {}\n", .{err});
-        return 1;
-    };
-    raiseAmbientCaps(&ambient_caps) catch |err| {
-        std.debug.print("raise_ambient_caps failed: {}\n", .{err});
-        return 1;
-    };
-    dropSetpcap() catch |err| {
-        std.debug.print("drop_setpcap failed: {}\n", .{err});
+    LinuxCaps.prepare() catch |err| {
+        std.debug.print("prepare_launch_environment failed: {}\n", .{err});
         return 1;
     };
 
