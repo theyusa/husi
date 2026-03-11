@@ -306,10 +306,7 @@ private fun LazyListScope.groupSettings(
             icon = { Icon(vectorResource(Res.drawable.layers), null) },
             summary = { Text(stringResource(groupType(uiState.type))) },
             type = ListPreferenceType.DROPDOWN_MENU,
-            valueToText = {
-                val text = runBlocking { repo.getString(groupType(it)) }
-                AnnotatedString(text)
-            },
+            valueToText = { AnnotatedString(stringResource(groupType(it))) },
         )
     }
 
@@ -328,10 +325,7 @@ private fun LazyListScope.groupSettings(
             icon = { Icon(vectorResource(Res.drawable.low_priority), null) },
             summary = { Text(stringResource(groupOrder(uiState.order))) },
             type = ListPreferenceType.DROPDOWN_MENU,
-            valueToText = {
-                val text = runBlocking { repo.getString(groupOrder(it)) }
-                AnnotatedString(text)
-            },
+            valueToText = { AnnotatedString(stringResource(groupOrder(it))) },
         )
     }
 
@@ -364,8 +358,7 @@ private fun LazyListScope.groupSettings(
                 } else {
                     Res.string.route_profile
                 }
-                val text = runBlocking { repo.getString(id) }
-                AnnotatedString(text)
+                AnnotatedString(stringResource(id))
             },
         )
     }
@@ -394,8 +387,7 @@ private fun LazyListScope.groupSettings(
                 } else {
                     Res.string.route_profile
                 }
-                val text = runBlocking { repo.getString(id) }
-                AnnotatedString(text)
+                AnnotatedString(stringResource(id))
             },
         )
     }
@@ -419,10 +411,7 @@ private fun LazyListScope.groupSettings(
                 icon = { Icon(vectorResource(Res.drawable.nfc), null) },
                 summary = { Text(stringResource(subType(uiState.subscriptionType))) },
                 type = ListPreferenceType.DROPDOWN_MENU,
-                valueToText = {
-                    val text = runBlocking { repo.getString(subType(it)) }
-                    AnnotatedString(text)
-                },
+                valueToText = { AnnotatedString(stringResource(subType(it))) },
             )
         }
 

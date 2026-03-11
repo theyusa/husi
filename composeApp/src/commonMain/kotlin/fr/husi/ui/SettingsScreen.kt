@@ -401,10 +401,7 @@ fun SettingsScreen(
                             },
                             summary = { Text(stringResource(nightString(value))) },
                             type = ListPreferenceType.DROPDOWN_MENU,
-                            valueToText = {
-                                val text = runBlocking { repo.getString(nightString(it)) }
-                                AnnotatedString(text)
-                            },
+                            valueToText = { AnnotatedString(stringResource(nightString(it))) },
                         )
                     }
                     item(Key.APP_LANGUAGE, PreferenceType.LIST) {
@@ -469,10 +466,7 @@ fun SettingsScreen(
                             },
                             summary = { Text(stringResource(serviceModeText(stored))) },
                             type = ListPreferenceType.DROPDOWN_MENU,
-                            valueToText = {
-                                val text = runBlocking { repo.getString(serviceModeText(it)) }
-                                AnnotatedString(text)
-                            },
+                            valueToText = { AnnotatedString(stringResource(serviceModeText(it))) },
                         )
                     }
                     item(Key.TUN_IMPLEMENTATION, PreferenceType.LIST) {
@@ -703,9 +697,7 @@ fun SettingsScreen(
                             summary = { Text(stringResource(networkStrategyTextRes(stored))) },
                             type = ListPreferenceType.DROPDOWN_MENU,
                             valueToText = {
-                                val text =
-                                    runBlocking { repo.getString(networkStrategyTextRes(it)) }
-                                AnnotatedString(text)
+                                AnnotatedString(stringResource(networkStrategyTextRes(it)))
                             },
                         )
                     }
@@ -746,9 +738,7 @@ fun SettingsScreen(
                             summary = { Text(stringResource(networkInterfaceStrategyTextRes(value))) },
                             type = ListPreferenceType.DROPDOWN_MENU,
                             valueToText = {
-                                val text =
-                                    runBlocking { repo.getString(networkInterfaceStrategyTextRes(it)) }
-                                AnnotatedString(text)
+                                AnnotatedString(stringResource(networkInterfaceStrategyTextRes(it)))
                             },
                         )
                     }
@@ -839,10 +829,7 @@ fun SettingsScreen(
                             },
                             summary = { Text(stringOrRes(rulesProviderText(value))) },
                             type = ListPreferenceType.DROPDOWN_MENU,
-                            valueToText = {
-                                val text = runBlocking { getStringOrRes(rulesProviderText(it)) }
-                                AnnotatedString(text)
-                            },
+                            valueToText = { AnnotatedString(stringOrRes(rulesProviderText(it))) },
                         )
                     }
                     if (rulesProviderState == RuleProvider.CUSTOM) item(
@@ -950,10 +937,7 @@ fun SettingsScreen(
                             },
                             summary = { Text(stringOrRes(pluginProviderText(value))) },
                             type = ListPreferenceType.DROPDOWN_MENU,
-                            valueToText = {
-                                val text = runBlocking { getStringOrRes(pluginProviderText(it)) }
-                                AnnotatedString(text)
-                            },
+                            valueToText = { AnnotatedString(stringOrRes(pluginProviderText(it))) },
                         )
                     }
                     item(Key.PROVIDER_JUICITY, PreferenceType.LIST) {
@@ -977,10 +961,7 @@ fun SettingsScreen(
                             },
                             summary = { Text(stringOrRes(pluginProviderText(value))) },
                             type = ListPreferenceType.DROPDOWN_MENU,
-                            valueToText = {
-                                val text = runBlocking { getStringOrRes(pluginProviderText(it)) }
-                                AnnotatedString(text)
-                            },
+                            valueToText = { AnnotatedString(stringOrRes(pluginProviderText(it))) },
                         )
                     }
                     item(Key.PROVIDER_NAIVE, PreferenceType.LIST) {
@@ -1004,10 +985,7 @@ fun SettingsScreen(
                             },
                             summary = { Text(stringOrRes(pluginProviderText(value))) },
                             type = ListPreferenceType.DROPDOWN_MENU,
-                            valueToText = {
-                                val text = runBlocking { getStringOrRes(pluginProviderText(it)) }
-                                AnnotatedString(text)
-                            },
+                            valueToText = { AnnotatedString(stringOrRes(pluginProviderText(it))) },
                         )
                     }
 
@@ -1503,10 +1481,7 @@ fun SettingsScreen(
                             },
                             summary = { Text(stringResource(certProviderTextRes(value))) },
                             type = ListPreferenceType.DROPDOWN_MENU,
-                            valueToText = {
-                                val text = runBlocking { repo.getString(certProviderTextRes(it)) }
-                                AnnotatedString(text)
-                            },
+                            valueToText = { AnnotatedString(stringResource(certProviderTextRes(it))) },
                         )
                     }
                     disableProcessText()

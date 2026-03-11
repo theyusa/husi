@@ -14,7 +14,6 @@ import fr.husi.compose.PreferenceCategory
 import fr.husi.compose.UIntegerTextField
 import fr.husi.ktx.contentOrUnset
 import fr.husi.ktx.intListN
-import fr.husi.repository.repo
 import fr.husi.resources.Res
 import fr.husi.resources.compare_arrows
 import fr.husi.resources.directions_boat
@@ -38,7 +37,6 @@ import fr.husi.resources.server_port
 import fr.husi.resources.username
 import fr.husi.ui.NavRoutes
 import kotlin.random.Random
-import kotlinx.coroutines.runBlocking
 import me.zhanghai.compose.preference.ListPreference
 import me.zhanghai.compose.preference.ListPreferenceType
 import me.zhanghai.compose.preference.TextFieldPreference
@@ -180,10 +178,7 @@ private fun LazyListScope.mieruSettings(
             icon = { Icon(vectorResource(Res.drawable.compare_arrows), null) },
             summary = { Text(stringResource(muxSummary(uiState.muxNumber))) },
             type = ListPreferenceType.DROPDOWN_MENU,
-            valueToText = {
-                val text = runBlocking { repo.getString(muxSummary(it)) }
-                AnnotatedString(text)
-            },
+            valueToText = { AnnotatedString(stringResource(muxSummary(it))) },
         )
     }
 }

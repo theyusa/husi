@@ -25,10 +25,8 @@ import fr.husi.resources.uuid
 import fr.husi.resources.xtls_flow
 import fr.husi.ui.NavRoutes
 import fr.husi.ui.StringOrRes
-import fr.husi.ui.getStringOrRes
 import fr.husi.ui.stringOrRes
 import kotlin.random.Random
-import kotlinx.coroutines.runBlocking
 import me.zhanghai.compose.preference.ListPreference
 import me.zhanghai.compose.preference.ListPreferenceType
 import me.zhanghai.compose.preference.TextFieldPreference
@@ -121,10 +119,7 @@ private fun LazyListScope.vlessSettings(
             icon = { Icon(vectorResource(Res.drawable.outbox), null) },
             summary = { Text(stringOrRes(packetEncodingName(uiState.packetEncoding))) },
             type = ListPreferenceType.DROPDOWN_MENU,
-            valueToText = {
-                val text = runBlocking { getStringOrRes(packetEncodingName(it)) }
-                AnnotatedString(text)
-            },
+            valueToText = { AnnotatedString(stringOrRes(packetEncodingName(it))) },
         )
     }
 

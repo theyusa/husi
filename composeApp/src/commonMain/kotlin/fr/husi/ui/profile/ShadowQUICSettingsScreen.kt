@@ -20,7 +20,6 @@ import fr.husi.compose.PreferenceCategory
 import fr.husi.compose.UIntegerTextField
 import fr.husi.fmt.shadowquic.ShadowQUICBean
 import fr.husi.ktx.contentOrUnset
-import fr.husi.repository.repo
 import fr.husi.resources.Res
 import fr.husi.resources.action_shadowquic
 import fr.husi.resources.action_sunnyquic
@@ -62,7 +61,6 @@ import fr.husi.resources.udp_over_stream
 import fr.husi.resources.username
 import fr.husi.resources.wb_sunny
 import fr.husi.ui.NavRoutes
-import kotlinx.coroutines.runBlocking
 import me.zhanghai.compose.preference.ListPreference
 import me.zhanghai.compose.preference.ListPreferenceType
 import me.zhanghai.compose.preference.SliderPreference
@@ -172,10 +170,7 @@ private fun LazyListScope.shadowQuicSettings(
             },
             summary = { Text(stringResource(subProtocolText(uiState.subProtocol))) },
             type = ListPreferenceType.DROPDOWN_MENU,
-            valueToText = {
-                val text = runBlocking { repo.getString(subProtocolText(it)) }
-                AnnotatedString(text)
-            },
+            valueToText = { AnnotatedString(stringResource(subProtocolText(it))) },
         )
     }
     item("username") {

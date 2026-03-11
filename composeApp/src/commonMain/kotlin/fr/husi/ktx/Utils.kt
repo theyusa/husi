@@ -7,7 +7,6 @@ import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
 import fr.husi.BuildConfig
 import fr.husi.database.DataStore
-import fr.husi.repository.repo
 import fr.husi.resources.Res
 import fr.husi.resources.connection_test_mux
 import fr.husi.resources.connection_test_refused
@@ -200,10 +199,6 @@ fun contentOrUnset(content: String): String {
     return content.blankAsNull() ?: stringResource(Res.string.not_set)
 }
 
-suspend fun contentOrNotSet(content: String): String {
-    return content.blankAsNull() ?: repo.getString(Res.string.not_set)
-}
-
 @Composable
 fun contentOrUnset(content: Int): String {
     return if (content <= 0) {
@@ -212,12 +207,3 @@ fun contentOrUnset(content: Int): String {
         content.toString()
     }
 }
-
-suspend fun contentOrNotSet(content: Int): String {
-    return if (content <= 0) {
-        repo.getString(Res.string.not_set)
-    } else {
-        content.toString()
-    }
-}
-

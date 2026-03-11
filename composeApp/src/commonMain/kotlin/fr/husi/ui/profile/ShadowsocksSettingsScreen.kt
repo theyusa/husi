@@ -20,7 +20,6 @@ import fr.husi.compose.PreferenceCategory
 import fr.husi.compose.UIntegerTextField
 import fr.husi.ktx.contentOrUnset
 import fr.husi.ktx.intListN
-import fr.husi.repository.repo
 import fr.husi.resources.Res
 import fr.husi.resources.bolt
 import fr.husi.resources.border_inner
@@ -55,7 +54,6 @@ import fr.husi.resources.udp_over_tcp
 import fr.husi.resources.view_in_ar
 import fr.husi.ui.NavRoutes
 import kotlin.random.Random
-import kotlinx.coroutines.runBlocking
 import me.zhanghai.compose.preference.ListPreference
 import me.zhanghai.compose.preference.ListPreferenceType
 import me.zhanghai.compose.preference.SwitchPreference
@@ -221,10 +219,7 @@ private fun LazyListScope.shadowsocksSettings(
                     icon = { Icon(vectorResource(Res.drawable.view_in_ar), null) },
                     summary = { Text(stringResource(muxStrategies[uiState.muxStrategy])) },
                     type = ListPreferenceType.DROPDOWN_MENU,
-                    valueToText = {
-                        val text = runBlocking { repo.getString(muxStrategies[it]) }
-                        AnnotatedString(text)
-                    },
+                    valueToText = { AnnotatedString(stringResource(muxStrategies[it])) },
                     enabled = !uiState.brutal,
                 )
                 TextFieldPreference(
@@ -297,4 +292,3 @@ private fun LazyListScope.shadowsocksSettings(
         )
     }
 }
-

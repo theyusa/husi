@@ -732,8 +732,7 @@ private fun RouteSettings(
                                     RuleEntity.OUTBOUND_BLOCK -> Res.string.route_block
                                     else -> Res.string.select_profile
                                 }
-                                val text = runBlocking { repo.getString(id) }
-                                AnnotatedString(text)
+                                AnnotatedString(stringResource(id))
                             },
                         )
                     }

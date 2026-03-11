@@ -54,7 +54,6 @@ import fr.husi.database.displayType
 import fr.husi.fmt.internal.ProxySetBean
 import fr.husi.ktx.contentOrUnset
 import fr.husi.ktx.intListN
-import fr.husi.repository.repo
 import fr.husi.resources.Res
 import fr.husi.resources.action_selector
 import fr.husi.resources.action_urltest
@@ -88,7 +87,6 @@ import fr.husi.ui.NavRoutes
 import fr.husi.ui.OpenProfilePicker
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.runBlocking
 import me.zhanghai.compose.preference.ListPreference
 import me.zhanghai.compose.preference.ListPreferenceType
 import me.zhanghai.compose.preference.SwitchPreference
@@ -173,10 +171,7 @@ private fun LazyListScope.proxySetSettings(
             icon = { Icon(vectorResource(Res.drawable.widgets), null) },
             summary = { Text(stringResource(managementName(uiState.management))) },
             type = ListPreferenceType.DROPDOWN_MENU,
-            valueToText = {
-                val text = runBlocking { repo.getString(managementName(it)) }
-                AnnotatedString(text)
-            },
+            valueToText = { AnnotatedString(stringResource(managementName(it))) },
         )
     }
     item("interrupt_exist_connections") {
@@ -261,10 +256,7 @@ private fun LazyListScope.proxySetSettings(
             icon = { Icon(vectorResource(Res.drawable.nfc), null) },
             summary = { Text(stringResource(typeName(uiState.collectType))) },
             type = ListPreferenceType.DROPDOWN_MENU,
-            valueToText = {
-                val text = runBlocking { repo.getString(typeName(it)) }
-                AnnotatedString(text)
-            },
+            valueToText = { AnnotatedString(stringResource(typeName(it))) },
         )
     }
     if (uiState.collectType == ProxySetBean.TYPE_GROUP) {
@@ -282,9 +274,7 @@ private fun LazyListScope.proxySetSettings(
                 },
                 type = ListPreferenceType.DROPDOWN_MENU,
                 valueToText = { id ->
-                    val text = uiState.groups[id]?.displayName() ?: runBlocking {
-                        repo.getString(Res.string.not_set)
-                    }
+                    val text = uiState.groups[id]?.displayName() ?: stringResource(Res.string.not_set)
                     AnnotatedString(text)
                 },
             )

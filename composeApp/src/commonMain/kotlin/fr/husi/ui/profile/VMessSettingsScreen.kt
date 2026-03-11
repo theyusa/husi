@@ -127,10 +127,7 @@ private fun LazyListScope.vmessSettings(
             icon = { Icon(vectorResource(Res.drawable.outbox), null) },
             summary = { Text(stringOrRes(packetEncodingName(uiState.packetEncoding))) },
             type = ListPreferenceType.DROPDOWN_MENU,
-            valueToText = {
-                val text = runBlocking { getStringOrRes(packetEncodingName(it)) }
-                AnnotatedString(text)
-            },
+            valueToText = { AnnotatedString(stringOrRes(packetEncodingName(it))) },
         )
     }
 

@@ -269,7 +269,7 @@ kotlin {
         optIn.add("androidx.compose.material3.ExperimentalMaterial3ExpressiveApi")
     }
 
-    androidLibrary {
+    android {
         namespace = "fr.husi.lib"
         compileSdk = 36
         minSdk = 24

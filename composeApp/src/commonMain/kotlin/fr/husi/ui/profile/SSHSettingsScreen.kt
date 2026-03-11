@@ -17,7 +17,6 @@ import fr.husi.compose.PreferenceCategory
 import fr.husi.compose.UIntegerTextField
 import fr.husi.fmt.ssh.SSHBean
 import fr.husi.ktx.contentOrUnset
-import fr.husi.repository.repo
 import fr.husi.resources.Res
 import fr.husi.resources.compare_arrows
 import fr.husi.resources.copyright
@@ -40,7 +39,6 @@ import fr.husi.resources.username
 import fr.husi.resources.vpn_key
 import fr.husi.ui.NavRoutes
 import kotlin.random.Random
-import kotlinx.coroutines.runBlocking
 import me.zhanghai.compose.preference.ListPreference
 import me.zhanghai.compose.preference.ListPreferenceType
 import me.zhanghai.compose.preference.TextFieldPreference
@@ -151,10 +149,7 @@ private fun LazyListScope.sshSettings(
                 Text(text)
             },
             type = ListPreferenceType.DROPDOWN_MENU,
-            valueToText = {
-                val text = runBlocking { repo.getString(authType(it)) }
-                AnnotatedString(text)
-            },
+            valueToText = { AnnotatedString(stringResource(authType(it))) },
         )
     }
 
@@ -203,4 +198,3 @@ private fun LazyListScope.sshSettings(
         )
     }
 }
-

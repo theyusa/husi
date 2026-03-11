@@ -10,10 +10,8 @@ import fr.husi.compose.MultilineTextField
 import fr.husi.compose.PortTextField
 import fr.husi.compose.PreferenceCategory
 import fr.husi.fmt.SingBoxOptions
-import fr.husi.ktx.contentOrNotSet
 import fr.husi.ktx.contentOrUnset
 import fr.husi.ktx.intListN
-import fr.husi.repository.repo
 import fr.husi.resources.Res
 import fr.husi.resources.allow_insecure
 import fr.husi.resources.allow_insecure_sum
@@ -86,7 +84,6 @@ import fr.husi.resources.wb_sunny
 import fr.husi.resources.ws_host
 import fr.husi.resources.ws_max_early_data
 import fr.husi.resources.ws_path
-import kotlinx.coroutines.runBlocking
 import me.zhanghai.compose.preference.ListPreference
 import me.zhanghai.compose.preference.ListPreferenceType
 import me.zhanghai.compose.preference.SwitchPreference
@@ -397,10 +394,7 @@ internal fun LazyListScope.muxSettings(
                     icon = { Icon(vectorResource(Res.drawable.view_in_ar), null) },
                     summary = { Text(stringResource(muxStrategies[state.muxStrategy])) },
                     type = ListPreferenceType.DROPDOWN_MENU,
-                    valueToText = {
-                        val text = runBlocking { repo.getString(muxStrategies[it]) }
-                        AnnotatedString(text)
-                    },
+                    valueToText = { AnnotatedString(stringResource(muxStrategies[it])) },
                     enabled = !state.brutal,
                 )
                 TextFieldPreference(
@@ -447,10 +441,7 @@ internal fun LazyListScope.transportSettings(
             icon = { Icon(vectorResource(Res.drawable.route), null) },
             summary = { Text(contentOrUnset(state.v2rayTransport)) },
             type = ListPreferenceType.DROPDOWN_MENU,
-            valueToText = {
-                val text = runBlocking { contentOrNotSet(it) }
-                AnnotatedString(text)
-            },
+            valueToText = { AnnotatedString(contentOrUnset(it)) },
         )
     }
 

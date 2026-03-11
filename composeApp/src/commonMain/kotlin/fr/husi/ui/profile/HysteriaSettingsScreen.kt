@@ -70,16 +70,14 @@ import fr.husi.resources.vpn_key
 import fr.husi.resources.wb_sunny
 import fr.husi.ui.NavRoutes
 import fr.husi.ui.StringOrRes
-import fr.husi.ui.getStringOrRes
 import fr.husi.ui.stringOrRes
-import kotlin.random.Random
-import kotlinx.coroutines.runBlocking
 import me.zhanghai.compose.preference.ListPreference
 import me.zhanghai.compose.preference.ListPreferenceType
 import me.zhanghai.compose.preference.SwitchPreference
 import me.zhanghai.compose.preference.TextFieldPreference
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
+import kotlin.random.Random
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -206,10 +204,7 @@ private fun LazyListScope.hysteriaSettings(
                 icon = { Icon(vectorResource(Res.drawable.compare_arrows), null) },
                 summary = { Text(stringOrRes(authTypeName(uiState.authType))) },
                 type = ListPreferenceType.DROPDOWN_MENU,
-                valueToText = {
-                    val text = runBlocking { getStringOrRes(authTypeName(it)) }
-                    AnnotatedString(text)
-                },
+                valueToText = { AnnotatedString(stringOrRes(authTypeName(it))) },
             )
         }
     }

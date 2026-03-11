@@ -1,7 +1,7 @@
 [versions]
 ksp = "2.3.6"
-kotlinComposePlugin = "2.3.20-RC2"
-composeMultiplatform = "1.10.1"
+kotlinComposePlugin = "2.3.20-RC3"
+composeMultiplatform = "1.10.2"
 composeMaterial3 = "1.11.0-alpha03"
 kotlinCoroutines = "1.10.2"
 kotlinxSerialization = "1.10.0"
@@ -16,7 +16,7 @@ androidxDatastore = "1.2.0"
 androidxComposeBom = "2026.02.01"
 jetbrainsNavigation3Ui = "1.0.0-alpha06"
 accompanist = "0.37.3"
-composePreference = "2.1.1"
+composePreference = "2.2.0"
 fastScroller = "0.3.2"
 androidxCamera = "1.5.3"
 zxing = "3.5.4"
@@ -32,7 +32,7 @@ desugarJdkLibs = "2.1.5"
 junitBom = "6.0.3"
 aboutlibraries = "14.0.0-b02"
 agp = "9.1.0"
-kotlinGradlePlugin = "2.3.20-RC2"
+kotlinGradlePlugin = "2.3.20-RC3"
 
 [libraries]
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinCoroutines" }
