@@ -5,6 +5,8 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
 
+internal expect fun dumpPlatformLogcat(): String
+
 object SendLog {
 
     fun buildLog(externalAssetsDir: File): String = buildString {
@@ -12,12 +14,7 @@ object SendLog {
         appendLine("Logcat: ")
         appendLine()
         try {
-            appendLine(
-                Runtime.getRuntime()
-                    .exec(arrayOf("logcat", "-d"))
-                    .inputStream.bufferedReader(Charsets.UTF_8)
-                    .readText(),
-            )
+            appendLine(dumpPlatformLogcat())
         } catch (e: IOException) {
             Logs.w(e)
             appendLine("Export logcat error: " + CrashReport.formatThrowable(e))
