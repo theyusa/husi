@@ -11,6 +11,7 @@ PACKAGE_NAME_PLACEHOLDER="__HUSI_PACKAGE_NAME__"
 VERSION_NAME_PLACEHOLDER="__HUSI_VERSION_NAME__"
 APP_NAME_PLACEHOLDER="__HUSI_APP_NAME__"
 APP_DESCRIPTION_PLACEHOLDER="__HUSI_APP_DESCRIPTION__"
+STARTUP_WM_CLASS_PLACEHOLDER="__HUSI_STARTUP_WM_CLASS__"
 APP_URL_PLACEHOLDER="__HUSI_APP_URL__"
 MAINTAINER_PLACEHOLDER="__HUSI_MAINTAINER__"
 DEB_ARCH_PLACEHOLDER="__HUSI_DEB_ARCH__"
@@ -49,7 +50,7 @@ Description:
 Defaults:
   --formats    deb,rpm,pacman
   --input-jar  newest matching jar under $JAR_DIR_DEFAULT
-  --launcher-bin  $ROOT_DIR/launcher/zig-out/bin/launcher
+  --launcher-bin  $ROOT_DIR/launcher/zig-out/bin/launcher-linux-<x86_64|aarch64>
   --output-dir $OUTPUT_DIR_DEFAULT
   --pkgrel     1
 EOF
@@ -330,7 +331,7 @@ resolve_input_jar() {
 
 resolve_launcher_bin() {
     local requested="$1"
-    local default_path="$ROOT_DIR/launcher/zig-out/bin/launcher-${LAUNCHER_MACHINE}"
+    local default_path="$ROOT_DIR/launcher/zig-out/bin/launcher-${TARGET_PLATFORM}-${LAUNCHER_MACHINE}"
 
     if [[ -n "$requested" ]]; then
         if [[ ! -f "$requested" ]]; then
@@ -347,7 +348,7 @@ resolve_launcher_bin() {
     fi
 
     error "Launcher binary not found: $default_path"
-    error "Build one first: cd launcher && zig build -Doptimize=ReleaseSmall"
+    error "Build one first: cd launcher && zig build -Doptimize=ReleaseSmall -Dtarget=${LAUNCHER_MACHINE}-linux-musl"
     exit 1
 }
 
@@ -362,6 +363,7 @@ prepare_rootfs() {
     local main_launcher="$bin_dir/$PACKAGE_NAME"
     local system_launcher="$rootfs/usr/bin/$PACKAGE_NAME"
     local desktop_entry_path="$rootfs/usr/share/applications/$PACKAGE_NAME.desktop"
+    local startup_wm_class="${PACKAGE_NAME//./-}-DesktopMainKt"
 
     if [[ ! -f "$java_opts_template" || ! -f "$app_args_template" || ! -f "$desktop_entry_template" ]]; then
         error "Missing launcher templates under release/linux/desktop"
@@ -382,7 +384,8 @@ prepare_rootfs() {
         "$desktop_entry_path" \
         "$PACKAGE_NAME_PLACEHOLDER" "$PACKAGE_NAME" \
         "$APP_NAME_PLACEHOLDER" "$APP_NAME" \
-        "$APP_DESCRIPTION_PLACEHOLDER" "$APP_DESCRIPTION"
+        "$APP_DESCRIPTION_PLACEHOLDER" "$APP_DESCRIPTION" \
+        "$STARTUP_WM_CLASS_PLACEHOLDER" "$startup_wm_class"
 
     local icon_source="$ROOT_DIR/fastlane/metadata/android/en-US/images/icon.png"
     if [[ -f "$icon_source" ]]; then

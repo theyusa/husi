@@ -74,7 +74,6 @@ fun main(args: Array<String>) {
 
     application {
         val keyEventManager = remember { KeyEventManagerDesktop() }
-
         var windowVisible by remember { mutableStateOf(true) }
 
         val trayState = rememberTrayState()
