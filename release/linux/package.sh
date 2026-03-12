@@ -5,6 +5,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 METADATA_FILE="$ROOT_DIR/husi.properties"
+DESKTOP_METADATA_FILE="$ROOT_DIR/release/desktop/package-metadata.sh"
 JAR_DIR_DEFAULT="$ROOT_DIR/composeApp/build/compose/jars"
 OUTPUT_DIR_DEFAULT="$ROOT_DIR/composeApp/build/compose/packages/linux"
 PACKAGE_NAME_PLACEHOLDER="__HUSI_PACKAGE_NAME__"
@@ -18,6 +19,7 @@ APP_DESCRIPTION_ZH_TW_PLACEHOLDER="__HUSI_APP_DESCRIPTION_ZH_TW__"
 STARTUP_WM_CLASS_PLACEHOLDER="__HUSI_STARTUP_WM_CLASS__"
 APP_URL_PLACEHOLDER="__HUSI_APP_URL__"
 MAINTAINER_PLACEHOLDER="__HUSI_MAINTAINER__"
+URL_SCHEME_MIME_TYPES_PLACEHOLDER="__HUSI_URL_SCHEME_MIME_TYPES__"
 DEB_ARCH_PLACEHOLDER="__HUSI_DEB_ARCH__"
 RPM_VERSION_PLACEHOLDER="__HUSI_RPM_VERSION__"
 RPM_ARCH_PLACEHOLDER="__HUSI_RPM_ARCH__"
@@ -35,11 +37,11 @@ TAG_NAME=""
 TAG_EPOCH=""
 
 log() {
-    echo "[package-native] $*"
+    echo "[package] $*"
 }
 
 error() {
-    echo "[package-native] $*" >&2
+    echo "[package] $*" >&2
 }
 
 usage() {
@@ -104,6 +106,16 @@ render_template() {
     sed "${sed_args[@]}" "$template_file" >"$output_file"
 }
 
+source_desktop_metadata() {
+    if [[ ! -f "$DESKTOP_METADATA_FILE" ]]; then
+        error "Desktop metadata file not found: $DESKTOP_METADATA_FILE"
+        exit 1
+    fi
+
+    # shellcheck disable=SC1090
+    source "$DESKTOP_METADATA_FILE"
+}
+
 normalize_pkgrel() {
     local rel="$1"
     if [[ "$rel" =~ ^[0-9]+([.][0-9]+)?$ ]]; then
@@ -144,14 +156,8 @@ load_metadata() {
         exit 1
     fi
 
-    APP_NAME="Husi"
-    APP_NAME_ZH_CN="虎兕"
-    APP_NAME_ZH_TW="虎兕"
-    APP_DESCRIPTION="A non-professional and recreational proxy tool integration."
-    APP_DESCRIPTION_ZH_CN="一个非专业和娱乐性的代理工具集。"
-    APP_DESCRIPTION_ZH_TW="一個非專業和娛樂性的代理工具集。"
-    APP_URL="https://codeberg.org/xchacha20-poly1305/husi"
-    MAINTAINER="Husi contributors"
+    source_desktop_metadata
+    URL_SCHEME_MIME_TYPES="$(desktop_url_scheme_mime_types)"
 }
 
 resolve_tag_epoch() {
@@ -397,6 +403,7 @@ prepare_rootfs() {
         "$APP_DESCRIPTION_PLACEHOLDER" "$APP_DESCRIPTION" \
         "$APP_DESCRIPTION_ZH_CN_PLACEHOLDER" "$APP_DESCRIPTION_ZH_CN" \
         "$APP_DESCRIPTION_ZH_TW_PLACEHOLDER" "$APP_DESCRIPTION_ZH_TW" \
+        "$URL_SCHEME_MIME_TYPES_PLACEHOLDER" "$URL_SCHEME_MIME_TYPES" \
         "$STARTUP_WM_CLASS_PLACEHOLDER" "$startup_wm_class"
 
     local icon_source="$ROOT_DIR/fastlane/metadata/android/en-US/images/icon.png"

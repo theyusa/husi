@@ -7,6 +7,7 @@ CLIP = sh -c 'if [ -n "$$WAYLAND_DISPLAY" ]; then exec wl-copy; \
 DESKTOP_TARGETS_COMMON = linux/amd64,linux/arm64,darwin/amd64,darwin/arm64,windows/amd64,windows/arm64
 DESKTOP_TARGETS_LINUX = linux/amd64 linux/arm64
 LINUX_PACKAGE_FORMATS ?= deb,rpm,pacman
+HOST_OS = $(shell uname -s)
 DESKTOP_TARGET_GRADLE_ARG = $(if $(DESKTOP_TARGET),-PdesktopTarget=$(DESKTOP_TARGET),)
 DESKTOP_TARGET_SCRIPT_ARG = $(if $(DESKTOP_TARGET),--target $(DESKTOP_TARGET),)
 JNI_INCLUDE_SCRIPT_ARG = $(if $(JNI_INCLUDE),--jniinclude "$(JNI_INCLUDE)",)
@@ -14,7 +15,7 @@ DARWIN_SDK_SCRIPT_ARG = $(if $(DARWIN_SDK),--darwinsdk "$(DARWIN_SDK)",)
 LAUNCHER_ZIG_TARGET = $(subst linux/amd64,x86_64-linux-musl,$(subst linux/arm64,aarch64-linux-musl,$(subst darwin/amd64,x86_64-macos,$(subst darwin/arm64,aarch64-macos,$(DESKTOP_TARGET)))))
 LAUNCHER_ZIG_TARGET_ARG = $(if $(LAUNCHER_ZIG_TARGET),-Dtarget=$(LAUNCHER_ZIG_TARGET),)
 
-.PHONY: update libcore libcore_android libcore_desktop_common libcore_desktop apk apk_debug assets desktop desktop_release desktop_package desktop_package_linux desktop_package_linux_all desktop_uberjar launcher lint_go test_go plugin generate_option
+.PHONY: update libcore libcore_android libcore_desktop_common libcore_desktop apk apk_debug assets desktop desktop_release desktop_package desktop_package_linux desktop_package_linux_all desktop_package_macos desktop_uberjar launcher lint_go test_go plugin generate_option
 
 build: libcore_android assets apk
 
@@ -40,16 +41,35 @@ desktop:
 desktop_release:
 	BUILD_PLUGIN=none ./gradlew -p composeApp runRelease
 
+desktop_package:
+ifeq ($(HOST_OS),Linux)
+	$(MAKE) desktop_package_linux $(if $(DESKTOP_TARGET),DESKTOP_TARGET=$(DESKTOP_TARGET),) LINUX_PACKAGE_FORMATS=$(LINUX_PACKAGE_FORMATS)
+else ifeq ($(HOST_OS),Darwin)
+	$(MAKE) desktop_package_macos $(if $(DESKTOP_TARGET),DESKTOP_TARGET=$(DESKTOP_TARGET),)
+else
+	@echo "desktop_package only supports Linux or macOS hosts."
+	@exit 1
+endif
+
 desktop_package_linux:
 	BUILD_PLUGIN=none ./gradlew -p composeApp packageUberJarForCurrentOS $(DESKTOP_TARGET_GRADLE_ARG)
 	$(MAKE) launcher
-	./release/linux/package-native.sh --formats $(LINUX_PACKAGE_FORMATS) $(DESKTOP_TARGET_SCRIPT_ARG)
+	./release/linux/package.sh --formats $(LINUX_PACKAGE_FORMATS) $(DESKTOP_TARGET_SCRIPT_ARG)
 
 desktop_package_linux_all:
 	$(MAKE) libcore_desktop DESKTOP_TARGETS=linux/amd64,linux/arm64
 	@for desktop_target in $(DESKTOP_TARGETS_LINUX); do \
 		$(MAKE) desktop_package_linux DESKTOP_TARGET=$$desktop_target LINUX_PACKAGE_FORMATS=$(LINUX_PACKAGE_FORMATS) || exit $$?; \
 	done
+
+desktop_package_macos:
+	@if [ "$(HOST_OS)" != "Darwin" ] && [ -z "$(DESKTOP_TARGET)" ]; then \
+		echo "desktop_package_macos on non-macOS hosts requires DESKTOP_TARGET, e.g. make desktop_package_macos DESKTOP_TARGET=darwin/arm64"; \
+		exit 1; \
+	fi
+	BUILD_PLUGIN=none ./gradlew -p composeApp packageUberJarForCurrentOS $(DESKTOP_TARGET_GRADLE_ARG)
+	$(MAKE) launcher
+	./release/macos/package.sh $(DESKTOP_TARGET_SCRIPT_ARG)
 
 desktop_uberjar:
 	BUILD_PLUGIN=none ./gradlew packageUberJarForCurrentOS $(DESKTOP_TARGET_GRADLE_ARG)

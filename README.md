@@ -218,10 +218,20 @@ make desktop
 Package a distributable for the current OS:
 
 ```shell
+make desktop_package
+```
+
+This dispatches to the host-native packaging flow:
+
+* Linux: `make desktop_package_linux`
+* macOS: `make desktop_package_macos`
+
+Build an **uber JAR** that runs on system Java (no bundled JRE/runtime image):
+
+```shell
 make desktop_uberjar
 ```
 
-This now builds an **uber JAR** that runs on system Java (no bundled JRE/runtime image).
 Output directory:
 
 ```shell
@@ -271,15 +281,56 @@ Build the launcher standalone:
 make launcher
 ```
 
-The default packaging flow runs `make launcher` first, then `package-native.sh` consumes that binary.
+The default packaging flow runs `make launcher` first, then `package.sh` consumes that binary.
 Zig targets musl by default for static linking; no external C toolchain is needed.
 Package install scripts call `setcap` on the launcher so capabilities can be raised to ambient set before starting the JVM.
 
 You can preflight required tooling without producing packages:
 
 ```shell
-./release/linux/package-native.sh --check-tools --formats deb,rpm,pacman
+./release/linux/package.sh --check-tools --formats deb,rpm,pacman
 ```
+
+Build macOS `.dmg` packages with system Java runtime dependency:
+
+```shell
+make desktop_package_macos
+```
+
+This command builds the uber jar first, then packages it into `Husi.app` and a `.dmg` image.
+
+The app bundle icon is a checked-in static asset generated from
+`composeApp/src/commonMain/composeResources/drawable/ic_launcher_foreground.xml`,
+so packaging no longer builds icons dynamically.
+
+On macOS hosts it uses native tooling: `hdiutil`.
+On Linux hosts it falls back to `genisoimage` or `mkisofs` and emits a compatibility `.dmg`
+(an ISO9660/HFS hybrid image that macOS can mount). For Linux fallback, `DESKTOP_TARGET`
+is required because the Gradle uber-jar task otherwise defaults to the Linux host target:
+
+```shell
+make desktop_package_macos DESKTOP_TARGET=darwin/arm64
+```
+
+Required host tools:
+
+* Common: `zig`, `git`
+* macOS host: `hdiutil`
+* Linux fallback: `genisoimage` or `mkisofs`
+
+Package timestamps are derived from git tag `v<VERSION_NAME>` from `husi.properties`,
+not from local build time.
+Default output directory:
+
+```shell
+composeApp/build/compose/packages/macos/
+```
+
+Installed app bundle uses the same native launcher from `launcher/` as Linux packaging.
+User config files are created under:
+
+* `~/Library/Application Support/husi/desktop-java-opts.conf` for JVM options
+* `~/Library/Application Support/husi/desktop-app-args.conf` for application startup arguments
 
 #### 🌈 Plugins
 

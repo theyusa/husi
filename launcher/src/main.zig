@@ -241,6 +241,11 @@ const RuntimePaths = struct {
     jar_path: []u8,
 };
 
+const MacOSAppBundleOptions = struct {
+    dock_name: ?[]const u8,
+    dock_icon_path: ?[]const u8,
+};
+
 fn resolveRuntimePaths(allocator: mem.Allocator) !RuntimePaths {
     const exe_path = try findSelfExePath();
 
@@ -258,6 +263,36 @@ fn resolveRuntimePaths(allocator: mem.Allocator) !RuntimePaths {
         .launcher_dir = launcher_dir,
         .app_root = app_root,
         .jar_path = jar_path,
+    };
+}
+
+fn resolveMacOSAppBundleOptions(allocator: mem.Allocator, runtime: RuntimePaths) !?MacOSAppBundleOptions {
+    if (native_os != .macos) return null;
+
+    const bundle_root_slice = fs.path.dirname(runtime.app_root) orelse return null;
+    const bundle_name = fs.path.basename(bundle_root_slice);
+
+    var dock_name: ?[]const u8 = null;
+    if (mem.endsWith(u8, bundle_name, ".app")) {
+        const trimmed = bundle_name[0 .. bundle_name.len - 4];
+        if (trimmed.len > 0) {
+            dock_name = try allocator.dupe(u8, trimmed);
+        }
+    } else if (bundle_name.len > 0) {
+        dock_name = try allocator.dupe(u8, bundle_name);
+    }
+
+    const dock_icon_candidate = try std.fmt.allocPrint(allocator, "{s}/Resources/{s}.icns", .{ runtime.app_root, husi_package_name });
+    const dock_icon_path = if (fileExists(dock_icon_candidate)) dock_icon_candidate else blk: {
+        allocator.free(dock_icon_candidate);
+        break :blk null;
+    };
+
+    if (dock_name == null and dock_icon_path == null) return null;
+
+    return MacOSAppBundleOptions{
+        .dock_name = dock_name,
+        .dock_icon_path = dock_icon_path,
     };
 }
 
@@ -414,6 +449,14 @@ pub fn main() !u8 {
     var child_argv: ArrayList([]const u8) = .empty;
 
     try child_argv.append(allocator, java_command);
+    if (try resolveMacOSAppBundleOptions(allocator, runtime)) |bundle_options| {
+        if (bundle_options.dock_name) |dock_name| {
+            try child_argv.append(allocator, try std.fmt.allocPrint(allocator, "-Xdock:name={s}", .{dock_name}));
+        }
+        if (bundle_options.dock_icon_path) |dock_icon_path| {
+            try child_argv.append(allocator, try std.fmt.allocPrint(allocator, "-Xdock:icon={s}", .{dock_icon_path}));
+        }
+    }
     for (java_opts.items) |opt| try child_argv.append(allocator, opt);
     try child_argv.append(allocator, "-jar");
     try child_argv.append(allocator, runtime.jar_path);
