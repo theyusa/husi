@@ -1,7 +1,11 @@
 [Desktop Entry]
 Type=Application
 Name=__HUSI_APP_NAME__
+Name[zh_CN]=__HUSI_APP_NAME_ZH_CN__
+Name[zh_TW]=__HUSI_APP_NAME_ZH_TW__
 Comment=__HUSI_APP_DESCRIPTION__
+Comment[zh_CN]=__HUSI_APP_DESCRIPTION_ZH_CN__
+Comment[zh_TW]=__HUSI_APP_DESCRIPTION_ZH_TW__
 Exec=__HUSI_PACKAGE_NAME__
 Icon=__HUSI_PACKAGE_NAME__
 Terminal=false

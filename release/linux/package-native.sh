@@ -10,7 +10,11 @@ OUTPUT_DIR_DEFAULT="$ROOT_DIR/composeApp/build/compose/packages/linux"
 PACKAGE_NAME_PLACEHOLDER="__HUSI_PACKAGE_NAME__"
 VERSION_NAME_PLACEHOLDER="__HUSI_VERSION_NAME__"
 APP_NAME_PLACEHOLDER="__HUSI_APP_NAME__"
+APP_NAME_ZH_CN_PLACEHOLDER="__HUSI_APP_NAME_ZH_CN__"
+APP_NAME_ZH_TW_PLACEHOLDER="__HUSI_APP_NAME_ZH_TW__"
 APP_DESCRIPTION_PLACEHOLDER="__HUSI_APP_DESCRIPTION__"
+APP_DESCRIPTION_ZH_CN_PLACEHOLDER="__HUSI_APP_DESCRIPTION_ZH_CN__"
+APP_DESCRIPTION_ZH_TW_PLACEHOLDER="__HUSI_APP_DESCRIPTION_ZH_TW__"
 STARTUP_WM_CLASS_PLACEHOLDER="__HUSI_STARTUP_WM_CLASS__"
 APP_URL_PLACEHOLDER="__HUSI_APP_URL__"
 MAINTAINER_PLACEHOLDER="__HUSI_MAINTAINER__"
@@ -141,7 +145,11 @@ load_metadata() {
     fi
 
     APP_NAME="Husi"
-    APP_DESCRIPTION="Husi desktop proxy integration tool"
+    APP_NAME_ZH_CN="虎兕"
+    APP_NAME_ZH_TW="虎兕"
+    APP_DESCRIPTION="A non-professional and recreational proxy tool integration."
+    APP_DESCRIPTION_ZH_CN="一个非专业和娱乐性的代理工具集。"
+    APP_DESCRIPTION_ZH_TW="一個非專業和娛樂性的代理工具集。"
     APP_URL="https://codeberg.org/xchacha20-poly1305/husi"
     MAINTAINER="Husi contributors"
 }
@@ -384,7 +392,11 @@ prepare_rootfs() {
         "$desktop_entry_path" \
         "$PACKAGE_NAME_PLACEHOLDER" "$PACKAGE_NAME" \
         "$APP_NAME_PLACEHOLDER" "$APP_NAME" \
+        "$APP_NAME_ZH_CN_PLACEHOLDER" "$APP_NAME_ZH_CN" \
+        "$APP_NAME_ZH_TW_PLACEHOLDER" "$APP_NAME_ZH_TW" \
         "$APP_DESCRIPTION_PLACEHOLDER" "$APP_DESCRIPTION" \
+        "$APP_DESCRIPTION_ZH_CN_PLACEHOLDER" "$APP_DESCRIPTION_ZH_CN" \
+        "$APP_DESCRIPTION_ZH_TW_PLACEHOLDER" "$APP_DESCRIPTION_ZH_TW" \
         "$STARTUP_WM_CLASS_PLACEHOLDER" "$startup_wm_class"
 
     local icon_source="$ROOT_DIR/fastlane/metadata/android/en-US/images/icon.png"
