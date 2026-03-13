@@ -4,32 +4,21 @@ package fr.husi.ui
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LoadingIndicator
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBar
@@ -38,7 +27,6 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -57,14 +45,10 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import fr.husi.compose.BackHandler
 import fr.husi.compose.SimpleIconButton
-import fr.husi.compose.extraBottomPadding
-import fr.husi.compose.paddingExceptBottom
 import fr.husi.compose.setPlainText
 import fr.husi.repository.FakeRepository
 import fr.husi.repository.repo
@@ -85,9 +69,6 @@ import fr.husi.resources.ok
 import fr.husi.resources.search
 import fr.husi.resources.select_apps
 import fr.husi.results.LocalResultEventBus
-import io.github.oikvpqya.compose.fastscroller.VerticalScrollbar
-import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
-import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
@@ -283,85 +264,12 @@ internal actual fun AppListScreen(
                     )
                 }
             } else {
-                List(
-                    uiState = uiState,
+                AppListContent(
+                    apps = uiState.apps,
                     innerPadding = innerPadding,
                     onClick = { viewModel.onItemClick(it) },
                 )
             }
-        }
-    }
-}
-
-@Composable
-private fun List(
-    uiState: AppListUiState,
-    innerPadding: PaddingValues,
-    onClick: (ProxiedApp) -> Unit,
-) {
-    val scrollState = rememberLazyListState()
-    Row(
-        modifier = Modifier.paddingExceptBottom(innerPadding),
-    ) {
-        LazyColumn(
-            modifier = Modifier.weight(1f).fillMaxHeight(),
-            state = scrollState,
-            contentPadding = extraBottomPadding(),
-        ) {
-            items(
-                items = uiState.apps,
-                key = { it.packageName },
-                contentType = { 0 },
-            ) { app ->
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 8.dp, vertical = 4.dp),
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Image(
-                            painter = rememberDrawablePainter(app.icon),
-                            contentDescription = null,
-                            modifier = Modifier
-                                .size(48.dp)
-                                .padding(top = 4.dp),
-                        )
-
-                        Column(
-                            modifier = Modifier
-                                .weight(1f)
-                                .width(0.dp), // Make sure it works in Row with weight
-                        ) {
-                            Text(
-                                text = app.name,
-                                style = MaterialTheme.typography.titleMedium,
-                            )
-                            Text(
-                                text = "${app.packageName} (${app.uid})",
-                                style = MaterialTheme.typography.bodySmall,
-                            )
-                        }
-
-                        Switch(
-                            checked = app.isProxied,
-                            onCheckedChange = { onClick(app) },
-                        )
-                    }
-                }
-            }
-        }
-
-        Box {
-            VerticalScrollbar(
-                modifier = Modifier.fillMaxHeight(),
-                adapter = rememberScrollbarAdapter(scrollState = scrollState),
-                style = defaultMaterialScrollbarStyle().copy(
-                    thickness = 16.dp,
-                ),
-            )
         }
     }
 }

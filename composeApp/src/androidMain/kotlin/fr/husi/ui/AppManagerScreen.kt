@@ -4,11 +4,8 @@ package fr.husi.ui
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,14 +13,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -42,7 +35,6 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -68,18 +60,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.google.accompanist.drawablepainter.rememberDrawablePainter
-import androidx.compose.foundation.layout.fillMaxHeight
-import io.github.oikvpqya.compose.fastscroller.VerticalScrollbar
-import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import fr.husi.compose.SimpleIconButton
-import fr.husi.compose.extraBottomPadding
-import fr.husi.compose.paddingExceptBottom
 import fr.husi.compose.setPlainText
 import fr.husi.repository.FakeRepository
 import fr.husi.repository.repo
 import fr.husi.utils.PackageCache
-import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import kotlinx.coroutines.launch
 import fr.husi.resources.*
 
@@ -283,8 +268,8 @@ internal actual fun AppManagerScreen(
                     )
                 }
             } else {
-                AppList(
-                    uiState = uiState,
+                AppListContent(
+                    apps = uiState.apps,
                     scrollState = listScrollState,
                     innerPadding = innerPadding,
                     onClick = { viewModel.onItemClick(it) },
@@ -360,79 +345,6 @@ private fun ProxyModeSelector(
             },
             label = { Text(stringResource(Res.string.bypass_apps)) },
         )
-    }
-}
-
-@Composable
-private fun AppList(
-    uiState: AppManagerUiState,
-    scrollState: LazyListState,
-    innerPadding: PaddingValues,
-    onClick: (ProxiedApp) -> Unit,
-) {
-    Row(
-        modifier = Modifier.paddingExceptBottom(innerPadding),
-    ) {
-        LazyColumn(
-            modifier = Modifier.weight(1f).fillMaxHeight(),
-            state = scrollState,
-            contentPadding = extraBottomPadding(),
-        ) {
-            items(
-                items = uiState.apps,
-                key = { it.packageName },
-                contentType = { 0 },
-            ) { app ->
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 8.dp, vertical = 4.dp),
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 12.dp, vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Image(
-                            painter = rememberDrawablePainter(app.icon),
-                            contentDescription = null,
-                            modifier = Modifier
-                                .size(48.dp)
-                                .padding(end = 12.dp),
-                        )
-                        Column(
-                            modifier = Modifier
-                                .weight(1f)
-                                .width(0.dp), // Make sure it works in Row with weight
-                        ) {
-                            Text(
-                                text = app.name,
-                                style = MaterialTheme.typography.titleMedium,
-                            )
-                            Text(
-                                text = "${app.packageName} (${app.uid})",
-                                style = MaterialTheme.typography.bodySmall,
-                            )
-                        }
-                        Switch(
-                            checked = app.isProxied,
-                            onCheckedChange = { onClick(app) },
-                        )
-                    }
-                }
-            }
-        }
-
-        Box {
-            VerticalScrollbar(
-                modifier = Modifier.fillMaxHeight(),
-                adapter = rememberScrollbarAdapter(scrollState = scrollState),
-                style = defaultMaterialScrollbarStyle().copy(
-                    thickness = 16.dp,
-                ),
-            )
-        }
     }
 }
 
