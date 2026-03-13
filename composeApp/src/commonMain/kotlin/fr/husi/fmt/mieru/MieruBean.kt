@@ -54,7 +54,7 @@ class MieruBean : AbstractBean() {
         protocol = input.readString().uppercase()
         username = input.readString()
         password = input.readString()
-        if (protocol == PROTOCOL_TCP) {
+        if (protocol == PROTOCOL_UDP) {
             mtu = input.readInt()
         }
         if (version >= 2) {
