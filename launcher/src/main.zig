@@ -19,7 +19,7 @@ const husi_package_name = config.package_name;
 const husi_config_dir_name = "husi";
 const husi_exit_restart = 50;
 
-const LinuxCaps = if (native_os == .linux) struct {
+const PlatformPrivilege = if (native_os == .linux) struct {
     const linux = std.os.linux;
 
     const CAP_VERSION_3: u32 = 0x20080522;
@@ -119,7 +119,9 @@ const LinuxCaps = if (native_os == .linux) struct {
         try capset(&header, &data);
     }
 
-    fn prepare() !void {
+    fn prepare(allocator: mem.Allocator) !void {
+        _ = allocator;
+
         const ambient_caps = [_]c_int{
             CAP_NET_ADMIN,
             CAP_NET_RAW,
@@ -133,8 +135,56 @@ const LinuxCaps = if (native_os == .linux) struct {
         try dropSetpcap();
     }
 } else struct {
-    fn prepare() !void {}
+    const c = std.c;
+
+    fn isPrivileged(exe_path: []const u8) bool {
+        const file = fs.openFileAbsolute(exe_path, .{}) catch return false;
+        defer file.close();
+        var stat: c.Stat = undefined;
+        if (c.fstat(file.handle, &stat) != 0) return false;
+        const S_ISUID = 0o4000;
+        return stat.uid == 0 and stat.gid == 0 and (stat.mode & S_ISUID) != 0;
+    }
+
+    fn runElevated(allocator: mem.Allocator, command: []const u8) !void {
+        const script = try std.fmt.allocPrint(allocator, "do shell script \"{s}\" with administrator privileges", .{command});
+        defer allocator.free(script);
+
+        var child = std.process.Child.init(&.{ "osascript", "-e", script }, allocator);
+        child.stdin_behavior = .Ignore;
+        child.stdout_behavior = .Ignore;
+        child.stderr_behavior = .Ignore;
+
+        const term = try child.spawnAndWait();
+        switch (term) {
+            .Exited => |code| {
+                if (code == 0) return error.ElevationFailed;
+            },
+            else => {},
+        }
+        return error.ElevationFailed;
+    }
+
+    fn prepare(allocator: mem.Allocator) !void {
+        const exe_path = try findSelfExePath();
+        if (isPrivileged(exe_path)) return;
+
+        const command = try std.fmt.allocPrint(allocator, "chown root:wheel {s} && chmod u+s {s}", .{ exe_path, exe_path });
+        defer allocator.free(command);
+        try runElevated(allocator, command);
+    }
 };
+
+var self_exe_buf: [fs.max_path_bytes]u8 = undefined;
+var self_path: ?[]const u8 = null;
+
+fn findSelfExePath() ![]const u8 {
+    if (self_path) |path| {
+        return path;
+    }
+    self_path = try fs.selfExePath(&self_exe_buf);
+    return self_path.?;
+}
 
 fn readArgsFile(allocator: mem.Allocator, path: []const u8, list: *ArrayList([]u8)) !void {
     const file = try fs.openFileAbsolute(path, .{});
@@ -192,8 +242,7 @@ const RuntimePaths = struct {
 };
 
 fn resolveRuntimePaths(allocator: mem.Allocator) !RuntimePaths {
-    const exe_path = try fs.selfExePathAlloc(allocator);
-    defer allocator.free(exe_path);
+    const exe_path = try findSelfExePath();
 
     const launcher_dir_slice = fs.path.dirname(exe_path) orelse return error.BadExePath;
     const launcher_dir = try allocator.dupe(u8, launcher_dir_slice);
@@ -316,9 +365,8 @@ pub fn main() !u8 {
     defer arena.deinit();
     const allocator = arena.allocator();
 
-    LinuxCaps.prepare() catch |err| {
-        std.debug.print("prepare_launch_environment failed: {}\n", .{err});
-        return 1;
+    PlatformPrivilege.prepare(allocator) catch |err| {
+        std.debug.print("WARN: prepare_launch_environment failed: {}\n", .{err});
     };
 
     const runtime = resolveRuntimePaths(allocator) catch |err| {
@@ -378,13 +426,8 @@ pub fn main() !u8 {
         child.stdout_behavior = .Inherit;
         child.stderr_behavior = .Inherit;
 
-        child.spawn() catch |err| {
-            std.debug.print("spawn failed: {}\n", .{err});
-            return 1;
-        };
-
-        const term = child.wait() catch |err| {
-            std.debug.print("wait failed: {}\n", .{err});
+        const term = child.spawnAndWait() catch |err| {
+            std.debug.print("spawn and wait failed: {}\n", .{err});
             return 1;
         };
 
@@ -393,7 +436,10 @@ pub fn main() !u8 {
                 if (code == husi_exit_restart) continue;
                 return code;
             },
-            else => return 1,
+            else => {
+                std.debug.print("unexpected term {}", .{term});
+                return 1;
+            },
         }
     }
 }
