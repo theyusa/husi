@@ -94,8 +94,9 @@ fun main(args: Array<String>) {
         }
 
         DesktopResourceEnvironmentFix {
-            val supportAdvancedTray = repo.isWindows
-            if (isTraySupported) {
+            val supportTray = remember { isTraySupported }
+            if (supportTray) {
+                val supportAdvancedTray = repo.isMacOs
                 Tray(
                     icon = painterResource(Res.drawable.ic_service_rest),
                     state = trayState,
