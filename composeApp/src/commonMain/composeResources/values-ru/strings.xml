@@ -50,16 +50,22 @@
     <string name="group_diff">различия (%1$s)</string>
     <string name="group_show_diff">Сравнить группы</string>
     <plurals name="group_updated">
-        <item quantity="one">%1$s: Обновлено %2$d прокси</item>
+        <item quantity="one">%1$s: Обновлен %2$d прокси</item>
+        <item quantity="few">%1$s: Обновлено %2$d прокси</item>
+        <item quantity="many">%1$s: Обновлено %2$d прокси</item>
         <item quantity="other">%1$s: Обновлено %2$d прокси</item>
     </plurals>
     <string name="group_no_difference">%1$s: Не отличаются</string>
     <plurals name="group_status_proxies_subscription">
-        <item quantity="one">%1$d Прокси | Обновлено %2$s</item>
+        <item quantity="one">%1$d Прокси | Обновлен %2$s</item>
+        <item quantity="few">%1$d Прокси | Обновлено %2$s</item>
+        <item quantity="many">%1$d Прокси | Обновлено %2$s</item>
         <item quantity="other">%1$d Прокси | Обновлено %2$s</item>
     </plurals>
     <plurals name="group_status_proxies">
         <item quantity="one">%1$d Прокси</item>
+        <item quantity="few">%1$d Прокси</item>
+        <item quantity="many">%1$d Прокси</item>
         <item quantity="other">%1$d Прокси</item>
     </plurals>
     <string name="group_status_empty_subscription">Еще не обновлено</string>
@@ -105,7 +111,9 @@
         <item quantity="other">%1$d элементов удалено</item>
     </plurals>
     <plurals name="apps_message">
-        <item quantity="one">%1$d приложений</item>
+        <item quantity="one">%1$d приложение</item>
+        <item quantity="few">%1$d приложения</item>
+        <item quantity="many">%1$d приложений</item>
         <item quantity="other">%1$d приложений</item>
     </plurals>
     <string name="select_apps">Выберите приложения</string>
@@ -177,7 +185,9 @@
     <string name="follow_system">Система</string>
     <string name="night_mode">Ночной режим</string>
     <plurals name="lines">
-        <item quantity="one">%1$d строк</item>
+        <item quantity="one">%1$d строка</item>
+        <item quantity="few">%1$d строки</item>
+        <item quantity="many">%1$d строк</item>
         <item quantity="other">%1$d строк</item>
     </plurals>
     <string name="route_warn">Перед добавлением собственных правил убедитесь, что вы прочитали документацию, иначе подключение к Интернету может не удасться.</string>
@@ -337,11 +347,15 @@
     <string name="copy_package_name">Копировать имя пакета</string>
     <string name="copy_label">Копировать имя</string>
     <plurals name="udp_connections">
-        <item quantity="one">%1$d UDP-соединений</item>
+        <item quantity="one">%1$d UDP-соединение</item>
+        <item quantity="few">%1$d UDP-соединения</item>
+        <item quantity="many">%1$d UDP-соединений</item>
         <item quantity="other">%1$d UDP-соединений</item>
     </plurals>
     <plurals name="tcp_connections">
-        <item quantity="one">%1$d TCP-соединений</item>
+        <item quantity="one">%1$d TCP-соединение</item>
+        <item quantity="few">%1$d TCP-соединения</item>
+        <item quantity="many">%1$d TCP-соединений</item>
         <item quantity="other">%1$d TCP-соединений</item>
     </plurals>
     <string name="shadowsocks_plugin_v2ray">V2Ray (плагин Shadowsocks для Android)</string>
@@ -678,4 +692,6 @@
     <string name="warn_not_encrypted">Эта конфигурация (без шифрования) крайне легко обнаруживается и идентифицируется, передача полностью видима цензору; отсутствует защита от MITM-вмешательства в содержимое коммуникации.</string>
     <string name="warn_insecure">Эта конфигурация (небезопасно) может быть обнаружена и идентифицирована; передача полностью видима цензору и не устойчива к MITM-вмешательству в содержимое коммуникации.</string>
     <string name="warn_hysteria_legacy">Эта конфигурация (Hysteria1) более не поддерживается.\n\nПодробнее: https://v2.hysteria.network/docs/misc/2-vs-1/</string>
+    <string name="instance_already_running">Другой экземпляр уже запущен.\nОбнаружен активный API-сокет:\n%1$s\n\nЭтот экземпляр будет завершен.</string>
+    <string name="instance_already_running_title">Уже запущено</string>
 </resources>
