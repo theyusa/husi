@@ -84,6 +84,15 @@ fun main(args: Array<String>) {
             windowState.isMinimized = false
         }
 
+        fun exitGracefully() {
+            runCatching {
+                runBlocking {
+                    desktopRepo.stopService()
+                }
+            }
+            exitApplication()
+        }
+
         DesktopResourceEnvironmentFix {
             val supportAdvancedTray = repo.isWindows
             if (isTraySupported) {
@@ -159,7 +168,7 @@ fun main(args: Array<String>) {
                         } else {
                             null
                         },
-                        onClick = ::exitApplication,
+                        onClick = ::exitGracefully,
                     )
                 }
             }
