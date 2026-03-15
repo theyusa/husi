@@ -29,7 +29,6 @@ processPhoenix = "3.0.0"
 fileKit = "0.13.0"
 kryo = "5.6.2"
 ini4j = "0.5.4"
-desugarJdkLibs = "2.1.5"
 junitBom = "6.0.3"
 aboutlibraries = "14.0.0-b02"
 agp = "9.1.0"
@@ -73,7 +72,6 @@ filekit-dialogs-compose = { module = "io.github.vinceglb:filekit-dialogs-compose
 filekit-core = { module = "io.github.vinceglb:filekit-core", version.ref = "fileKit" }
 kryo = { module = "com.esotericsoftware:kryo", version.ref = "kryo" }
 ini4j = { module = "org.ini4j:ini4j", version.ref = "ini4j" }
-desugar-jdk-libs = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugarJdkLibs" }
 junit-bom = { module = "org.junit:junit-bom", version.ref = "junitBom" }
 junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api" }
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }

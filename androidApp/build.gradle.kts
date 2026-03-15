@@ -31,9 +31,6 @@ android {
     buildFeatures {
         buildConfig = false
     }
-    compileOptions {
-        isCoreLibraryDesugaringEnabled = true
-    }
     namespace = "fr.husi"
 
 }
@@ -45,7 +42,6 @@ dependencies {
     implementation(libs.androidx.activity.ktx)
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.androidx.room.runtime)
-    coreLibraryDesugaring(libs.desugar.jdk.libs)
     debugImplementation(project.dependencies.platform(libs.androidx.compose.bom))
     debugImplementation(libs.androidx.compose.ui.tooling)
 }
