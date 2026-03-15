@@ -35,11 +35,20 @@ import fr.husi.ktx.kxs
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import java.io.File
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import fr.husi.resources.*
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.format.FormatStringsInDatetimeFormats
+import kotlinx.datetime.format.byUnicodePattern
+import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Clock
 
 internal typealias UpdateProgress = (Float) -> Unit
+
+@OptIn(FormatStringsInDatetimeFormats::class)
+private val assetVersionFormat = LocalDateTime.Format {
+    byUnicodePattern("yyyyMMddHHmmssSSS")
+}
 
 @Immutable
 internal data class AssetsUiState(
@@ -385,7 +394,9 @@ internal class AssetsScreenViewModel : ViewModel() {
                 },
             )
 
-        val time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS"))
+        val time = assetVersionFormat.format(
+            Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+        )
         File(assetsDir, "$name.version.txt").writeText(time)
     }
 

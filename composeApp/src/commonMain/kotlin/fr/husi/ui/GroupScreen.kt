@@ -97,7 +97,6 @@ import fr.husi.resources.group_create
 import fr.husi.resources.group_status_empty
 import fr.husi.resources.group_status_empty_subscription
 import fr.husi.resources.group_status_proxies
-import fr.husi.resources.group_status_proxies_subscription
 import fr.husi.resources.group_update
 import fr.husi.resources.internal_link
 import fr.husi.resources.link
@@ -114,6 +113,7 @@ import fr.husi.resources.share_qr_nfc
 import fr.husi.resources.share_subscription
 import fr.husi.resources.subscription_expire
 import fr.husi.resources.subscription_traffic
+import fr.husi.resources.subscription_updated
 import fr.husi.resources.subscription_used
 import fr.husi.resources.undo
 import fr.husi.resources.update
@@ -126,12 +126,25 @@ import io.github.vinceglb.filekit.write
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.format.FormatStringsInDatetimeFormats
+import kotlinx.datetime.format.byUnicodePattern
+import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
+
+@OptIn(FormatStringsInDatetimeFormats::class)
+private val subscriptionDateFormat = LocalDateTime.Format {
+    byUnicodePattern("yyyy-MM-dd HH:mm")
+}
+
+private fun formatSubscriptionUpdateTime(epochSeconds: Long): String {
+    val dateTime = kotlin.time.Instant.fromEpochSeconds(epochSeconds)
+        .toLocalDateTime(TimeZone.currentSystemDefault())
+    return subscriptionDateFormat.format(dateTime)
+}
 
 @Composable
 fun GroupScreen(
@@ -769,6 +782,22 @@ private fun DraggableSwipeableItemScope<GroupItemUiState>.GroupCard(
                                 }
                             }
 
+                            if (state.group.type == GroupType.SUBSCRIPTION &&
+                                state.counts > 0L &&
+                                state.group.subscription!!.lastUpdated > 0
+                            ) {
+                                Text(
+                                    text = stringResource(
+                                        Res.string.subscription_updated,
+                                        formatSubscriptionUpdateTime(
+                                            state.group.subscription!!.lastUpdated.toLong(),
+                                        ),
+                                    ),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+
                             Text(
                                 text = when (state.group.type) {
                                     GroupType.BASIC -> {
@@ -787,15 +816,10 @@ private fun DraggableSwipeableItemScope<GroupItemUiState>.GroupCard(
                                         if (state.counts == 0L) {
                                             stringResource(Res.string.group_status_empty_subscription)
                                         } else {
-                                            val formattedDate =
-                                                Instant.ofEpochMilli(state.group.subscription!!.lastUpdated * 1000L)
-                                                    .atZone(ZoneId.systemDefault())
-                                                    .format(DateTimeFormatter.ofPattern("M - d"))
                                             pluralStringResource(
-                                                Res.plurals.group_status_proxies_subscription,
+                                                Res.plurals.group_status_proxies,
                                                 state.counts.toInt(),
                                                 state.counts,
-                                                formattedDate,
                                             )
                                         }
                                     }

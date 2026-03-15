@@ -271,7 +271,5 @@ fun String.substringBetween(after: String, before: String): String {
 }
 
 fun formatTime(millis: Long): String {
-    return java.time.Instant.ofEpochMilli(millis)
-        .atZone(java.time.ZoneId.systemDefault())
-        .format(java.time.format.DateTimeFormatter.ofLocalizedDate(java.time.format.FormatStyle.MEDIUM))
+    return formatDate(millis)
 }

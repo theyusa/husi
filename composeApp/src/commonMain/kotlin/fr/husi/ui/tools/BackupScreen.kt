@@ -43,6 +43,7 @@ import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.TextButton
 import fr.husi.compose.rememberScrollHideState
 import fr.husi.ktx.Logs
+import fr.husi.ktx.currentBackupFileTimestamp
 import fr.husi.ktx.readableMessage
 import fr.husi.repository.repo
 import fr.husi.resources.Res
@@ -75,8 +76,6 @@ import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 import java.io.File
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 
 @Composable
 internal fun BackupScreen(
@@ -117,8 +116,7 @@ internal fun BackupScreen(
     }
     LaunchedEffect(uiState.exported) {
         uiState.exported?.let {
-            val time = LocalDateTime.now()
-                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss"))
+            val time = currentBackupFileTimestamp()
             val fileName = "husi_backup_${time}"
             exportFileLauncher.launch(fileName, "json")
         }

@@ -388,6 +388,7 @@
     <string name="subscription_used">%1$s Used</string>
     <string name="subscription_traffic">%1$s Used / %2$s Remaining</string>
     <string name="subscription_expire">Expire: %1$s</string>
+    <string name="subscription_updated">Updated: %1$s</string>
     <string name="subscription_import">Import subscription</string>
     <string name="subscription_import_message">Confirm you want to import subscription %1$s? If you are coming from an untrusted source, doing this may result in your IP and this behavior being leaked.</string>
     <string name="profile_import">Import profile</string>

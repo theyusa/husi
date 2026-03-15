@@ -14,6 +14,7 @@ import fr.husi.fmt.KryoConverters
 import fr.husi.ktx.Logs
 import fr.husi.ktx.b64Decode
 import fr.husi.ktx.b64EncodeUrlSafe
+import fr.husi.ktx.currentBackupFileTimestamp
 import fr.husi.ktx.kxs
 import fr.husi.ktx.onDefaultDispatcher
 import fr.husi.ktx.onIoDispatcher
@@ -32,8 +33,6 @@ import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import java.io.File
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 
 @Serializable
 internal data class BackupPayload(
@@ -68,7 +67,6 @@ internal class BackupViewModel : ViewModel() {
 
     companion object {
         const val BACKUP_VERSION = 3
-        private const val TIME_FORMAT = "yyyy-MM-dd_HH-mm-ss"
     }
 
     private val _uiState = MutableStateFlow(BackupUiState())
@@ -126,7 +124,7 @@ internal class BackupViewModel : ViewModel() {
         val content =
             createBackup(state.backupGroupsAndConfig, state.backupRules, state.backupSettings)
 
-        val time = LocalDateTime.now().format(DateTimeFormatter.ofPattern(TIME_FORMAT))
+        val time = currentBackupFileTimestamp()
         val fileName = "husi_backup_${time}.json"
         try {
             val file = createFile(fileName)

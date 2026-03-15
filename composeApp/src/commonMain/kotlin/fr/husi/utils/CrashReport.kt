@@ -2,10 +2,8 @@ package fr.husi.utils
 
 import fr.husi.BuildConfig
 import fr.husi.database.DataStore
+import fr.husi.ktx.currentUtcReportTimestamp
 import kotlinx.coroutines.runBlocking
-import java.time.ZoneOffset
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
 
 object CrashReport {
 
@@ -50,8 +48,7 @@ object CrashReport {
     }
 
     private fun getCurrentMilliSecondUTCTimeStamp(): String {
-        return ZonedDateTime.now(ZoneOffset.UTC)
-            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS z"))
+        return currentUtcReportTimestamp()
     }
 
 }
