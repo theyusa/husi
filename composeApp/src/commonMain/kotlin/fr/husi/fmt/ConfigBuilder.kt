@@ -191,10 +191,10 @@ fun buildConfig(
             thisGroup?.landingProxy?.let { runBlocking { SagerDatabase.proxyDao.getById(it) } }
         val list = resolveChainInternal()
         if (frontProxy != null) {
-            list.add(frontProxy)
+            list.addAll(frontProxy.resolveChainInternal())
         }
         if (landingProxy != null) {
-            list.add(0, landingProxy)
+            list.addAll(0, landingProxy.resolveChainInternal())
         }
         return list
     }
@@ -369,12 +369,9 @@ fun buildConfig(
 
             var currentOutbound = mutableMapOf<String, Any?>()
             var pastEntity: ProxyEntity? = null
-            var pastChainOutbound: JSONMap? = null
             var pastChainEntity: ProxyEntity? = null
-            var pastChainInboundTag: String? = null
             val externalChainMap = LinkedHashMap<Int, ProxyEntity>()
             externalIndexMap.add(IndexEntity(externalChainMap))
-            val chainOutbounds = ArrayList<JSONMap>()
 
             // chainTagOut: v2ray outbound tag for this chain
             var chainTagOut = ""
@@ -382,16 +379,7 @@ fun buildConfig(
 
             val isProxySet = entity.type == ProxyEntity.TYPE_PROXY_SET
             val outboundsByTag = HashMap<String, JSONMap>()
-            val proxySetFrontProxyId: Long?
-            val proxySetLandingProxyId: Long?
-            if (isProxySet) {
-                val thisGroup = runBlocking { SagerDatabase.groupDao.getById(entity.groupId).first() }
-                proxySetFrontProxyId = thisGroup?.frontProxy?.takeIf { it > 0L }
-                proxySetLandingProxyId = thisGroup?.landingProxy?.takeIf { it > 0L }
-            } else {
-                proxySetFrontProxyId = null
-                proxySetLandingProxyId = null
-            }
+            val mappingInboundTags = HashMap<Long, String>()
 
             fun ProxyEntity.resolveProxySetMembers(): List<ProxyEntity> {
                 if (type != ProxyEntity.TYPE_PROXY_SET) return emptyList()
@@ -421,33 +409,48 @@ fun buildConfig(
                 return tag
             }
 
-            val proxySetMemberIds = if (isProxySet) {
-                emptySet()
-            } else {
-                val ids = LinkedHashSet<Long>()
+            val proxySetMemberIds = LinkedHashSet<Long>().apply {
                 for (proxyEntity in profileList) {
                     if (proxyEntity.requireBean() is ProxySetBean) {
                         for (member in proxyEntity.resolveProxySetMembers()) {
-                            ids.add(member.id)
+                            add(member.id)
                         }
                     }
                 }
-                ids
             }
 
-            val lastChainIndex = if (isProxySet) {
-                -1
-            } else {
-                profileList.indexOfLast { proxyEntity ->
-                    val bean = proxyEntity.requireBean()
-                    !proxySetMemberIds.contains(proxyEntity.id) || bean is ProxySetBean
+            fun connectChainNode(previousEntity: ProxyEntity, currentTag: String) {
+                if (previousEntity.requireBean() is ProxySetBean) {
+                    for (member in previousEntity.resolveProxySetMembers()) {
+                        val memberTag = checkNotNull(reservedTags[member.id])
+                        outboundsByTag[memberTag]?.set("detour", currentTag)
+                    }
+                    return
                 }
+                if (previousEntity.needExternal()) {
+                    route!!.rules!!.add(
+                        Rule_Default().apply {
+                            inbound = mutableListOf(
+                                checkNotNull(mappingInboundTags[previousEntity.id]),
+                            )
+                            outbound = currentTag
+                        }.asKxsMap(),
+                    )
+                } else {
+                    val previousTag = checkNotNull(reservedTags[previousEntity.id])
+                    outboundsByTag[previousTag]?.set("detour", currentTag)
+                }
+            }
+
+            val lastChainIndex = profileList.indexOfLast { proxyEntity ->
+                val bean = proxyEntity.requireBean()
+                !proxySetMemberIds.contains(proxyEntity.id) || bean is ProxySetBean
             }
 
             profileList.forEachIndexed { index, proxyEntity ->
                 val bean = proxyEntity.requireBean()
                 val isProxySetMember =
-                    !isProxySet && proxySetMemberIds.contains(proxyEntity.id) && bean !is ProxySetBean
+                    proxySetMemberIds.contains(proxyEntity.id) && bean !is ProxySetBean
                 val isChainNode = !isProxySetMember
 
                 // first profile set as global
@@ -461,17 +464,7 @@ fun buildConfig(
                 if (!isProxySet) {
                     if (isChainNode) {
                         if (pastChainEntity != null) {
-                            // chain route/proxy rules
-                            if (pastChainEntity.needExternal()) {
-                                route!!.rules!!.add(
-                                    Rule_Default().apply {
-                                        inbound = mutableListOf(pastChainInboundTag!!)
-                                        outbound = tagOut
-                                    }.asKxsMap(),
-                                )
-                            } else {
-                                pastChainOutbound!!["detour"] = tagOut
-                            }
+                            connectChainNode(pastChainEntity, tagOut)
                         } else {
                             // index == 0 means last profile in chain / not chain
                             chainTagOut = tagOut
@@ -640,43 +633,31 @@ fun buildConfig(
                 }
 
                 outbounds!!.add(currentOutbound)
-                chainOutbounds.add(currentOutbound)
+                currentInboundTag?.let {
+                    mappingInboundTags[proxyEntity.id] = it
+                }
                 pastEntity = proxyEntity
                 if (!isProxySet && isChainNode) {
-                    pastChainOutbound = currentOutbound
                     pastChainEntity = proxyEntity
-                    if (proxyEntity.needExternal()) {
-                        pastChainInboundTag = currentInboundTag
-                    }
                 }
             }
 
             val trafficEntities = chainTrafficSet.toMutableList()
             if (isProxySet) {
-                val proxySetTag = reservedTags[entity.id] ?: chainTagOut
-                val proxySetMemberTags = LinkedHashSet<String>()
-                for (member in entity.resolveProxySetMembers()) {
-                    proxySetMemberTags.add(reserveTag(member))
+                val chainNodes = profileList.filter { proxyEntity ->
+                    val bean = proxyEntity.requireBean()
+                    !proxySetMemberIds.contains(proxyEntity.id) || bean is ProxySetBean
+                }
+                val firstChainEntity = chainNodes.first()
+                if (chainId == 0L) {
+                    mainTag = checkNotNull(reservedTags[firstChainEntity.id])
+                }
+                for (nodeIndex in 1 until chainNodes.size) {
+                    val currentTag = checkNotNull(reservedTags[chainNodes[nodeIndex].id])
+                    connectChainNode(chainNodes[nodeIndex - 1], currentTag)
                 }
 
-                val frontTag = proxySetFrontProxyId?.let { reservedTags[it] }
-                if (frontTag != null) {
-                    for (memberTag in proxySetMemberTags) {
-                        if (memberTag == frontTag) continue
-                        outboundsByTag[memberTag]?.set("detour", frontTag)
-                    }
-                }
-
-                val landingTag = proxySetLandingProxyId?.let { reservedTags[it] }
-                if (landingTag != null && landingTag != proxySetTag) {
-                    outboundsByTag[landingTag]?.set("detour", proxySetTag)
-                    if (chainId == 0L) {
-                        mainTag = landingTag
-                    }
-                } else if (chainId == 0L) {
-                    mainTag = proxySetTag
-                }
-
+                val proxySetTag = checkNotNull(reservedTags[entity.id])
                 chainTagOut = proxySetTag
 
                 // Keep selector above its children.
@@ -686,11 +667,7 @@ fun buildConfig(
                     outbounds!!.add(chunkStart, outbounds!!.removeAt(proxySetIndex))
                 }
 
-                val mainFlowId = if (landingTag != null) {
-                    proxySetLandingProxyId
-                } else {
-                    entity.id
-                }
+                val mainFlowId = firstChainEntity.id
                 val mainIndex = trafficEntities.indexOfFirst { it.id == mainFlowId }
                 if (mainIndex >= 0 && mainIndex != trafficEntities.lastIndex) {
                     trafficEntities.add(trafficEntities.removeAt(mainIndex))

@@ -4,6 +4,7 @@ import fr.husi.database.DataStore
 import fr.husi.database.ProxyEntity
 import fr.husi.database.ProxyGroup
 import fr.husi.database.SagerDatabase
+import fr.husi.fmt.internal.ChainBean
 import fr.husi.fmt.internal.ProxySetBean
 import fr.husi.fmt.socks.SOCKSBean
 import fr.husi.ktx.applyDefaultValues
@@ -107,6 +108,173 @@ class ConfigBuilderTest {
         assertEquals("set-main", outboundByTag("landing")["detour"]?.jsonPrimitive?.content)
     }
 
+    @Test
+    fun `buildConfig should expand group chain front and landing for regular profile`() = runBlocking {
+        val group = ProxyGroup(name = "group").applyDefaultValues()
+        group.id = SagerDatabase.groupDao.createGroup(group)
+
+        val main = createSocksProxy(
+            groupId = group.id,
+            order = 1,
+            name = "main",
+            host = "1.1.1.1",
+            port = 1081,
+        )
+        val landingA = createSocksProxy(
+            groupId = group.id,
+            order = 2,
+            name = "landing-a",
+            host = "2.2.2.2",
+            port = 1082,
+        )
+        val landingB = createSocksProxy(
+            groupId = group.id,
+            order = 3,
+            name = "landing-b",
+            host = "3.3.3.3",
+            port = 1083,
+        )
+        val frontA = createSocksProxy(
+            groupId = group.id,
+            order = 4,
+            name = "front-a",
+            host = "4.4.4.4",
+            port = 1084,
+        )
+        val frontB = createSocksProxy(
+            groupId = group.id,
+            order = 5,
+            name = "front-b",
+            host = "5.5.5.5",
+            port = 1085,
+        )
+        val landingChain = createChain(
+            groupId = group.id,
+            order = 6,
+            name = "landing-chain",
+            proxies = listOf(landingA.id, landingB.id),
+        )
+        val frontChain = createChain(
+            groupId = group.id,
+            order = 7,
+            name = "front-chain",
+            proxies = listOf(frontA.id, frontB.id),
+        )
+
+        group.frontProxy = frontChain.id
+        group.landingProxy = landingChain.id
+        SagerDatabase.groupDao.updateGroup(group)
+
+        val result = buildConfig(main, forTest = true)
+
+        assertEquals("landing-b", result.mainTag)
+
+        val outbounds = parseOutbounds(result)
+        assertEquals("landing-a", outbounds["landing-b"]?.get("detour")?.jsonPrimitive?.content)
+        assertEquals("main", outbounds["landing-a"]?.get("detour")?.jsonPrimitive?.content)
+        assertEquals("front-b", outbounds["main"]?.get("detour")?.jsonPrimitive?.content)
+        assertEquals("front-a", outbounds["front-b"]?.get("detour")?.jsonPrimitive?.content)
+    }
+
+    @Test
+    fun `buildConfig should expand group chain front and landing around proxy set`() = runBlocking {
+        val group = ProxyGroup(name = "group").applyDefaultValues()
+        group.id = SagerDatabase.groupDao.createGroup(group)
+
+        val memberA = createSocksProxy(
+            groupId = group.id,
+            order = 1,
+            name = "member-a",
+            host = "1.1.1.1",
+            port = 1081,
+        )
+        val memberB = createSocksProxy(
+            groupId = group.id,
+            order = 2,
+            name = "member-b",
+            host = "2.2.2.2",
+            port = 1082,
+        )
+        val landingA = createSocksProxy(
+            groupId = group.id,
+            order = 3,
+            name = "landing-a",
+            host = "3.3.3.3",
+            port = 1083,
+        )
+        val landingB = createSocksProxy(
+            groupId = group.id,
+            order = 4,
+            name = "landing-b",
+            host = "4.4.4.4",
+            port = 1084,
+        )
+        val frontA = createSocksProxy(
+            groupId = group.id,
+            order = 5,
+            name = "front-a",
+            host = "5.5.5.5",
+            port = 1085,
+        )
+        val frontB = createSocksProxy(
+            groupId = group.id,
+            order = 6,
+            name = "front-b",
+            host = "6.6.6.6",
+            port = 1086,
+        )
+        val landingChain = createChain(
+            groupId = group.id,
+            order = 7,
+            name = "landing-chain",
+            proxies = listOf(landingA.id, landingB.id),
+        )
+        val frontChain = createChain(
+            groupId = group.id,
+            order = 8,
+            name = "front-chain",
+            proxies = listOf(frontA.id, frontB.id),
+        )
+        val proxySet = ProxyEntity(groupId = group.id, userOrder = 9).putBean(
+            ProxySetBean().apply {
+                name = "set-main"
+                management = ProxySetBean.MANAGEMENT_SELECTOR
+                type = ProxySetBean.TYPE_LIST
+                proxies = listOf(memberA.id, memberB.id)
+            }.applyDefaultValues(),
+        )
+        proxySet.id = SagerDatabase.proxyDao.addProxy(proxySet)
+
+        group.frontProxy = frontChain.id
+        group.landingProxy = landingChain.id
+        SagerDatabase.groupDao.updateGroup(group)
+
+        val result = buildConfig(proxySet, forTest = true)
+
+        assertEquals("landing-b", result.mainTag)
+
+        val trafficGroup = result.trafficMap["set-main"]
+        assertNotNull(trafficGroup)
+        assertEquals(landingB.id, trafficGroup.last().id)
+
+        val outbounds = parseOutbounds(result)
+        val selectorChildren =
+            outbounds["set-main"]?.get("outbounds")?.jsonArray?.map { it.jsonPrimitive.content }?.toSet()
+        assertEquals(setOf("member-a", "member-b"), selectorChildren)
+
+        assertEquals("landing-a", outbounds["landing-b"]?.get("detour")?.jsonPrimitive?.content)
+        assertEquals("set-main", outbounds["landing-a"]?.get("detour")?.jsonPrimitive?.content)
+        assertEquals("front-b", outbounds["member-a"]?.get("detour")?.jsonPrimitive?.content)
+        assertEquals("front-b", outbounds["member-b"]?.get("detour")?.jsonPrimitive?.content)
+        assertEquals("front-a", outbounds["front-b"]?.get("detour")?.jsonPrimitive?.content)
+    }
+
+    private fun parseOutbounds(result: ConfigBuildResult) =
+        Json.parseToJsonElement(result.config).jsonObject["outbounds"]!!
+            .jsonArray
+            .associateBy { it.jsonObject["tag"]!!.jsonPrimitive.content }
+            .mapValues { it.value.jsonObject }
+
     private suspend fun createSocksProxy(
         groupId: Long,
         order: Long,
@@ -123,5 +291,21 @@ class ConfigBuilderTest {
         )
         proxy.id = SagerDatabase.proxyDao.addProxy(proxy)
         return proxy
+    }
+
+    private suspend fun createChain(
+        groupId: Long,
+        order: Long,
+        name: String,
+        proxies: List<Long>,
+    ): ProxyEntity {
+        val chain = ProxyEntity(groupId = groupId, userOrder = order).putBean(
+            ChainBean().apply {
+                this.name = name
+                this.proxies = proxies
+            }.applyDefaultValues(),
+        )
+        chain.id = SagerDatabase.proxyDao.addProxy(chain)
+        return chain
     }
 }
