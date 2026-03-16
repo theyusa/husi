@@ -24,22 +24,17 @@ import fr.husi.repository.repo
 import fr.husi.resources.Res
 import fr.husi.resources.update_subscription_warning
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.newFixedThreadPoolContext
 import java.net.Inet4Address
 import java.net.InetAddress
 
-@Suppress("EXPERIMENTAL_API_USAGE")
 abstract class GroupUpdater {
 
     abstract suspend fun doUpdate(
@@ -49,49 +44,38 @@ abstract class GroupUpdater {
         byUser: Boolean,
     )
 
-    @OptIn(DelicateCoroutinesApi::class)
-    protected suspend fun forceResolve(
-        profiles: List<AbstractBean>, groupId: Long?,
-    ) {
+    private suspend fun forceResolve(profiles: List<AbstractBean>) = coroutineScope {
         val networkStrategy = DataStore.networkStrategy
-        val lookupPool = newFixedThreadPoolContext(5, "DNS Lookup")
-        val lookupJobs = mutableListOf<Job>()
         val ipv6First = when (networkStrategy) {
             SingBoxOptions.STRATEGY_IPV6_ONLY, SingBoxOptions.STRATEGY_PREFER_IPV6 -> true
             else -> false
         }
+        val shouldResolveByDefaultNetwork = DataStore.enableFakeDns
+                && DataStore.serviceState.started
+                && DataStore.serviceMode == Key.MODE_VPN
+        val lookupDispatcher = Dispatchers.IO.limitedParallelism(5)
 
         for (profile in profiles) {
             if (profile.serverAddress.isIpAddress()) continue
-
-            lookupJobs.add(
-                GlobalScope.launch(lookupPool) {
-                    try {
-                        val results = if (
-                            DataStore.enableFakeDns &&
-                            DataStore.serviceState.started &&
-                            DataStore.serviceMode == Key.MODE_VPN
-                        ) {
-                            // FakeDNS
-                            resolveByDefaultNetwork(profile.serverAddress)
-                        } else {
-                            // System DNS is enough (when VPN connected, it uses v2ray-core)
-                            InetAddress.getAllByName(profile.serverAddress).filterNotNull()
-                        }
-                        if (results.isEmpty()) error("empty response")
-                        rewriteAddress(profile, results, ipv6First)
-                    } catch (e: Exception) {
-                        Logs.d("Lookup ${profile.serverAddress} failed: ${e.readableMessage}", e)
+            launch(lookupDispatcher) {
+                try {
+                    val results = if (shouldResolveByDefaultNetwork) {
+                        // FakeDNS
+                        resolveByDefaultNetwork(profile.serverAddress)
+                    } else {
+                        // System DNS is enough (when VPN connected, it uses sing-box)
+                        InetAddress.getAllByName(profile.serverAddress).filterNotNull()
                     }
-                },
-            )
+                    if (results.isEmpty()) error("empty response")
+                    this@GroupUpdater.rewriteAddress(profile, results, ipv6First)
+                } catch (e: Exception) {
+                    Logs.d("Lookup ${profile.serverAddress}", e)
+                }
+            }
         }
-
-        lookupJobs.joinAll()
-        lookupPool.close()
     }
 
-    protected fun rewriteAddress(
+    private fun rewriteAddress(
         bean: AbstractBean, addresses: List<InetAddress>, ipv6First: Boolean,
     ) {
         val address = addresses.sortedBy { (it is Inet4Address) xor ipv6First }[0].hostAddress!!
@@ -148,7 +132,7 @@ abstract class GroupUpdater {
 
         if (subscription.forceResolve) {
             try {
-                forceResolve(newProxies, proxyGroup.id)
+                forceResolve(newProxies)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
