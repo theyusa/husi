@@ -269,6 +269,8 @@ You can select target formats:
 make desktop_package_linux LINUX_PACKAGE_FORMATS=deb,pacman
 ```
 
+Desktop data directory is `~/.config/husi/` (`$XDG_CONFIG_HOME/husi` if set).
+
 Installed launcher supports user config files:
 
 * `~/.config/husi/desktop-java-opts.conf` for JVM options

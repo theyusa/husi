@@ -259,7 +259,8 @@ private fun initDesktopRuntime(startupArgs: DesktopStartupArgs) {
     // Fix jar package
     System.setProperty(PreferenceNodePropertyName, PreferenceNodeName)
 
-    val baseDir = startupArgs.baseDir ?: File(System.getProperty("user.home"), ".husi")
+    val baseDir = startupArgs.baseDir
+        ?: File(System.getProperty("user.home"), ".config").resolve("husi")
     baseDir.mkdirs()
     desktopRepo = DesktopRepository(baseDir)
     val filesDir = repo.filesDir.absolutePath + "/"

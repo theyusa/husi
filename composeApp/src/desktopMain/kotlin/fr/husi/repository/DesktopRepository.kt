@@ -15,7 +15,7 @@ var desktopRepo
     }
 
 class DesktopRepository(
-    val dataDir: File = File(System.getProperty("user.home"), ".husi").also { it.mkdirs() },
+    val dataDir: File,
 ) : Repository {
 
     override val isMainProcess: Boolean = true
