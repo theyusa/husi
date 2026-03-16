@@ -320,7 +320,10 @@ fun StandardV2RayBean.toUriVMessVLESSTrojan(): String {
         }
         host = serverAddress
         ports = serverPort.toString()
-        addQueryParameter("type", v2rayTransport)
+        // In standard 4.2.1:
+        // > 当前的取值必须为 tcp、kcp、ws、http、grpc、httpupgrade、xhttp 其中之一，
+        val transport = v2rayTransport.blankAsNull() ?: "tcp"
+        addQueryParameter("type", transport)
     }
 
     if (!isTrojan) {
