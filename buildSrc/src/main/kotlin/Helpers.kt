@@ -7,6 +7,7 @@ import org.gradle.api.Project
 import org.gradle.api.tasks.Exec
 import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.register
+import java.io.File
 import java.util.Base64
 import java.util.Locale
 import java.util.Properties
@@ -367,4 +368,29 @@ private fun Project.registerApkRenamer(
             }
         }
     }
+}
+
+fun Project.writePlatformInfo(
+    outputDir: File,
+    packageName: String,
+    fileName: String,
+    isAndroid: Boolean,
+    isLinux: Boolean,
+    isMacOs: Boolean,
+    isWindows: Boolean,
+) {
+    val dir = outputDir.resolve(packageName.replace('.', '/'))
+    dir.mkdirs()
+    dir.resolve(fileName).writeText(
+        """
+        |package $packageName
+        |
+        |actual object PlatformInfo {
+        |    actual const val isAndroid: Boolean = $isAndroid
+        |    actual const val isLinux: Boolean = $isLinux
+        |    actual const val isMacOs: Boolean = $isMacOs
+        |    actual const val isWindows: Boolean = $isWindows
+        |}
+        """.trimMargin(),
+    )
 }

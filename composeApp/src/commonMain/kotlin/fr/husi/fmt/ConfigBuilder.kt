@@ -38,6 +38,7 @@ import fr.husi.fmt.anytls.buildSingBoxOutboundAnyTLSBean
 import fr.husi.fmt.config.ConfigBean
 import fr.husi.fmt.direct.DirectBean
 import fr.husi.fmt.direct.buildSingBoxOutboundDirectBean
+import fr.husi.platform.PlatformInfo
 import fr.husi.fmt.hysteria.HysteriaBean
 import fr.husi.fmt.hysteria.buildSingBoxOutboundHysteriaBean
 import fr.husi.fmt.internal.ChainBean
@@ -329,7 +330,7 @@ fun buildConfig(
                     tag = TAG_MIXED
                     listen = bind
                     listen_port = DataStore.mixedPort
-                    if (!repo.isAndroid) {
+                    if (!PlatformInfo.isAndroid) {
                         if (DataStore.appendHttpProxy) {
                             set_system_proxy = true
                         }
@@ -689,7 +690,7 @@ fun buildConfig(
         for (rule in extraRules) {
             val (packageNames, processRules) = parseRuleProcessRules(
                 rule.packages,
-                defaultToPackage = repo.isAndroid,
+                defaultToPackage = PlatformInfo.isAndroid,
             )
             if (packageNames.isNotEmpty()) {
                 PackageResolver.awaitLoadSync()

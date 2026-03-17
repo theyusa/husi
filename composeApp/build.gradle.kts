@@ -262,6 +262,24 @@ val generateBuildConfig by tasks.registering {
     }
 }
 
+val generateDesktopPlatformInfo by tasks.registering {
+    val outputDir = layout.buildDirectory.dir("generated/platformInfo/desktop/${desktopTarget.id}")
+    val platformInfoPackage = "fr.husi.platform"
+    inputs.property("desktopTarget", desktopTarget.toString())
+    outputs.dir(outputDir)
+    doLast {
+        writePlatformInfo(
+            outputDir = outputDir.get().asFile,
+            packageName = platformInfoPackage,
+            fileName = "PlatformInfo.desktop.kt",
+            isAndroid = false,
+            isLinux = desktopTarget.platform == DesktopPlatform.Linux,
+            isMacOs = desktopTarget.platform == DesktopPlatform.Darwin,
+            isWindows = desktopTarget.platform == DesktopPlatform.Windows,
+        )
+    }
+}
+
 kotlin {
     compilerOptions {
         freeCompilerArgs.add("-Xexpect-actual-classes")
@@ -364,6 +382,7 @@ kotlin {
             }
         }
         val desktopMain by getting {
+            kotlin.srcDir(generateDesktopPlatformInfo)
             dependencies {
                 if (requestedDesktopTarget == null) {
                     implementation(compose.desktop.currentOs)

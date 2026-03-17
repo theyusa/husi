@@ -1,6 +1,6 @@
 package fr.husi.ktx
 
-import fr.husi.repository.repo
+import fr.husi.platform.PlatformInfo
 import java.awt.Desktop
 import java.io.File
 
@@ -13,7 +13,7 @@ fun openFilePath(path: String) {
 
     try {
         // https://bugs.openjdk.org/browse/JDK-8233994
-        if (repo.isWindows) {
+        if (PlatformInfo.isWindows) {
             val windowsPath = file.canonicalPath.replace("/", "\\")
             // use cmd.exe to handle edge cases
             ProcessBuilder("cmd.exe", "/c", "explorer.exe /select,\"$windowsPath\"").start()

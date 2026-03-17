@@ -64,6 +64,7 @@ import fr.husi.fmt.SingBoxOptions
 import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.contentOrUnset
 import fr.husi.ktx.onIoDispatcher
+import fr.husi.platform.PlatformInfo
 import fr.husi.repository.repo
 import fr.husi.resources.Res
 import fr.husi.resources.add_road
@@ -329,7 +330,7 @@ internal fun RouteSettingsScreen(
                     }
                 },
                 onSelectApps = { packages ->
-                    if (repo.isAndroid) {
+                    if (PlatformInfo.isAndroid) {
                         onOpenAppList(
                             NavRoutes.AppList(
                                 initialPackages = packages,

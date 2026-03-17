@@ -95,6 +95,7 @@ import fr.husi.ktx.restartApplication
 import fr.husi.ktx.runOnDefaultDispatcher
 import fr.husi.ktx.showAndDismissOld
 import fr.husi.logLevelString
+import fr.husi.platform.PlatformInfo
 import fr.husi.repository.repo
 import fr.husi.resources.Res
 import fr.husi.resources.allow_access
@@ -1290,7 +1291,7 @@ fun SettingsScreen(
                                 )
                             },
                             summary = {
-                                if (repo.isAndroid) {
+                                if (PlatformInfo.isAndroid) {
                                     Text(stringResource(Res.string.append_http_proxy_sum))
                                 }
                             },
@@ -1676,7 +1677,7 @@ private inline fun LazyListScope.colorPickerPreference(
                             text = stringResource(Res.string.theme),
                             style = MaterialTheme.typography.headlineSmall,
                         )
-                        if (repo.isAndroid) Text(
+                        if (PlatformInfo.isAndroid) Text(
                             text = stringResource(Res.string.long_click_to_see_name),
                             modifier = Modifier.padding(bottom = 16.dp),
                             style = MaterialTheme.typography.labelSmallEmphasized,

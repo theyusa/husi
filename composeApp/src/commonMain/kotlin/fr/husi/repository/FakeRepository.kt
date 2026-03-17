@@ -11,12 +11,6 @@ class FakeRepository : Repository {
     override val isBgProcess = false
     override val isTv = false
 
-    private val osName = System.getProperty("os.name")?.lowercase().orEmpty()
-    override val isAndroid = false
-    override val isLinux = osName.contains("linux")
-    override val isMacOs = osName.contains("mac")
-    override val isWindows = osName.contains("win")
-
     override val boxService: fr.husi.libcore.Service? = null
 
     private val tempRoot = File(System.getProperty("java.io.tmpdir"), "husi-fake-repo")

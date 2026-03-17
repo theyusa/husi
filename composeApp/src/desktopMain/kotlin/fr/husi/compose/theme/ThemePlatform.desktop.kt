@@ -6,7 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.InternalComposeUiApi
 import fr.husi.ktx.blankAsNull
-import fr.husi.repository.repo
+import fr.husi.platform.PlatformInfo
 import kotlinx.coroutines.delay
 import org.jetbrains.skiko.SystemTheme
 import org.jetbrains.skiko.currentSystemTheme
@@ -25,7 +25,7 @@ actual fun rememberPlatformSystemDarkMode(): Boolean {
     // Inspired by:
     // https://youtrack.jetbrains.com/issue/CMP-1986/isSystemInDarkTheme-should-dynamically-update-when-system-theme-is-changed#focus=Comments-27-12665870.0-0
 
-    if (repo.isMacOs || repo.isWindows) {
+    if (PlatformInfo.isMacOs || PlatformInfo.isWindows) {
         return produceState(initialValue = currentSystemTheme == SystemTheme.DARK) {
             while (true) {
                 delay(REFRESH_INTERVAL)
@@ -34,7 +34,7 @@ actual fun rememberPlatformSystemDarkMode(): Boolean {
         }.value
     }
 
-    if (repo.isLinux) {
+    if (PlatformInfo.isLinux) {
         return produceState(initialValue = currentSystemTheme == SystemTheme.DARK) {
             val (result, probe) = resolveDesktopDarkModeProbe()
             value = result

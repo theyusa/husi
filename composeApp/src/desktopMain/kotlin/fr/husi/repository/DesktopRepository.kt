@@ -20,12 +20,6 @@ class DesktopRepository(
 
     override val isMainProcess: Boolean = true
     override val isBgProcess: Boolean = true
-    private val osName = System.getProperty("os.name")?.lowercase().orEmpty()
-
-    override val isAndroid = false
-    override val isLinux = osName.contains("linux")
-    override val isMacOs = osName.contains("mac")
-    override val isWindows = osName.contains("win")
     override val isTv = false
 
     override val boxService: Service? by lazy {

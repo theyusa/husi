@@ -33,6 +33,7 @@ import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.runOnDefaultDispatcher
 import fr.husi.libcore.Libcore
 import fr.husi.libcore.loadCA
+import fr.husi.platform.PlatformInfo
 import fr.husi.repository.DesktopRepository
 import fr.husi.repository.desktopRepo
 import fr.husi.repository.repo
@@ -96,7 +97,7 @@ fun main(args: Array<String>) {
         DesktopResourceEnvironmentFix {
             val supportTray = remember { isTraySupported }
             if (supportTray) {
-                val supportAdvancedTray = repo.isMacOs
+                val supportAdvancedTray = PlatformInfo.isMacOs
                 Tray(
                     icon = painterResource(Res.drawable.ic_service_rest),
                     state = trayState,

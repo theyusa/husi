@@ -57,6 +57,7 @@ import fr.husi.compose.rememberScrollHideState
 import fr.husi.compose.withNavigation
 import fr.husi.database.DataStore
 import fr.husi.ktx.restartApplication
+import fr.husi.platform.PlatformInfo
 import fr.husi.repository.repo
 import fr.husi.resources.Res
 import fr.husi.resources.menu
@@ -237,7 +238,7 @@ private fun LazyListScope.installedPlugins(
                             onLongClick = {
                                 plugin.entry?.let {
                                     openUri(
-                                        if (repo.isAndroid) {
+                                        if (PlatformInfo.isAndroid) {
                                             it.downloadSource.apk
                                         } else {
                                             it.downloadSource.binary

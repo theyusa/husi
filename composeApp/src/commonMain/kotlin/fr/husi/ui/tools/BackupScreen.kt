@@ -45,6 +45,7 @@ import fr.husi.compose.rememberScrollHideState
 import fr.husi.ktx.Logs
 import fr.husi.ktx.currentBackupFileTimestamp
 import fr.husi.ktx.readableMessage
+import fr.husi.platform.PlatformInfo
 import fr.husi.repository.repo
 import fr.husi.resources.Res
 import fr.husi.resources.action_export
@@ -189,7 +190,7 @@ internal fun BackupScreen(
                     ) {
                         Text(stringResource(Res.string.action_export))
                     }
-                    if (repo.isAndroid) {
+                    if (PlatformInfo.isAndroid) {
                         Spacer(modifier = Modifier.height(8.dp))
                         Button(
                             onClick = {

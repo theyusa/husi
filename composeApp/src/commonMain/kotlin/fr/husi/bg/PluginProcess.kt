@@ -13,6 +13,7 @@ import fr.husi.fmt.naive.buildNaiveConfig
 import fr.husi.fmt.shadowquic.ShadowQUICBean
 import fr.husi.fmt.shadowquic.buildShadowQUICConfig
 import fr.husi.libcore.Libcore
+import fr.husi.platform.PlatformInfo
 import fr.husi.plugin.PluginManager
 import fr.husi.repository.repo
 import java.io.File
@@ -132,7 +133,7 @@ fun launchPlugins(
                             if (DataStore.logLevel > 0) "warn" else "error",
                         )
                     }
-                    if (repo.isAndroid &&
+                    if (PlatformInfo.isAndroid &&
                         bean.protocolVersion == HysteriaBean.PROTOCOL_VERSION_2 &&
                         bean.protocol == HysteriaBean.PROTOCOL_FAKETCP
                     ) {

@@ -43,11 +43,6 @@ open class SagerRepository(
         setResourceReaderAndroidContext(context)
     }
 
-    override val isAndroid = true
-    override val isLinux = false
-    override val isMacOs = false
-    override val isWindows = false
-
     override val boxService: fr.husi.libcore.Service? by lazy {
         createBoxService(isBgProcess)
     }

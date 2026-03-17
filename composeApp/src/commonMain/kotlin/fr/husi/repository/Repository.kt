@@ -11,11 +11,6 @@ interface Repository {
     val isBgProcess: Boolean
     val isTv: Boolean
 
-    val isAndroid: Boolean
-    val isLinux: Boolean
-    val isMacOs: Boolean
-    val isWindows: Boolean
-
     val boxService: fr.husi.libcore.Service?
 
     val cacheDir: File

@@ -1,7 +1,7 @@
 package fr.husi.plugin
 
 import fr.husi.database.SagerDatabase
-import fr.husi.repository.repo
+import fr.husi.platform.PlatformInfo
 import kotlinx.coroutines.runBlocking
 import java.io.File
 
@@ -67,7 +67,7 @@ actual object PluginManager {
     }
 
     private fun isExecutable(file: File): Boolean {
-        if (repo.isWindows) return true
+        if (PlatformInfo.isWindows) return true
         return file.canExecute()
     }
 
