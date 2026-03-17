@@ -151,38 +151,6 @@ fun resolveHostDesktopTarget(): DesktopTarget =
         archRawValue = System.getProperty("os.arch"),
     )
 
-fun parseTargetFormat(rawValue: String): TargetFormat {
-    val value = rawValue.trim().lowercase()
-    return when (value) {
-        "dmg" -> TargetFormat.Dmg
-        "pkg" -> TargetFormat.Pkg
-        "msi" -> TargetFormat.Msi
-        "exe" -> TargetFormat.Exe
-        else ->
-            error(
-                "Unsupported desktop target format '$rawValue'. " +
-                    "Use dmg, pkg, msi, or exe.",
-            )
-    }
-}
-
-fun resolveWindowsTargetFormats(): Set<TargetFormat> {
-    val requestedFormats = project.findProperty("desktopWindowsFormats")?.toString().orEmpty().trim()
-    if (requestedFormats.isEmpty()) {
-        return linkedSetOf(TargetFormat.Exe, TargetFormat.Msi)
-    }
-    return requestedFormats
-        .split(",")
-        .map { parseTargetFormat(it) }
-        .filter { it == TargetFormat.Exe || it == TargetFormat.Msi }
-        .toCollection(linkedSetOf())
-        .also {
-            require(it.isNotEmpty()) {
-                "desktopWindowsFormats must include exe or msi."
-            }
-        }
-}
-
 fun normalizeMacPackageVersion(versionName: String): String {
     val numbers =
         Regex("""\d+""")
@@ -194,17 +162,6 @@ fun normalizeMacPackageVersion(versionName: String): String {
     val minor = numbers.getOrElse(1) { "0" }
     val patch = numbers.getOrElse(2) { "0" }
     return "$major.$minor.$patch"
-}
-
-fun normalizeWindowsPackageVersion(versionName: String, versionCode: Int): String {
-    val numbers =
-        Regex("""\d+""")
-            .findAll(versionName).mapNotNull { it.value.toIntOrNull() }
-            .toList()
-    val major = numbers.getOrElse(0) { 0 }.coerceIn(0, 255)
-    val minor = numbers.getOrElse(1) { 0 }.coerceIn(0, 255)
-    val build = versionCode.coerceIn(0, 65535)
-    return "$major.$minor.$build"
 }
 
 val requestedDesktopTargetRaw = project.findProperty("desktopTarget")?.toString()?.trim().orEmpty()
@@ -229,14 +186,12 @@ val libcoreDesktopJar =
     })
 val desktopPackageName = metadata.getProperty("PACKAGE_NAME").trim()
 val desktopVersion = metadata.getProperty("VERSION_NAME").trim()
-val desktopVersionCode = metadata.getProperty("VERSION_CODE").trim().toInt()
 val macPackageVersion = normalizeMacPackageVersion(desktopVersion)
-val windowsPackageVersion = normalizeWindowsPackageVersion(desktopVersion, desktopVersionCode)
 val desktopTargetFormats =
     when (hostDesktopTarget.platform) {
         DesktopPlatform.Linux -> emptySet()
         DesktopPlatform.Darwin -> setOf(TargetFormat.Dmg)
-        DesktopPlatform.Windows -> resolveWindowsTargetFormats()
+        DesktopPlatform.Windows -> linkedSetOf(TargetFormat.Exe)
     }
 
 val generateBuildConfig by tasks.registering {
@@ -414,8 +369,7 @@ compose.desktop {
                 dmgPackageVersion = macPackageVersion
             }
             windows {
-                exePackageVersion = windowsPackageVersion
-                msiPackageVersion = windowsPackageVersion
+                exePackageVersion = macPackageVersion
             }
         }
     }

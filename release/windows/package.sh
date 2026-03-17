@@ -6,23 +6,14 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 METADATA_FILE="$ROOT_DIR/husi.properties"
 DESKTOP_METADATA_FILE="$ROOT_DIR/release/desktop/package-metadata.sh"
-MSI_TEMPLATE_FILE="$ROOT_DIR/release/windows/desktop/installer.wxs"
+NSIS_TEMPLATE_FILE="$ROOT_DIR/release/windows/desktop/installer.nsi"
 JAR_DIR_DEFAULT="$ROOT_DIR/composeApp/build/compose/jars"
 OUTPUT_DIR_DEFAULT="$ROOT_DIR/composeApp/build/compose/packages/windows"
-PACKAGE_NAME_PLACEHOLDER="__HUSI_PACKAGE_NAME__"
-APP_NAME_PLACEHOLDER="__HUSI_APP_NAME__"
-APP_DESCRIPTION_PLACEHOLDER="__HUSI_APP_DESCRIPTION__"
-APP_URL_PLACEHOLDER="__HUSI_APP_URL__"
-MAINTAINER_PLACEHOLDER="__HUSI_MAINTAINER__"
-MSI_VERSION_PLACEHOLDER="__HUSI_MSI_VERSION__"
-MSI_DOWNGRADE_ERROR_PLACEHOLDER="__HUSI_MSI_DOWNGRADE_ERROR__"
-URL_SCHEME_REGISTRY_PLACEHOLDER="__HUSI_URL_SCHEME_REGISTRY__"
-MSI_UI_PLACEHOLDER="__HUSI_MSI_UI__"
 TAG_NAME=""
 TAG_EPOCH=""
 HOST_OS=""
 PYTHON_BIN=""
-MSI_BACKEND=""
+NSIS_BIN=""
 
 log() {
     echo "[package] $*"
@@ -35,14 +26,14 @@ error() {
 usage() {
     cat <<EOF
 Usage:
-  $(basename "$0") [--formats zip,msi] [--target <platform/arch>] [--input-jar <file>] [--launcher-bin <file>] [--output-dir <dir>]
-  $(basename "$0") --check-tools [--formats zip,msi] [--target <platform/arch>]
+  $(basename "$0") [--formats zip,nsis] [--target <platform/arch>] [--input-jar <file>] [--launcher-bin <file>] [--output-dir <dir>]
+  $(basename "$0") --check-tools [--formats zip,nsis] [--target <platform/arch>]
 
 Description:
-  Build Windows portable zip and MSI installer packages from desktop uber jar.
+  Build Windows portable zip and NSIS installer packages from desktop uber jar.
 
 Defaults:
-  --formats      zip,msi
+  --formats      zip,nsis
   --input-jar    newest matching jar under $JAR_DIR_DEFAULT
   --launcher-bin $ROOT_DIR/launcher/zig-out/bin/launcher-windows-<x86_64|aarch64>.exe
   --output-dir   $OUTPUT_DIR_DEFAULT
@@ -224,12 +215,10 @@ resolve_arch() {
         amd64)
             JAR_ARCH="x64"
             LAUNCHER_MACHINE="x86_64"
-            MSI_ARCH="x64"
             ;;
         arm64)
             JAR_ARCH="arm64"
             LAUNCHER_MACHINE="aarch64"
-            MSI_ARCH="arm64"
             ;;
         *)
             error "Unsupported architecture '$TARGET_ARCH'."
@@ -250,13 +239,13 @@ resolve_formats() {
             zip)
                 ENABLED_FORMATS["zip"]=1
                 ;;
-            msi|installer)
-                ENABLED_FORMATS["msi"]=1
+            nsis|installer)
+                ENABLED_FORMATS["nsis"]=1
                 ;;
             "")
                 ;;
             *)
-                error "Unknown format '$item'. Use zip,msi."
+                error "Unknown format '$item'. Use zip,nsis."
                 exit 1
                 ;;
         esac
@@ -268,25 +257,17 @@ resolve_formats() {
     fi
 }
 
-resolve_msi_backend() {
-    if [[ -z "${ENABLED_FORMATS[msi]:-}" ]]; then
+resolve_nsis() {
+    if [[ -z "${ENABLED_FORMATS[nsis]:-}" ]]; then
         return
     fi
 
-    if command -v wixl >/dev/null 2>&1; then
-        MSI_BACKEND="wixl"
-        return
-    fi
-    if command -v wix >/dev/null 2>&1; then
-        MSI_BACKEND="wix"
-        return
-    fi
-    if command -v wix.exe >/dev/null 2>&1; then
-        MSI_BACKEND="wix.exe"
+    if command -v makensis >/dev/null 2>&1; then
+        NSIS_BIN="makensis"
         return
     fi
 
-    error "Missing MSI builder. Install wixl or WiX Toolset."
+    error "Missing required tool: makensis (NSIS). Install nsis package."
     exit 2
 }
 
@@ -294,10 +275,6 @@ require_tools() {
     local -a tools=(awk sed cp mkdir mktemp git sort head rm "$PYTHON_BIN")
     local -a missing=()
     local tool
-
-    if [[ "$MSI_BACKEND" == "wixl" ]]; then
-        tools+=(msiinfo msibuild)
-    fi
 
     for tool in "${tools[@]}"; do
         if ! command -v "$tool" >/dev/null 2>&1; then
@@ -341,25 +318,7 @@ for current, dir_names, file_names in os.walk(root):
 PY
 }
 
-generate_license_rtf() {
-    local output_file="$1"
-    "$PYTHON_BIN" - "$ROOT_DIR/LICENSE" "$output_file" <<'PY'
-import sys
-
-with open(sys.argv[1], "r", encoding="utf-8") as f:
-    text = f.read()
-
-escaped = text.replace("\\", "\\\\").replace("{", "\\{").replace("}", "\\}")
-lines = escaped.split("\n")
-body = "\\par\n".join(lines)
-
-with open(sys.argv[2], "w", encoding="utf-8") as f:
-    f.write("{\\rtf1\\ansi\\deff0{\\fonttbl{\\f0 Consolas;}}\n")
-    f.write("\\f0\\fs18 " + body + "\n}")
-PY
-}
-
-normalize_msi_version() {
+normalize_vi_version() {
     "$PYTHON_BIN" - "$VERSION_NAME" <<'PY'
 import re
 import sys
@@ -367,14 +326,10 @@ import sys
 parts = [int(part) for part in re.findall(r"\d+", sys.argv[1])]
 if not parts:
     raise SystemExit("invalid")
-while len(parts) < 3:
+while len(parts) < 4:
     parts.append(0)
 
-major, minor, build = parts[:3]
-if major > 255 or minor > 255 or build > 65535:
-    raise SystemExit("out-of-range")
-
-print(f"{major}.{minor}.{build}")
+print(".".join(str(p) for p in parts[:4]))
 PY
 }
 
@@ -436,15 +391,22 @@ resolve_launcher_bin() {
     exit 1
 }
 
-windows_url_scheme_registry_entries() {
+nsis_url_scheme_install_entries() {
     local scheme
     for scheme in "${DESKTOP_URL_SCHEMES[@]}"; do
         cat <<EOF
-        <RegistryValue Root="HKCU" Key="Software\\Classes\\$scheme" Type="string" Value="URL:$scheme Protocol" />
-        <RegistryValue Root="HKCU" Key="Software\\Classes\\$scheme" Name="URL Protocol" Type="string" Value="" />
-        <RegistryValue Root="HKCU" Key="Software\\Classes\\$scheme\\DefaultIcon" Type="string" Value="[#MainExecutableFile],0" />
-        <RegistryValue Root="HKCU" Key="Software\\Classes\\$scheme\\shell\\open\\command" Type="string" Value="&quot;[#MainExecutableFile]&quot; &quot;%1&quot;" />
+    WriteRegStr HKCU "Software\\Classes\\$scheme" "" "URL:$scheme Protocol"
+    WriteRegStr HKCU "Software\\Classes\\$scheme" "URL Protocol" ""
+    WriteRegStr HKCU "Software\\Classes\\$scheme\\DefaultIcon" "" "\$INSTDIR\\\${APP_NAME}.exe,0"
+    WriteRegStr HKCU "Software\\Classes\\$scheme\\shell\\open\\command" "" '"\$INSTDIR\\\${APP_NAME}.exe" "%1"'
 EOF
+    done
+}
+
+nsis_url_scheme_uninstall_entries() {
+    local scheme
+    for scheme in "${DESKTOP_URL_SCHEMES[@]}"; do
+        echo "    DeleteRegKey HKCU \"Software\\Classes\\$scheme\""
     done
 }
 
@@ -493,86 +455,45 @@ PY
     log "Built zip: $output_path"
 }
 
-write_msi_source() {
-    local output_file="$1"
-    local msi_version="$2"
-    local url_scheme_registry
-    local downgrade_error
-    local msi_ui=""
-
-    if [[ ! -f "$MSI_TEMPLATE_FILE" ]]; then
-        error "MSI template file not found: $MSI_TEMPLATE_FILE"
-        exit 1
-    fi
-
-    url_scheme_registry="$(windows_url_scheme_registry_entries)"
-    downgrade_error="A newer version of $APP_NAME is already installed."
-
-    case "$MSI_BACKEND" in
-        wix|wix.exe)
-            msi_ui='    <Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR" />
-    <WixVariable Id="WixUILicenseRtf" Value="License.rtf" />
-    <UIRef Id="WixUI_InstallDir" />'
-            ;;
-    esac
-
-    render_template \
-        "$MSI_TEMPLATE_FILE" \
-        "$output_file" \
-        "$PACKAGE_NAME_PLACEHOLDER" "$PACKAGE_NAME" \
-        "$APP_NAME_PLACEHOLDER" "$APP_NAME" \
-        "$APP_DESCRIPTION_PLACEHOLDER" "$APP_DESCRIPTION" \
-        "$APP_URL_PLACEHOLDER" "$APP_URL" \
-        "$MAINTAINER_PLACEHOLDER" "$MAINTAINER" \
-        "$MSI_VERSION_PLACEHOLDER" "$msi_version" \
-        "$MSI_DOWNGRADE_ERROR_PLACEHOLDER" "$downgrade_error" \
-        "$URL_SCHEME_REGISTRY_PLACEHOLDER" "$url_scheme_registry" \
-        "$MSI_UI_PLACEHOLDER" "$msi_ui"
-}
-
-build_msi() {
+build_nsis() {
     local work_dir="$1"
-    local msi_source="$work_dir/installer.wxs"
-    local output_path="$OUTPUT_DIR/${PACKAGE_NAME}-${VERSION_NAME}-windows-${TARGET_ARCH}-installer.msi"
-    local msi_version
+    local nsis_source="$work_dir/installer.nsi"
+    local output_path="$OUTPUT_DIR/${PACKAGE_NAME}-${VERSION_NAME}-windows-${TARGET_ARCH}-installer.exe"
+    local vi_version
+    local url_scheme_registry
+    local url_scheme_unregistry
 
-    msi_version="$(normalize_msi_version)" || {
-        error "VERSION_NAME=$VERSION_NAME cannot be converted to a valid MSI version."
+    vi_version="$(normalize_vi_version)" || {
+        error "VERSION_NAME=$VERSION_NAME cannot be converted to a VIProductVersion."
         exit 1
     }
 
-    write_msi_source "$msi_source" "$msi_version"
+    url_scheme_registry="$(nsis_url_scheme_install_entries)"
+    url_scheme_unregistry="$(nsis_url_scheme_uninstall_entries)"
+
+    render_template \
+        "$NSIS_TEMPLATE_FILE" \
+        "$nsis_source" \
+        "__HUSI_PACKAGE_NAME__" "$PACKAGE_NAME" \
+        "__HUSI_APP_NAME__" "$APP_NAME" \
+        "__HUSI_APP_VERSION__" "$VERSION_NAME" \
+        "__HUSI_APP_DESCRIPTION__" "$APP_DESCRIPTION" \
+        "__HUSI_APP_URL__" "$APP_URL" \
+        "__HUSI_MAINTAINER__" "$MAINTAINER" \
+        "__HUSI_VI_VERSION__" "$vi_version" \
+        "__HUSI_OUTPUT_FILE__" "$output_path" \
+        "__HUSI_LICENSE_FILE__" "$ROOT_DIR/LICENSE" \
+        "__HUSI_LAUNCHER_FILE__" "$INPUT_LAUNCHER_BIN" \
+        "__HUSI_JAR_FILE__" "$INPUT_JAR" \
+        "__HUSI_JAVA_OPTS_FILE__" "$ROOT_DIR/release/linux/desktop/desktop-java-opts.conf" \
+        "__HUSI_APP_ARGS_FILE__" "$ROOT_DIR/release/linux/desktop/desktop-app-args.conf" \
+        "__HUSI_URL_SCHEME_REGISTRY__" "$url_scheme_registry" \
+        "__HUSI_URL_SCHEME_UNREGISTRY__" "$url_scheme_unregistry"
+
     rm -f "$output_path"
-
-    case "$MSI_BACKEND" in
-        wixl)
-            (
-                cd "$work_dir"
-                if [[ "$MSI_ARCH" == "arm64" ]]; then
-                    wixl -a x64 -o "$output_path" installer.wxs
-                    local package_code
-                    package_code="$(msiinfo export "$output_path" _SummaryInformation | awk -F '\t' '$1==9 {print $2}')"
-                    msibuild "$output_path" -s "$APP_NAME" "$MAINTAINER" "Arm64;1033" "$package_code"
-                else
-                    wixl -a "$MSI_ARCH" -o "$output_path" installer.wxs
-                fi
-            )
-            ;;
-        wix|wix.exe)
-            generate_license_rtf "$work_dir/License.rtf"
-            (
-                cd "$work_dir"
-                "$MSI_BACKEND" build -arch "$MSI_ARCH" -ext WixToolset.UI.wixext -out "$output_path" installer.wxs
-            )
-            ;;
-        *)
-            error "Unsupported MSI backend: $MSI_BACKEND"
-            exit 1
-            ;;
-    esac
-
+    "$NSIS_BIN" "$nsis_source"
     touch_path "$output_path"
-    log "Built MSI: $output_path"
+    log "Built NSIS installer: $output_path"
 }
 
 TARGET=""
@@ -581,7 +502,7 @@ TARGET_ARCH=""
 INPUT_JAR=""
 INPUT_LAUNCHER_BIN=""
 OUTPUT_DIR="$OUTPUT_DIR_DEFAULT"
-FORMATS="zip,msi"
+FORMATS="zip,nsis"
 CHECK_TOOLS=0
 PACKAGE_NAME=""
 VERSION_NAME=""
@@ -639,8 +560,7 @@ resolve_host_os
 resolve_target
 resolve_arch
 resolve_formats "$FORMATS"
-resolve_tag_epoch
-resolve_msi_backend
+resolve_nsis
 require_tools
 
 if [[ "$CHECK_TOOLS" -eq 1 ]]; then
@@ -648,6 +568,7 @@ if [[ "$CHECK_TOOLS" -eq 1 ]]; then
     exit 0
 fi
 
+resolve_tag_epoch
 resolve_input_jar "$INPUT_JAR"
 resolve_launcher_bin "$INPUT_LAUNCHER_BIN"
 mkdir -p "$OUTPUT_DIR"
@@ -658,17 +579,13 @@ cleanup() {
 }
 trap cleanup EXIT
 
-portable_root="$work_dir/${APP_NAME}-${VERSION_NAME}-windows-${TARGET_ARCH}"
-installer_root="$work_dir/installer-root"
-
-prepare_rootfs "$portable_root"
-prepare_rootfs "$installer_root"
-
 if [[ -n "${ENABLED_FORMATS[zip]:-}" ]]; then
+    portable_root="$work_dir/${APP_NAME}-${VERSION_NAME}-windows-${TARGET_ARCH}"
+    prepare_rootfs "$portable_root"
     build_zip "$portable_root"
 fi
-if [[ -n "${ENABLED_FORMATS[msi]:-}" ]]; then
-    build_msi "$work_dir"
+if [[ -n "${ENABLED_FORMATS[nsis]:-}" ]]; then
+    build_nsis "$work_dir"
 fi
 
 log "Done. Output directory: $OUTPUT_DIR"
