@@ -369,7 +369,7 @@ class ConfigurationScreenViewModel : ViewModel() {
         val cacheFiles = ArrayList<File>()
 
         return try {
-            client = Libcore.newClient()
+            client = Libcore.newClient(null)
             val config = buildConfig(profile, forTest = true)
 
             if (config.externalIndex.any { it.chain.isNotEmpty() }) {

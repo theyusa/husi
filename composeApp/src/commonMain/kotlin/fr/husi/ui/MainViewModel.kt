@@ -7,28 +7,17 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import fr.husi.GroupType
 import fr.husi.Key
-import fr.husi.SubscriptionType
+import fr.husi.bg.DeepLinkDispatcher
 import fr.husi.database.DataStore
 import fr.husi.database.GroupManager
-import fr.husi.database.ProfileManager
 import fr.husi.database.ProxyGroup
-import fr.husi.database.SubscriptionBean
 import fr.husi.fmt.AbstractBean
-import fr.husi.fmt.KryoConverters
-import fr.husi.group.GroupUpdater
 import fr.husi.group.RawUpdater
 import fr.husi.ktx.Logs
 import fr.husi.ktx.SubscriptionFoundException
-import fr.husi.ktx.b64Decode
-import fr.husi.ktx.blankAsNull
-import fr.husi.ktx.defaultOr
-import fr.husi.ktx.parseProxies
 import fr.husi.ktx.readableMessage
 import fr.husi.ktx.runOnIoDispatcher
-import fr.husi.ktx.zlibDecompress
-import fr.husi.libcore.Libcore
 import fr.husi.repository.repo
 import fr.husi.utils.LibcoreClientManager
 import kotlinx.coroutines.CompletableDeferred
@@ -76,7 +65,9 @@ sealed interface MainViewModelUiEvent {
 }
 
 @Stable
-class MainViewModel : ViewModel(), GroupManager.Interface {
+class MainViewModel(
+    private val importLinkInteractor: ImportLinkInteractor = ImportLinkInteractor(),
+) : ViewModel(), GroupManager.Interface {
 
     private val _urlTestStatus = MutableStateFlow<URLTestStatus>(URLTestStatus.Initial)
     val urlTestStatus = _urlTestStatus.asStateFlow()
@@ -95,6 +86,12 @@ class MainViewModel : ViewModel(), GroupManager.Interface {
 
     init {
         GroupManager.userInterface = this
+
+        viewModelScope.launch {
+            DeepLinkDispatcher.flow.collect { link ->
+                importFromUri(link)
+            }
+        }
 
         viewModelScope.launch {
             DataStore.configurationStore.keysFlow(
@@ -163,70 +160,31 @@ class MainViewModel : ViewModel(), GroupManager.Interface {
         }
     }
 
-    fun importFromUri(uri: String) {
-        if (uri.startsWith("sing-box://") || uri.startsWith("husi://subscription")) {
-            importSubscription(uri)
-        } else {
-            importProfileFromUri(uri)
-        }
-    }
-
-    fun importSubscription(uri: String) = viewModelScope.launch {
-        val urlForQuery = try {
-            Libcore.parseURL(uri)
+    fun importFromUri(uri: String) = viewModelScope.launch {
+        val preview = try {
+            importLinkInteractor.parseUri(uri)
         } catch (e: Exception) {
             _uiEvent.emit(alertDialog(StringOrRes.Direct(e.readableMessage)))
             return@launch
         }
-        val group: ProxyGroup
-        val url = defaultOr(
-            "",
-            { urlForQuery.queryParameter("url") },
-            {
-                when (urlForQuery.scheme) {
-                    "http", "https" -> uri
-                    else -> null
-                }
-            },
-        )
-        if (url.isNotBlank()) {
-            group = ProxyGroup(type = GroupType.SUBSCRIPTION)
-            group.subscription = SubscriptionBean().apply {
-                // cleartext format
-                link = url
-                type = when (urlForQuery.queryParameter("type")?.lowercase()) {
-                    "oocv1" -> SubscriptionType.OOCv1
-                    "sip008" -> SubscriptionType.SIP008
-                    else -> SubscriptionType.RAW
-                }
-            }
-
-            group.name = defaultOr(
-                "",
-                { urlForQuery.queryParameter("name") },
-                { urlForQuery.fragment },
-            )
-        } else {
-            val data =
-                uri.substringAfter('?', "").substringBefore('#').blankAsNull() ?: return@launch
-            try {
-                group = KryoConverters.deserialize(
-                    ProxyGroup().apply { export = true },
-                    data.b64Decode().zlibDecompress(),
-                ).apply {
-                    export = false
-                }
-            } catch (e: Exception) {
-                _uiEvent.emit(alertDialog(StringOrRes.Direct(e.readableMessage)))
-                return@launch
-            }
+        when (preview) {
+            ImportLinkPreview.Ignore -> Unit
+            is ImportLinkPreview.Subscription -> showImportSubscriptionDialog(preview.group)
+            is ImportLinkPreview.Profiles -> showImportProfileDialog(preview.proxies)
         }
+    }
 
-        if (group.name.isNullOrBlank() && group.subscription?.link.isNullOrBlank() && group.subscription?.token.isNullOrBlank()) {
+    fun importSubscription(uri: String) = viewModelScope.launch {
+        val group = try {
+            importLinkInteractor.parseSubscription(uri)
+        } catch (e: Exception) {
+            _uiEvent.emit(alertDialog(StringOrRes.Direct(e.readableMessage)))
             return@launch
-        }
-        group.name = group.name.blankAsNull() ?: ("Subscription #" + System.currentTimeMillis())
+        } ?: return@launch
+        showImportSubscriptionDialog(group)
+    }
 
+    private suspend fun showImportSubscriptionDialog(group: ProxyGroup) {
         val detail = group.name + "\n" + group.subscription?.link + "\n" + group.subscription?.token
         _uiEvent.emit(
             MainViewModelUiEvent.AlertDialog(
@@ -234,8 +192,7 @@ class MainViewModel : ViewModel(), GroupManager.Interface {
                 message = StringOrRes.ResWithParams(Res.string.subscription_import_message, detail),
                 confirmButton = AlertButton(StringOrRes.Res(Res.string.ok)) {
                     runOnIoDispatcher {
-                        GroupManager.createGroup(group)
-                        GroupUpdater.startUpdate(group, true)
+                        importLinkInteractor.importSubscription(group)
                     }
                 },
                 dismissButton = AlertButton(StringOrRes.Res(Res.string.cancel)) {},
@@ -243,16 +200,10 @@ class MainViewModel : ViewModel(), GroupManager.Interface {
         )
     }
 
-    private fun importProfileFromUri(uri: String) = viewModelScope.launch {
-        val profiles = try {
-            parseProxies(uri)
-        } catch (e: Exception) {
-            _uiEvent.emit(alertDialog(StringOrRes.Direct(e.readableMessage)))
-            return@launch
-        }
+    private suspend fun showImportProfileDialog(profiles: List<AbstractBean>) {
         if (profiles.isEmpty()) {
             _uiEvent.emit(alertDialog(StringOrRes.Res(Res.string.no_proxies_found)))
-            return@launch
+            return
         }
         _uiEvent.emit(
             MainViewModelUiEvent.AlertDialog(
@@ -314,17 +265,13 @@ class MainViewModel : ViewModel(), GroupManager.Interface {
     }
 
     suspend fun importProfile(proxies: List<AbstractBean>) {
-        val targetId = DataStore.selectedGroupForImport()
-        for (proxy in proxies) {
-            ProfileManager.createProfile(targetId, proxy)
-        }
-        DataStore.selectedGroup = targetId
+        val importedCount = importLinkInteractor.importProfiles(proxies)
         _uiEvent.emit(
             MainViewModelUiEvent.Snackbar(
                 StringOrRes.PluralsRes(
                     Res.plurals.added,
-                    proxies.size,
-                    proxies.size,
+                    importedCount,
+                    importedCount,
                 ),
             ),
         )

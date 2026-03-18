@@ -147,6 +147,10 @@ class AndroidPlatformInterface : PlatformInterface {
         ServiceRegistry.baseService?.data?.proxy?.trafficLooper?.updateSelectedTag(group, old, now)
     }
 
+    override fun onDeepLink(deepLink: String) {
+        DeepLinkDispatcher.emit(deepLink)
+    }
+
     private class InterfaceArray(
         private val iterator: Iterator<LibcoreNetworkInterface>,
         private val size: Int,

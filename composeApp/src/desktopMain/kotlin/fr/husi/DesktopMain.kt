@@ -22,6 +22,7 @@ import androidx.compose.ui.window.rememberTrayState
 import androidx.compose.ui.window.rememberWindowState
 import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.husi.bg.BackendState
+import fr.husi.bg.DeepLinkDispatcher
 import fr.husi.bg.ServiceState
 import fr.husi.compose.getPlainText
 import fr.husi.compose.theme.AppTheme
@@ -29,8 +30,12 @@ import fr.husi.database.DataStore
 import fr.husi.keyevent.KeyEventManagerDesktop
 import fr.husi.keyevent.LocalKeyEventManager
 import fr.husi.keyevent.isTypeControlPressed
+import fr.husi.ktx.Logs
 import fr.husi.ktx.blankAsNull
+import fr.husi.ktx.exitApplication
 import fr.husi.ktx.runOnDefaultDispatcher
+import fr.husi.ktx.toStringIterator
+import fr.husi.libcore.Client
 import fr.husi.libcore.Libcore
 import fr.husi.libcore.loadCA
 import fr.husi.platform.PlatformInfo
@@ -56,9 +61,12 @@ import fr.husi.utils.CrashHandler
 import fr.husi.utils.copyBundledRuleSetAssetsIfNeeded
 import kotlinx.cli.ArgParser
 import kotlinx.cli.ArgType
+import kotlinx.cli.optional
+import kotlinx.cli.vararg
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import java.awt.Desktop
 import java.io.File
 import javax.swing.JOptionPane
 import kotlin.system.exitProcess
@@ -70,8 +78,12 @@ private const val PreferenceNodePropertyName = "me.zhanghai.compose.preference.n
 private const val PreferenceNodeName = "/fr/husi/preference"
 
 fun main(args: Array<String>) {
+    registerMacOSOpenUriHandler()
     val desktopArgs = parseDesktopStartupArgs(args)
     initDesktopRuntime(desktopArgs)
+    for (link in desktopArgs.deepLinks) {
+        DeepLinkDispatcher.emit(link)
+    }
 
     application {
         val keyEventManager = remember { KeyEventManagerDesktop() }
@@ -222,10 +234,24 @@ fun main(args: Array<String>) {
     }
 }
 
+private fun registerMacOSOpenUriHandler() {
+    if (!PlatformInfo.isMacOs) return
+    try {
+        val desktop = Desktop.getDesktop()
+        if (!desktop.isSupported(Desktop.Action.APP_OPEN_URI)) return
+        desktop.setOpenURIHandler { event ->
+            DeepLinkDispatcher.emit(event.uri.toString())
+        }
+    } catch (e: Exception) {
+        Logs.w("register macOS open-uri handler", e)
+    }
+}
+
 private data class DesktopStartupArgs(
     val baseDir: File?,
     val logLevelOverride: Int?,
     val many: Boolean,
+    val deepLinks: List<String>,
 )
 
 private fun parseDesktopStartupArgs(args: Array<String>): DesktopStartupArgs {
@@ -248,11 +274,17 @@ private fun parseDesktopStartupArgs(args: Array<String>): DesktopStartupArgs {
         shortName = "m",
         description = "Ignore exist instance",
     )
+    val links by parser.argument(
+        type = ArgType.String,
+        fullName = "deep-link",
+        description = "Deep links",
+    ).vararg().optional()
     parser.parse(args)
     return DesktopStartupArgs(
         baseDir = baseDir?.blankAsNull()?.let(::File),
         logLevelOverride = logLevel?.takeIf { it in MIN_LOG_LEVEL..MAX_LOG_LEVEL },
         many = many == true,
+        deepLinks = links,
     )
 }
 
@@ -265,11 +297,18 @@ private fun initDesktopRuntime(startupArgs: DesktopStartupArgs) {
     baseDir.mkdirs()
     desktopRepo = DesktopRepository(baseDir)
     val filesDir = repo.filesDir.absolutePath + "/"
+
     if (!startupArgs.many) {
-        Libcore.hasAPIInstance(filesDir).blankAsNull()?.let {
-            warnForExistInstance(it)
+        when (checkExistingInstance(filesDir, startupArgs.deepLinks)) {
+            ExistingInstanceCheckResult.NotFound -> Unit
+            ExistingInstanceCheckResult.ExistsNoDeepLink,
+            ExistingInstanceCheckResult.ExistsForwardFailed,
+                -> warnForExistInstanceAndExit(filesDir)
+
+            ExistingInstanceCheckResult.ExistsForwarded -> exitApplication()
         }
     }
+
     Thread.setDefaultUncaughtExceptionHandler(CrashHandler)
 
     val cacheDir = repo.cacheDir.absolutePath + "/"
@@ -296,7 +335,43 @@ private fun initDesktopRuntime(startupArgs: DesktopStartupArgs) {
     repo.boxService?.start()
 }
 
-private fun warnForExistInstance(socketPath: String) {
+private enum class ExistingInstanceCheckResult {
+    NotFound,
+    ExistsNoDeepLink,
+    ExistsForwarded,
+    ExistsForwardFailed,
+}
+
+private fun checkExistingInstance(
+    socketBasePath: String,
+    deepLinks: List<String>,
+): ExistingInstanceCheckResult {
+    val client = runCatching {
+        Libcore.newClient(socketBasePath)
+    }.getOrNull() ?: return ExistingInstanceCheckResult.NotFound
+    return try {
+        if (deepLinks.isEmpty()) {
+            ExistingInstanceCheckResult.ExistsNoDeepLink
+        } else if (forwardDeepLinks(client, deepLinks)) {
+            ExistingInstanceCheckResult.ExistsForwarded
+        } else {
+            ExistingInstanceCheckResult.ExistsForwardFailed
+        }
+    } finally {
+        client.close()
+    }
+}
+
+private fun forwardDeepLinks(client: Client, deepLinks: List<String>): Boolean {
+    return runCatching {
+        client.importDeepLinks(deepLinks.toStringIterator(deepLinks.size))
+    }.onFailure {
+        Logs.e(it)
+    }.isSuccess
+}
+
+private fun warnForExistInstanceAndExit(socketBasePath: String) {
+    val socketPath = socketBasePath + Libcore.Socket
     val title = runBlocking { repo.getString(Res.string.instance_already_running_title) }
     val message = runBlocking { repo.getString(Res.string.instance_already_running, socketPath) }
     try {

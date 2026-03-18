@@ -131,7 +131,7 @@ func (s *Service) Start() error {
 		listener *net.UnixListener
 		err      error
 	)
-	listenPath := apiPath()
+	listenPath := apiPath("")
 	_ = os.Remove(listenPath)
 	// Copied from libbox, idk why.
 	for range 30 {
@@ -353,10 +353,10 @@ func (s *Service) handleRequest(conn net.Conn) error {
 			return E.Cause(err, "handle url test")
 		}
 		return nil
-	case commandPing:
-		err := s.handlePing(conn)
+	case commandImportDeepLink:
+		err := s.handleImportDeepLink(conn)
 		if err != nil {
-			return E.Cause(err, "handle ping")
+			return E.Cause(err, "handle deep link import")
 		}
 		return nil
 	default:
@@ -403,10 +403,16 @@ func (s *Service) handleQueryStats(conn io.ReadWriter, instance *boxInstance) er
 	return nil
 }
 
-func (s *Service) handlePing(conn io.ReadWriter) error {
-	err := vario.WriteUint8(conn, resultNoError)
+func (s *Service) handleImportDeepLink(conn io.ReadWriter) error {
+	deepLinks, err := vario.ReadStringSlice(conn)
 	if err != nil {
-		return E.Cause(err, "write resultNoError")
+		return E.Cause(err, "read deep links")
+	}
+	if len(deepLinks) == 0 || s.platformInterface == nil {
+		return nil
+	}
+	for _, deepLink := range deepLinks {
+		s.platformInterface.OnDeepLink(deepLink)
 	}
 	return nil
 }

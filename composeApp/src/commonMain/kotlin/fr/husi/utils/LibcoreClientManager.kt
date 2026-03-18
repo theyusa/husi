@@ -38,7 +38,7 @@ class LibcoreClientManager(
     }
 
     private fun offer(): Client {
-        return client ?: Libcore.newClient().also { client = it }
+        return client ?: Libcore.newClient(null).also { client = it }
     }
 
     suspend fun close() {
@@ -73,7 +73,7 @@ class LibcoreClientManager(
         var delayMs = retryDelayMs
         while (isActive) {
             val subClient = try {
-                Libcore.newClient()
+                Libcore.newClient(null)
             } catch (e: Exception) {
                 Logs.w("$label create client", e)
                 delay(delayMs)

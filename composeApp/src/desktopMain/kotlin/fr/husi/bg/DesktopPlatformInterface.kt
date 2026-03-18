@@ -58,6 +58,10 @@ class DesktopPlatformInterface : PlatformInterface {
         desktopRepo.serviceRuntime.trafficLooper?.updateSelectedTag(group, old, now)
     }
 
+    override fun onDeepLink(deepLink: String) {
+        DeepLinkDispatcher.emit(deepLink)
+    }
+
     override fun openTun(): Int {
         throw UnsupportedOperationException()
     }

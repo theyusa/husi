@@ -23,7 +23,7 @@ const (
 	commandResetNetwork
 	commandClearLog
 	commandSubscribeLogs
-	commandPing
+	commandImportDeepLink
 )
 
 const (
@@ -31,6 +31,9 @@ const (
 	resultCommonError
 )
 
-func apiPath() string {
-	return filepath.Join(internalAssetsPath, Socket)
+func apiPath(basePath string) string {
+	if basePath == "" {
+		basePath = internalAssetsPath
+	}
+	return filepath.Join(basePath, Socket)
 }

@@ -2,7 +2,6 @@ package libcore
 
 import (
 	"net"
-	"path/filepath"
 	"time"
 
 	"libcore/vario"
@@ -15,13 +14,14 @@ type Client struct {
 	conn *net.UnixConn
 }
 
-func NewClient() (*Client, error) {
+func NewClient(basePath string) (*Client, error) {
+	path := apiPath(basePath)
 	var (
 		conn *net.UnixConn
 		err  error
 	)
 	for i := range 10 {
-		conn, err = dialUnix(apiPath())
+		conn, err = net.DialUnix("unix", nil, &net.UnixAddr{Name: path, Net: "unix"})
 		if err == nil {
 			break
 		}
@@ -37,32 +37,14 @@ func (c *Client) Close() error {
 	return common.Close(c.conn)
 }
 
-func HasAPIInstance(internalAssets string) string {
-	path := filepath.Join(internalAssets, Socket)
-	exist := hasAPIInstance(path)
-	if !exist {
-		return ""
-	}
-	return path
-}
-
-func hasAPIInstance(path string) bool {
-	conn, err := dialUnix(path)
+func (c *Client) ImportDeepLinks(deepLinks StringIterator) error {
+	err := vario.WriteUint8(c.conn, commandImportDeepLink)
 	if err != nil {
-		return false
+		return E.Cause(err, "write command")
 	}
-	defer conn.Close()
-	err = vario.WriteUint8(conn, commandPing)
+	err = vario.WriteStringSlice(c.conn, iteratorToArray(deepLinks))
 	if err != nil {
-		return false
+		return E.Cause(err, "write deep link")
 	}
-	result, err := vario.ReadUint8(conn)
-	if err != nil {
-		return false
-	}
-	return result == resultNoError
-}
-
-func dialUnix(path string) (*net.UnixConn, error) {
-	return net.DialUnix("unix", nil, &net.UnixAddr{Name: path, Net: "unix"})
+	return nil
 }

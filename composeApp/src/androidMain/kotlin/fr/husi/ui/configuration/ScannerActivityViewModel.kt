@@ -16,20 +16,11 @@ import com.google.zxing.NotFoundException
 import com.google.zxing.RGBLuminanceSource
 import com.google.zxing.common.GlobalHistogramBinarizer
 import com.google.zxing.qrcode.QRCodeReader
-import fr.husi.GroupType
-import fr.husi.SubscriptionType
-import fr.husi.database.DataStore
-import fr.husi.database.GroupManager
-import fr.husi.database.ProfileManager
-import fr.husi.database.ProxyGroup
-import fr.husi.database.SubscriptionBean
-import fr.husi.group.GroupUpdater
 import fr.husi.group.RawUpdater
 import fr.husi.ktx.SubscriptionFoundException
-import fr.husi.ktx.blankAsNull
-import fr.husi.ktx.defaultOr
 import fr.husi.ktx.onIoDispatcher
 import fr.husi.ktx.runOnDefaultDispatcher
+import fr.husi.ui.ImportLinkInteractor
 import fr.husi.ui.StringOrRes
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -54,7 +45,9 @@ internal sealed interface ScannerUiEvent {
 }
 
 @Stable
-internal class ScannerActivityViewModel : ViewModel() {
+internal class ScannerActivityViewModel(
+    private val importLinkInteractor: ImportLinkInteractor = ImportLinkInteractor(),
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ScannerUiState())
     val uiState = _uiState.asStateFlow()
@@ -128,6 +121,8 @@ internal class ScannerActivityViewModel : ViewModel() {
                 _uiEvent.emit(ScannerUiEvent.AskSubscriptionOrProfile(value))
             }
 
+            "sing-box" -> importSubscription(value)
+            "husi" -> importSubscription(value)
             else -> parseAndImportProfile(value)
         }
     }
@@ -140,14 +135,8 @@ internal class ScannerActivityViewModel : ViewModel() {
                 onFailure(null)
             } else {
                 _uiEvent.emit(ScannerUiEvent.Finish)
-                val currentGroupId = DataStore.selectedGroupForImport()
                 onIoDispatcher {
-                    if (DataStore.selectedGroup != currentGroupId) {
-                        DataStore.selectedGroup = currentGroupId
-                    }
-                    for (profile in results) {
-                        ProfileManager.createProfile(currentGroupId, profile)
-                    }
+                    importLinkInteractor.importProfiles(results)
                 }
             }
         } catch (e: SubscriptionFoundException) {
@@ -161,35 +150,8 @@ internal class ScannerActivityViewModel : ViewModel() {
 
     fun importSubscription(url: String) = runOnDefaultDispatcher {
         try {
-            val uri = url.toUri()
-            val group: ProxyGroup
-            val link = defaultOr(
-                "",
-                { uri.getQueryParameter("url") },
-                {
-                    when (uri.scheme) {
-                        "http", "https" -> uri.toString()
-                        else -> null
-                    }
-                },
-            )
-            if (link.isNotBlank()) {
-                group = ProxyGroup(type = GroupType.SUBSCRIPTION)
-                group.subscription = SubscriptionBean().apply {
-                    this.link = link
-                    type = when (uri.getQueryParameter("type")?.lowercase()) {
-                        "oocv1" -> SubscriptionType.OOCv1
-                        "sip008" -> SubscriptionType.SIP008
-                        else -> SubscriptionType.RAW
-                    }
-                }
-
-                group.name = defaultOr(
-                    "",
-                    { uri.getQueryParameter("name") },
-                    { uri.fragment },
-                )
-            } else {
+            val group = importLinkInteractor.parseSubscription(url)
+            if (group == null) {
                 isProcessing = false
                 viewModelScope.launch {
                     _uiEvent.emit(ScannerUiEvent.Snakebar(StringOrRes.Res(Res.string.action_import_err)))
@@ -197,16 +159,9 @@ internal class ScannerActivityViewModel : ViewModel() {
                 return@runOnDefaultDispatcher
             }
 
-            if (group.name.isNullOrBlank() && group.subscription?.link.isNullOrBlank()) {
-                isProcessing = false
-                return@runOnDefaultDispatcher
-            }
-            group.name = group.name.blankAsNull() ?: ("Subscription #" + System.currentTimeMillis())
-
             _uiEvent.emit(ScannerUiEvent.Finish)
             onIoDispatcher {
-                GroupManager.createGroup(group)
-                GroupUpdater.startUpdate(group, true)
+                importLinkInteractor.importSubscription(group)
             }
         } catch (e: Exception) {
             isProcessing = false

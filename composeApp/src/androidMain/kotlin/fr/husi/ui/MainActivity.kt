@@ -5,6 +5,7 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.runtime.CompositionLocalProvider
+import fr.husi.bg.DeepLinkDispatcher
 import fr.husi.compose.theme.AppTheme
 import fr.husi.permission.LocalPermissionPlatform
 import fr.husi.permission.rememberAndroidPermissionPlatform
@@ -47,7 +48,7 @@ class MainActivity : ComposeActivity() {
         super.onNewIntent(intent)
 
         val uri = intent.data ?: return
-        viewModel.importFromUri(uri.toString())
+        DeepLinkDispatcher.emit(uri.toString())
     }
 
     override fun onStart() {

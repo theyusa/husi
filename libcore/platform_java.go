@@ -16,6 +16,7 @@ type PlatformInterface interface {
 	DeviceName() string
 	AnchorSSID() string
 	OnGroupSelectedChange(group, old, now string)
+	OnDeepLink(deepLink string)
 }
 
 type StringFunc interface {
