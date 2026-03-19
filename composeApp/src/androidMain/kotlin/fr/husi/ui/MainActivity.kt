@@ -5,11 +5,17 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.lifecycle.lifecycleScope
+import fr.husi.Key
 import fr.husi.bg.DeepLinkDispatcher
 import fr.husi.compose.theme.AppTheme
+import fr.husi.database.DataStore
 import fr.husi.permission.LocalPermissionPlatform
 import fr.husi.permission.rememberAndroidPermissionPlatform
+import fr.husi.repository.repo
 import fr.husi.service.ServiceConnector
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class MainActivity : ComposeActivity() {
 
@@ -19,6 +25,16 @@ class MainActivity : ComposeActivity() {
         super.onCreate(savedInstanceState)
 
         ServiceConnector.connect()
+        lifecycleScope.launch(Dispatchers.IO) {
+            DataStore.configurationStore
+                .stringFlow(Key.SERVICE_MODE, Key.MODE_VPN)
+                .collect {
+                    if (DataStore.serviceState.started) {
+                        repo.reloadService()
+                        ServiceConnector.reconnect()
+                    }
+                }
+        }
 
         when (intent.action) {
             Intent.ACTION_VIEW -> onNewIntent(intent)

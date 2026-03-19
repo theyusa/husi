@@ -455,10 +455,7 @@ fun SettingsScreen(
 
                         ListPreference(
                             value = stored,
-                            onValueChange = {
-                                DataStore.serviceMode = it
-                                needReload()
-                            },
+                            onValueChange = { DataStore.serviceMode = it },
                             values = values,
                             title = { Text(stringResource(Res.string.service_mode)) },
                             icon = {
