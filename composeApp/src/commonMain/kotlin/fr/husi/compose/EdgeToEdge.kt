@@ -10,10 +10,12 @@ import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.plus
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Stable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.LayoutDirection
 
 /**
  * Make content expand to the bottom of three-button navigation bar.
@@ -28,7 +30,7 @@ fun Modifier.paddingExceptBottom(paddingValues: PaddingValues): Modifier {
             start = paddingValues.calculateStartPadding(LocalLayoutDirection.current),
             top = paddingValues.calculateTopPadding(),
             end = paddingValues.calculateEndPadding(LocalLayoutDirection.current),
-        )
+        ),
     )
 }
 
@@ -53,3 +55,22 @@ fun PaddingValues.withNavigation(): PaddingValues {
         bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding(),
     )
 }
+
+// FIXME: This API is added back in compose 1.11.0-beta01.
+@Stable
+operator fun PaddingValues.plus(other: PaddingValues): PaddingValues =
+    object : PaddingValues {
+        override fun calculateLeftPadding(layoutDirection: LayoutDirection): Dp =
+            this@plus.calculateLeftPadding(layoutDirection) +
+                    other.calculateLeftPadding(layoutDirection)
+
+        override fun calculateTopPadding(): Dp =
+            this@plus.calculateTopPadding() + other.calculateTopPadding()
+
+        override fun calculateRightPadding(layoutDirection: LayoutDirection): Dp =
+            this@plus.calculateRightPadding(layoutDirection) +
+                    other.calculateRightPadding(layoutDirection)
+
+        override fun calculateBottomPadding(): Dp =
+            this@plus.calculateBottomPadding() + other.calculateBottomPadding()
+    }

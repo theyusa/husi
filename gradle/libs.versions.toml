@@ -1,8 +1,8 @@
 [versions]
 ksp = "2.3.6"
-kotlinComposePlugin = "2.3.20-RC3"
+kotlinComposePlugin = "2.3.20"
 composeMultiplatform = "1.10.2"
-composeMaterial3 = "1.11.0-alpha03"
+composeMaterial3 = "1.11.0-alpha04"
 kotlinCoroutines = "1.10.2"
 kotlinxSerialization = "1.10.0"
 kotlinxDatetime = "0.7.1"
@@ -30,9 +30,9 @@ fileKit = "0.13.0"
 kryo = "5.6.2"
 ini4j = "0.5.4"
 junitBom = "6.0.3"
-aboutlibraries = "14.0.0-b02"
+aboutlibraries = "14.0.0-b03"
 agp = "9.1.0"
-kotlinGradlePlugin = "2.3.20-RC3"
+kotlinGradlePlugin = "2.3.20"
 
 [libraries]
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinCoroutines" }
