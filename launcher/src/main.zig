@@ -152,7 +152,7 @@ const PlatformPrivilege = switch (native_os) {
             const script = try std.fmt.allocPrint(allocator, "do shell script \"{s}\" with administrator privileges", .{command});
             defer allocator.free(script);
 
-            var child = std.process.Child.init(&.{ "osascript", "-e", script }, allocator);
+            var child = process.Child.init(&.{ "osascript", "-e", script }, allocator);
             child.stdin_behavior = .Ignore;
             child.stdout_behavior = .Ignore;
             child.stderr_behavior = .Ignore;
@@ -337,7 +337,7 @@ fn resolveConfigBase(allocator: mem.Allocator) ![]u8 {
             return std.fmt.allocPrint(allocator, "{s}/Library/Application Support", .{home});
         },
         .windows => {
-            return try std.process.getEnvVarOwned(allocator, "APPDATA");
+            return try process.getEnvVarOwned(allocator, "APPDATA");
         },
         else => unreachable,
     }
@@ -366,7 +366,7 @@ fn resolveMacOSJavaHome(allocator: mem.Allocator) !?[]const u8 {
     if (native_os != .macos) return null;
 
     const java_version = "21";
-    const result = std.process.Child.run(.{
+    const result = process.Child.run(.{
         .allocator = allocator,
         .argv = &.{ "/usr/libexec/java_home", "-v", java_version },
     }) catch |err| switch (err) {
@@ -484,10 +484,13 @@ pub fn main() !u8 {
     for (proc_args[1..]) |arg| try child_argv.append(allocator, arg);
 
     while (true) {
-        var child = std.process.Child.init(child_argv.items, allocator);
+        var child = process.Child.init(child_argv.items, allocator);
         child.stdin_behavior = .Inherit;
         child.stdout_behavior = .Inherit;
         child.stderr_behavior = .Inherit;
+        if (native_os == .windows) {
+            child.create_no_window = true;
+        }
 
         const term = child.spawnAndWait() catch |err| {
             std.debug.print("spawn and wait failed: {}\n", .{err});
