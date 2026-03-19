@@ -473,7 +473,7 @@ build_dmg() {
     local app_bundle="$1"
     local work_dir="$2"
     local dmg_root="$work_dir/dmg-root"
-    local output_path="$OUTPUT_DIR/${PACKAGE_NAME}-${VERSION_NAME}-darwin-${TARGET_ARCH}.dmg"
+    local output_path="$OUTPUT_DIR/${PACKAGE_NAME}-${VERSION_NAME}-${TARGET_ARCH}.dmg"
 
     rm -rf "$dmg_root"
     mkdir -p "$dmg_root"
