@@ -208,7 +208,9 @@ import fr.husi.resources.service_mode_vpn
 import fr.husi.resources.settings
 import fr.husi.resources.show_direct_speed
 import fr.husi.resources.show_direct_speed_sum
+import fr.husi.resources.shutter_speed
 import fr.husi.resources.speed
+import fr.husi.resources.speed_interval
 import fr.husi.resources.system_and_user
 import fr.husi.resources.test_concurrency
 import fr.husi.resources.test_timeout
@@ -528,6 +530,40 @@ fun SettingsScreen(
                         )
                     }
                     platformGeneralOptions { needReload() }
+                    item(Key.SPEED_INTERVAL, PreferenceType.LIST) {
+                        fun speedIntervalText(ms: Int): StringOrRes = when (ms) {
+                            0 -> StringOrRes.Res(Res.string.disable)
+                            500 -> StringOrRes.Direct("500ms")
+                            1000 -> StringOrRes.Direct("1s")
+                            3000 -> StringOrRes.Direct("3s")
+                            10000 -> StringOrRes.Direct("10s")
+                            else -> StringOrRes.Direct("1s")
+                        }
+
+                        val values = listOf(0, 500, 1000, 3000, 10000)
+                        val value by DataStore.configurationStore
+                            .intFlow(Key.SPEED_INTERVAL, 1000)
+                            .collectAsStateWithLifecycle(1000)
+
+                        ListPreference(
+                            value = value,
+                            onValueChange = { DataStore.speedInterval = it },
+                            values = values,
+                            title = { Text(stringResource(Res.string.speed_interval)) },
+                            icon = {
+                                Icon(
+                                    vectorResource(Res.drawable.shutter_speed),
+                                    null,
+                                )
+                            },
+                            summary = { Text(stringOrRes(speedIntervalText(value))) },
+                            type = ListPreferenceType.DROPDOWN_MENU,
+                            valueToText = {
+                                val text = runBlocking { getStringOrRes(speedIntervalText(it)) }
+                                AnnotatedString(text)
+                            },
+                        )
+                    }
                     item(Key.PROFILE_TRAFFIC_STATISTICS, PreferenceType.SWITCH) {
                         val value by DataStore.configurationStore
                             .booleanFlow(Key.PROFILE_TRAFFIC_STATISTICS, true)

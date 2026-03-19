@@ -13,7 +13,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.AnnotatedString
 import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.husi.DEFAULT_HTTP_BYPASS
@@ -31,7 +30,6 @@ import fr.husi.resources.auto_connect
 import fr.husi.resources.auto_connect_summary
 import fr.husi.resources.data_usage
 import fr.husi.resources.developer_board
-import fr.husi.resources.disable
 import fr.husi.resources.disable_process_text
 import fr.husi.resources.domain
 import fr.husi.resources.format_align_left
@@ -43,13 +41,8 @@ import fr.husi.resources.metered_summary
 import fr.husi.resources.phonelink_ring
 import fr.husi.resources.route_opt_bypass_lan
 import fr.husi.resources.show_group_in_notification
-import fr.husi.resources.shutter_speed
-import fr.husi.resources.speed_interval
 import fr.husi.resources.transform
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.runBlocking
-import me.zhanghai.compose.preference.ListPreference
-import me.zhanghai.compose.preference.ListPreferenceType
 import me.zhanghai.compose.preference.SwitchPreference
 import me.zhanghai.compose.preference.TextFieldPreference
 import org.jetbrains.compose.resources.stringResource
@@ -110,40 +103,6 @@ internal actual fun LazyListScope.platformGeneralOptions(needReload: () -> Unit)
                     vectorResource(Res.drawable.transform),
                     null,
                 )
-            },
-        )
-    }
-    item(Key.SPEED_INTERVAL, PreferenceType.LIST) {
-        fun speedIntervalText(ms: Int): StringOrRes = when (ms) {
-            0 -> StringOrRes.Res(Res.string.disable)
-            500 -> StringOrRes.Direct("500ms")
-            1000 -> StringOrRes.Direct("1s")
-            3000 -> StringOrRes.Direct("3s")
-            10000 -> StringOrRes.Direct("10s")
-            else -> StringOrRes.Direct("1s")
-        }
-
-        val values = listOf(0, 500, 1000, 3000, 10000)
-        val value by DataStore.configurationStore
-            .intFlow(Key.SPEED_INTERVAL, 1000)
-            .collectAsStateWithLifecycle(1000)
-
-        ListPreference(
-            value = value,
-            onValueChange = { DataStore.speedInterval = it },
-            values = values,
-            title = { Text(stringResource(Res.string.speed_interval)) },
-            icon = {
-                Icon(
-                    vectorResource(Res.drawable.shutter_speed),
-                    null,
-                )
-            },
-            summary = { Text(stringOrRes(speedIntervalText(value))) },
-            type = ListPreferenceType.DROPDOWN_MENU,
-            valueToText = {
-                val text = runBlocking { getStringOrRes(speedIntervalText(it)) }
-                AnnotatedString(text)
             },
         )
     }
