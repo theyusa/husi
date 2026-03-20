@@ -15,6 +15,7 @@ import fr.husi.permission.rememberAndroidPermissionPlatform
 import fr.husi.repository.repo
 import fr.husi.service.ServiceConnector
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
 
 class MainActivity : ComposeActivity() {
@@ -28,6 +29,7 @@ class MainActivity : ComposeActivity() {
         lifecycleScope.launch(Dispatchers.IO) {
             DataStore.configurationStore
                 .stringFlow(Key.SERVICE_MODE, Key.MODE_VPN)
+                .drop(1)
                 .collect {
                     if (DataStore.serviceState.started) {
                         repo.reloadService()

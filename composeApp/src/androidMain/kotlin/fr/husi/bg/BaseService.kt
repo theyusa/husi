@@ -252,13 +252,29 @@ class BaseService {
         fun reload() {
             if (DataStore.selectedProxy == 0L) {
                 stopRunner(false, runBlocking { repo.getString(Res.string.profile_empty) })
+                return
             }
 
-            val s = data.state
+            val state = data.state
+            val restartCurrentService = javaClass == SagerConnection.serviceClass
             when {
-                s == ServiceState.Stopped -> startRunner()
-                s.canStop -> stopRunner(true)
-                else -> Logs.w("Illegal state $s when invoking use")
+                state == ServiceState.Stopped -> {
+                    if (restartCurrentService) {
+                        startRunner()
+                    } else {
+                        repo.startService()
+                    }
+                }
+
+                state.canStop -> {
+                    if (restartCurrentService) {
+                        stopRunner(true)
+                    } else {
+                        stopRunner(afterStop = repo::startService)
+                    }
+                }
+
+                else -> Logs.w("Illegal state $state when invoking use")
             }
         }
 
@@ -299,7 +315,11 @@ class BaseService {
             }
         }
 
-        fun stopRunner(restart: Boolean = false, msg: String? = null) {
+        fun stopRunner(
+            restart: Boolean = false,
+            msg: String? = null,
+            afterStop: (() -> Unit)? = null,
+        ) {
             ServiceRegistry.baseService = null
             ServiceRegistry.vpnService = null
 
@@ -329,6 +349,7 @@ class BaseService {
                 }
                 // stop the service if nothing has bound to it
                 if (restart) startRunner() else {
+                    afterStop?.invoke()
                     stopSelf()
                 }
             }
