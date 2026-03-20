@@ -18,7 +18,8 @@ import kotlinx.coroutines.launch
 internal data class AppManagerUiState(
     val mode: ProxyMode = ProxyMode.DISABLED,
     val isLoading: Boolean = false,
-    val apps: List<ProxiedApp> = emptyList(), // sorted
+    val apps: List<ProxiedApp> = emptyList(), // sorted, full
+    val filteredApps: List<ProxiedApp> = emptyList(), // sorted, filtered by search
     val scanned: List<String>? = null,
     val scanProcess: Float? = null,
     val snackbarMessage: StringOrRes? = null,
@@ -63,8 +64,8 @@ internal class AppManagerViewModel : BaseAppListViewModel() {
         collectSearchText()
     }
 
-    override fun updateApps(apps: List<ProxiedApp>, isLoading: Boolean) {
-        _uiState.update { it.copy(isLoading = isLoading, apps = apps) }
+    override fun updateApps(apps: List<ProxiedApp>, filteredApps: List<ProxiedApp>, isLoading: Boolean) {
+        _uiState.update { it.copy(isLoading = isLoading, apps = apps, filteredApps = filteredApps) }
     }
 
     override fun updateSnackbar(message: StringOrRes?) {

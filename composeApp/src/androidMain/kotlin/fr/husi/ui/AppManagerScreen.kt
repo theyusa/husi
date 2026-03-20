@@ -2,57 +2,31 @@
 
 package fr.husi.ui
 
-import androidx.compose.animation.Crossfade
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuDefaults
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SearchBar
-import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
-import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberSearchBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
@@ -60,12 +34,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import fr.husi.compose.SimpleIconButton
-import fr.husi.compose.setPlainText
 import fr.husi.repository.FakeRepository
 import fr.husi.repository.repo
 import fr.husi.utils.PackageCache
-import kotlinx.coroutines.launch
 import fr.husi.resources.*
 
 @Composable
@@ -79,204 +50,69 @@ internal actual fun AppManagerScreen(
     LaunchedEffect(viewModel) {
         viewModel.initialize(context.packageManager)
     }
-    val scope = rememberCoroutineScope()
-    val snackbarHostState = remember { SnackbarHostState() }
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     LaunchedEffect(uiState.shouldFinish) {
         if (uiState.shouldFinish) onBackPress()
     }
-    LaunchedEffect(uiState.snackbarMessage) {
-        uiState.snackbarMessage?.let { message ->
-            snackbarHostState.showSnackbar(
-                message = getStringOrRes(message),
-                actionLabel = repo.getString(Res.string.ok),
-                duration = SnackbarDuration.Short,
+
+    AppListScaffold(
+        viewModel = viewModel,
+        title = { Text(stringResource(Res.string.proxied_apps)) },
+        isLoading = uiState.isLoading,
+        apps = uiState.apps,
+        filteredApps = uiState.filteredApps,
+        snackbarMessage = uiState.snackbarMessage,
+        onNavigationClick = onBackPress,
+        modifier = modifier,
+        extraTopBarContent = {
+            ProxyModeSelector(
+                selectedMode = uiState.mode,
+                onSelect = { viewModel.setProxyMode(it) },
             )
-        }
-    }
-
-    val searchBarState = rememberSearchBarState()
-    val textFieldState = viewModel.textFieldState
-
-    var showMoreActions by remember { mutableStateOf(false) }
-    val clipboard = LocalClipboard.current
-
-    val windowInsets = WindowInsets.safeDrawing
-    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
-    val listScrollState = rememberLazyListState()
-
-    Scaffold(
-        modifier = modifier
-            .fillMaxSize()
-            .nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = {
-            val colors = TopAppBarDefaults.topAppBarColors()
-            val isScrolled = scrollBehavior.state.overlappedFraction > 0
-            val containerColor = if (isScrolled) {
-                colors.scrolledContainerColor
-            } else {
-                colors.containerColor
-            }
-
-            Surface(
-                color = containerColor,
-            ) {
-                Column {
-                    TopAppBar(
-                        title = { Text(stringResource(Res.string.proxied_apps)) },
-                        navigationIcon = {
-                            SimpleIconButton(
-                                imageVector = vectorResource(Res.drawable.close),
-                                contentDescription = stringResource(Res.string.close),
-                                onClick = onBackPress,
-                            )
-                        },
-                        actions = {
-                            SimpleIconButton(
-                                imageVector = vectorResource(Res.drawable.copy_all),
-                                contentDescription = stringResource(Res.string.action_copy),
-                                onClick = {
-                                    val toExport = viewModel.export()
-                                    scope.launch {
-                                        clipboard.setPlainText(toExport)
-                                        snackbarHostState.showSnackbar(
-                                            message = repo.getString(Res.string.copy_success),
-                                            actionLabel = repo.getString(Res.string.ok),
-                                            duration = SnackbarDuration.Short,
-                                        )
-                                    }
-                                },
-                            )
-                            SimpleIconButton(
-                                imageVector = vectorResource(Res.drawable.content_paste),
-                                contentDescription = stringResource(Res.string.action_import),
-                                onClick = {
-                                    scope.launch {
-                                        val text = clipboard.getClipEntry()?.clipData
-                                            ?.getItemAt(0)?.text
-                                            ?.toString()
-                                        viewModel.import(text)
-                                    }
-                                },
-                            )
-                            Box {
-                                SimpleIconButton(
-                                    imageVector = vectorResource(Res.drawable.more_vert),
-                                    contentDescription = stringResource(Res.string.more),
-                                    onClick = { showMoreActions = true },
-                                )
-
-                                DropdownMenu(
-                                    expanded = showMoreActions,
-                                    onDismissRequest = { showMoreActions = false },
-                                    shape = MenuDefaults.standaloneGroupShape,
-                                    containerColor = MenuDefaults.groupStandardContainerColor,
-                                ) {
-                                    DropdownMenuItem(
-                                        text = { Text(stringResource(Res.string.action_scan_china_apps)) },
-                                        onClick = {
-                                            viewModel.scanChinaApps()
-                                            showMoreActions = false
-                                        },
-                                        leadingIcon = {
-                                            Icon(
-                                                imageVector = vectorResource(Res.drawable.document_scanner),
-                                                contentDescription = null,
-                                            )
-                                        },
-                                    )
-                                    DropdownMenuItem(
-                                        text = { Text(stringResource(Res.string.invert_selections)) },
-                                        onClick = {
-                                            viewModel.invertSections()
-                                            showMoreActions = false
-                                        },
-                                        leadingIcon = {
-                                            Icon(
-                                                imageVector = vectorResource(Res.drawable.compare_arrows),
-                                                contentDescription = null,
-                                            )
-                                        },
-                                    )
-                                    DropdownMenuItem(
-                                        text = { Text(stringResource(Res.string.clear_selections)) },
-                                        onClick = {
-                                            viewModel.clearSections()
-                                            showMoreActions = false
-                                        },
-                                        leadingIcon = {
-                                            Icon(
-                                                imageVector = vectorResource(Res.drawable.cleaning_services),
-                                                contentDescription = null,
-                                            )
-                                        },
-                                    )
-                                }
-                            }
-                        },
-                        windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
-                        colors = TopAppBarDefaults.topAppBarColors(
-                            containerColor = Color.Transparent,
-                            scrolledContainerColor = Color.Transparent,
-                        ),
-                        scrollBehavior = scrollBehavior,
-                    )
-
-                    SearchBar(
-                        state = searchBarState,
-                        inputField = {
-                            SearchBarDefaults.InputField(
-                                textFieldState = textFieldState,
-                                searchBarState = searchBarState,
-                                onSearch = {
-                                    scope.launch {
-                                        searchBarState.animateToCollapsed()
-                                    }
-                                },
-                                leadingIcon = {
-                                    Icon(vectorResource(Res.drawable.search), null)
-                                },
-                            )
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-
-                    ProxyModeSelector(
-                        selectedMode = uiState.mode,
-                        onSelect = { mode ->
-                            viewModel.setProxyMode(mode)
-                        },
-                    )
-                }
-            }
         },
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-    ) { innerPadding ->
-        Crossfade(
-            targetState = uiState.isLoading,
-            animationSpec = tween(durationMillis = 300),
-        ) { isLoading ->
-            if (isLoading) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(innerPadding),
-                ) {
-                    LoadingIndicator(
-                        modifier = Modifier.align(Alignment.Center),
+        dropdownMenuItems = { onDismiss ->
+            DropdownMenuItem(
+                text = { Text(stringResource(Res.string.action_scan_china_apps)) },
+                onClick = {
+                    viewModel.scanChinaApps()
+                    onDismiss()
+                },
+                leadingIcon = {
+                    Icon(
+                        imageVector = vectorResource(Res.drawable.document_scanner),
+                        contentDescription = null,
                     )
-                }
-            } else {
-                AppListContent(
-                    apps = uiState.apps,
-                    scrollState = listScrollState,
-                    innerPadding = innerPadding,
-                    onClick = { viewModel.onItemClick(it) },
-                )
-            }
-        }
-    }
+                },
+            )
+            DropdownMenuItem(
+                text = { Text(stringResource(Res.string.invert_selections)) },
+                onClick = {
+                    viewModel.invertSections()
+                    onDismiss()
+                },
+                leadingIcon = {
+                    Icon(
+                        imageVector = vectorResource(Res.drawable.compare_arrows),
+                        contentDescription = null,
+                    )
+                },
+            )
+            DropdownMenuItem(
+                text = { Text(stringResource(Res.string.clear_selections)) },
+                onClick = {
+                    viewModel.clearSections()
+                    onDismiss()
+                },
+                leadingIcon = {
+                    Icon(
+                        imageVector = vectorResource(Res.drawable.cleaning_services),
+                        contentDescription = null,
+                    )
+                },
+            )
+        },
+    )
 
     val scanned = uiState.scanned
     if (scanned != null) {
