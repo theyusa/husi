@@ -113,7 +113,7 @@ import fr.husi.resources.share_qr_nfc
 import fr.husi.resources.share_subscription
 import fr.husi.resources.subscription_expire
 import fr.husi.resources.subscription_traffic
-import fr.husi.resources.subscription_updated
+import fr.husi.resources.subscription_last_updated
 import fr.husi.resources.subscription_used
 import fr.husi.resources.undo
 import fr.husi.resources.update
@@ -134,6 +134,7 @@ import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
+import kotlin.time.Instant
 
 @OptIn(FormatStringsInDatetimeFormats::class)
 private val subscriptionDateFormat = LocalDateTime.Format {
@@ -141,7 +142,7 @@ private val subscriptionDateFormat = LocalDateTime.Format {
 }
 
 private fun formatSubscriptionUpdateTime(epochSeconds: Long): String {
-    val dateTime = kotlin.time.Instant.fromEpochSeconds(epochSeconds)
+    val dateTime = Instant.fromEpochSeconds(epochSeconds)
         .toLocalDateTime(TimeZone.currentSystemDefault())
     return subscriptionDateFormat.format(dateTime)
 }
@@ -788,7 +789,7 @@ private fun DraggableSwipeableItemScope<GroupItemUiState>.GroupCard(
                             ) {
                                 Text(
                                     text = stringResource(
-                                        Res.string.subscription_updated,
+                                        Res.string.subscription_last_updated,
                                         formatSubscriptionUpdateTime(
                                             state.group.subscription!!.lastUpdated.toLong(),
                                         ),

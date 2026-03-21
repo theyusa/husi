@@ -436,6 +436,7 @@
     <string name="neko_plugin_internal_error">%1$s 内部错误</string>
     <string name="move">移动</string>
     <string name="subscription_expire">过期: %1$s</string>
+    <string name="subscription_last_updated">上次更新：%1$s</string>
     <string name="update_all_subscription">更新所有订阅</string>
     <string name="create_shortcut">创建快捷方式</string>
     <string name="hop_interval">端口跳跃间隔（秒）</string>
