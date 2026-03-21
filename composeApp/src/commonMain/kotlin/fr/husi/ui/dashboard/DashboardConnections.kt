@@ -13,13 +13,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.text.input.TextFieldState
-import androidx.compose.material3.DockedSearchBar
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
@@ -27,16 +23,12 @@ import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalFocusManager
 import org.jetbrains.compose.resources.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
@@ -54,23 +46,14 @@ import org.jetbrains.compose.resources.stringResource
 internal fun DashboardConnectionsScreen(
     modifier: Modifier = Modifier,
     uiState: DashboardState,
-    searchTextFieldState: TextFieldState,
     bottomPadding: Dp,
-    searchBarBottomSpacing: Dp,
     resolveProcessInfo: suspend (String?, Int) -> ProcessInfo?,
     closeConnection: (uuid: String) -> Unit,
     openDetail: (uuid: String) -> Unit,
     onVisibleChange: (Boolean) -> Unit,
-    onClearSearch: () -> Unit,
 ) {
     val itemSpacing = 12.dp
-    val density = LocalDensity.current
-    var searchBarHeightPx by remember { mutableIntStateOf(0) }
-    val searchBarHeight = with(density) { searchBarHeightPx.toDp() }
-    val focusManager = LocalFocusManager.current
     val listState = rememberLazyListState()
-    val searchBarBottomPadding = bottomPadding + searchBarBottomSpacing
-    val listBottomPadding = searchBarBottomPadding + searchBarHeight + itemSpacing
     LaunchedEffect(Unit) {
         onVisibleChange(true)
     }
@@ -84,7 +67,7 @@ internal fun DashboardConnectionsScreen(
                     .weight(1f)
                     .fillMaxHeight(),
                 state = listState,
-                contentPadding = PaddingValues(bottom = listBottomPadding),
+                contentPadding = PaddingValues(bottom = bottomPadding),
                 verticalArrangement = Arrangement.spacedBy(itemSpacing),
             ) {
                 items(
@@ -134,46 +117,6 @@ internal fun DashboardConnectionsScreen(
                 ),
             )
         }
-
-        DockedSearchBar(
-            inputField = {
-                SearchBarDefaults.InputField(
-                    state = searchTextFieldState,
-                    onSearch = { focusManager.clearFocus() },
-                    expanded = false,
-                    onExpandedChange = {},
-                    leadingIcon = {
-                        Icon(vectorResource(Res.drawable.search), null)
-                    },
-                    trailingIcon = if (searchTextFieldState.text.isNotEmpty()) {
-                        {
-                            IconButton(
-                                onClick = onClearSearch,
-                            ) {
-                                Icon(
-                                    imageVector = vectorResource(Res.drawable.close),
-                                    contentDescription = stringResource(Res.string.cancel),
-                                )
-                            }
-                        }
-                    } else {
-                        null
-                    },
-                )
-            },
-            expanded = false,
-            onExpandedChange = {},
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = searchBarBottomPadding)
-                .onSizeChanged { searchBarHeightPx = it.height },
-            colors = SearchBarDefaults.colors().run {
-                copy(
-                    containerColor = containerColor.copy(alpha = 0.8f),
-                )
-            },
-            content = {},
-        )
     }
 }
 

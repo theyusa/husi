@@ -59,6 +59,7 @@ data class DashboardState(
     val networkInterfaces: List<NetworkInterfaceInfo> = emptyList(),
 
     val connections: List<ConnectionDetailState> = emptyList(),
+    val filteredConnections: List<ConnectionDetailState> = emptyList(),
 
     val proxySets: List<ProxySet> = emptyList(),
 ) {
@@ -208,6 +209,7 @@ class DashboardViewModel : ViewModel() {
         _uiState.update { state ->
             state.copy(
                 connections = emptyList(),
+                filteredConnections = emptyList(),
                 selectedClashMode = "",
                 clashModes = emptyList(),
             )
@@ -283,14 +285,17 @@ class DashboardViewModel : ViewModel() {
     fun togglePause() {
         _uiState.update { state ->
             val newPause = !state.isPause
-            state.copy(
-                isPause = newPause,
-                connections = if (newPause) {
-                    state.connections
-                } else {
-                    buildConnections(state)
-                },
-            )
+            if (newPause) {
+                state.copy(isPause = true)
+            } else {
+                val all = buildConnections(state)
+                val query = searchTextFieldState.text.toString()
+                state.copy(
+                    isPause = false,
+                    connections = all,
+                    filteredConnections = buildFilteredConnections(all, query),
+                )
+            }
         }
     }
 
@@ -395,7 +400,6 @@ class DashboardViewModel : ViewModel() {
     }
 
     private fun buildConnections(state: DashboardState): List<ConnectionDetailState> {
-        val query = searchTextFieldState.text.toString()
         val showActive = state.showActivate
         val showClosed = state.showClosed
         return connections.values
@@ -405,15 +409,28 @@ class DashboardViewModel : ViewModel() {
                 } else {
                     showActive
                 }
-                show && (query.isEmpty() || connection.match(query))
+                show
             }
             .sortedWith(comparator)
+    }
+
+    private fun buildFilteredConnections(
+        all: List<ConnectionDetailState>,
+        query: String,
+    ): List<ConnectionDetailState> {
+        if (query.isEmpty()) return all
+        return all.filter { it.match(query) }
     }
 
     private fun updateConnectionsSnapshot() {
         _uiState.update { state ->
             if (state.isPause) return
-            state.copy(connections = buildConnections(state))
+            val all = buildConnections(state)
+            val query = searchTextFieldState.text.toString()
+            state.copy(
+                connections = all,
+                filteredConnections = buildFilteredConnections(all, query),
+            )
         }
     }
 
@@ -485,28 +502,42 @@ class DashboardViewModel : ViewModel() {
     private fun updateConnectionSnapshot(updated: ConnectionDetailState) {
         _uiState.update { state ->
             if (state.isPause) return
-            val query = searchTextFieldState.text.toString()
             val show = if (updated.isClosed) {
                 state.showClosed
             } else {
                 state.showActivate
             }
-            val matches = show && (query.isEmpty() || updated.match(query))
+            // Update connections (status-filtered only)
             val current = state.connections
             val index = current.indexOfFirst { it.uuid == updated.uuid }
-            if (!matches) {
-                if (index < 0) return@update state
-                val newList = current.toMutableList()
-                newList.removeAt(index)
-                return@update state.copy(connections = newList)
-            }
-            val newList = if (index >= 0) {
+            val newConnections = if (!show) {
+                if (index < 0) current
+                else current.toMutableList().also { it.removeAt(index) }
+            } else if (index >= 0) {
                 current.toMutableList().also { it[index] = updated }
             } else {
                 current.toMutableList().also { it.add(updated) }
             }
-            newList.sortWith(comparator)
-            state.copy(connections = newList)
+            if (newConnections !== current) {
+                (newConnections as? MutableList)?.sortWith(comparator)
+            }
+            // Update filteredConnections (status + search)
+            val query = searchTextFieldState.text.toString()
+            val matchesSearch = show && (query.isEmpty() || updated.match(query))
+            val currentFiltered = state.filteredConnections
+            val filteredIndex = currentFiltered.indexOfFirst { it.uuid == updated.uuid }
+            val newFiltered = if (!matchesSearch) {
+                if (filteredIndex < 0) currentFiltered
+                else currentFiltered.toMutableList().also { it.removeAt(filteredIndex) }
+            } else if (filteredIndex >= 0) {
+                currentFiltered.toMutableList().also { it[filteredIndex] = updated }
+            } else {
+                currentFiltered.toMutableList().also { it.add(updated) }
+            }
+            if (newFiltered !== currentFiltered) {
+                (newFiltered as? MutableList)?.sortWith(comparator)
+            }
+            state.copy(connections = newConnections, filteredConnections = newFiltered)
         }
     }
 
