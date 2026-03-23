@@ -476,6 +476,7 @@ build_nsis() {
         "$nsis_source" \
         "__HUSI_PACKAGE_NAME__" "$PACKAGE_NAME" \
         "__HUSI_APP_NAME__" "$APP_NAME" \
+        "__HUSI_APP_NAME_ZH_CN__" "$APP_NAME_ZH_CN" \
         "__HUSI_APP_VERSION__" "$VERSION_NAME" \
         "__HUSI_APP_DESCRIPTION__" "$APP_DESCRIPTION" \
         "__HUSI_APP_URL__" "$APP_URL" \
@@ -507,6 +508,7 @@ CHECK_TOOLS=0
 PACKAGE_NAME=""
 VERSION_NAME=""
 APP_NAME=""
+APP_NAME_ZH_CN=""
 APP_DESCRIPTION=""
 APP_URL=""
 MAINTAINER=""
