@@ -2,6 +2,7 @@ package fr.husi.ui.dashboard
 
 import androidx.compose.runtime.Stable
 import fr.husi.ktx.emptyAsNull
+import fr.husi.ktx.toList
 import fr.husi.libcore.TrackerInfo
 
 @Stable
@@ -21,7 +22,7 @@ data class ConnectionDetailState(
     val outbound: String = "",
     val chain: String = "",
     val protocol: String? = null,
-    val process: String? = null,
+    val processes: List<String>? = null,
     val uid: Int = -1,
 ) {
     val isClosed: Boolean
@@ -45,7 +46,7 @@ fun TrackerInfo.toDetailState(): ConnectionDetailState {
         outbound = outbound,
         chain = chain,
         protocol = protocol.emptyAsNull(),
-        process = process.emptyAsNull(),
+        processes = processes?.toList()?.takeIf { it.isNotEmpty() },
         uid = uid,
     )
 }

@@ -1,6 +1,7 @@
 package distro
 
 import (
+	"github.com/sagernet/sing-box/adapter/certificate"
 	"github.com/sagernet/sing-box/adapter/endpoint"
 	"github.com/sagernet/sing-box/adapter/inbound"
 	"github.com/sagernet/sing-box/adapter/outbound"
@@ -129,6 +130,16 @@ func registerQUICTransports(registry *dns.TransportRegistry) {
 
 func ServiceRegistry() *service.Registry {
 	registry := service.NewRegistry()
+
+	return registry
+}
+
+func CertificateProviderRegistry() *certificate.Registry {
+	registry := certificate.NewRegistry()
+
+	// registerACMECertificateProvider(registry)
+	// registerTailscaleCertificateProvider(registry)
+	// originca.RegisterCertificateProvider(registry)
 
 	return registry
 }

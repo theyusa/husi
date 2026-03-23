@@ -172,10 +172,10 @@ github.com/sagernet/nftables v0.3.0-beta.4 h1:kbULlAwAC3jvdGAC1P5Fa3GSxVwQJibNen
 github.com/sagernet/nftables v0.3.0-beta.4/go.mod h1:OQXAjvjNGGFxaTgVCSTRIhYB5/llyVDeapVoENYBDS8=
 github.com/sagernet/quic-go v0.59.0-sing-box-mod.4 h1:6qvrUW79S+CrPwWz6cMePXohgjHoKxLo3c+MDhNwc3o=
 github.com/sagernet/quic-go v0.59.0-sing-box-mod.4/go.mod h1:OqILvS182CyOol5zNNo6bguvOGgXzV459+chpRaUC+4=
-github.com/sagernet/sing v0.8.2 h1:kX1IH9SWJv4S0T9M8O+HNahWgbOuY1VauxbF7NU5lOg=
-github.com/sagernet/sing v0.8.2/go.mod h1:ARkL0gM13/Iv5VCZmci/NuoOlePoIsW0m7BWfln/Hak=
-github.com/sagernet/sing-box v1.14.0-alpha.3 h1:XDUEFmtnddXjlVECPF5E1ABJlTlew31YM7t7R3zQ0E0=
-github.com/sagernet/sing-box v1.14.0-alpha.3/go.mod h1:IRlOGudMpKt7MqlRQWsL2cJhYBQzT/Bxe7dVB4QktCY=
+github.com/sagernet/sing v0.8.3-0.20260315153529-ed51f65fbfde h1:RNQzlpnsXIuu1HGts/fIzJ1PR7RhrzaNlU52MDyiX1c=
+github.com/sagernet/sing v0.8.3-0.20260315153529-ed51f65fbfde/go.mod h1:ARkL0gM13/Iv5VCZmci/NuoOlePoIsW0m7BWfln/Hak=
+github.com/sagernet/sing-box v1.14.0-alpha.4 h1:qEkJDlrV4I+XuKGLmnX325807/u+xGkQq91YOGWD7RE=
+github.com/sagernet/sing-box v1.14.0-alpha.4/go.mod h1:ef9oDquVnDPJ/v0w8SoPH8j/j5a5ht+frqRQFmNsoB0=
 github.com/sagernet/sing-mux v0.3.4 h1:ZQplKl8MNXutjzbMVtWvWG31fohhgOfCuUZR4dVQ8+s=
 github.com/sagernet/sing-mux v0.3.4/go.mod h1:QvlKMyNBNrQoyX4x+gq028uPbLM2XeRpWtDsWBJbFSk=
 github.com/sagernet/sing-quic v0.6.0 h1:dhrFnP45wgVKEOT1EvtsToxdzRnHIDIAgj6WHV9pLyM=
@@ -186,8 +186,8 @@ github.com/sagernet/sing-shadowsocks2 v0.2.1 h1:dWV9OXCeFPuYGHb6IRqlSptVnSzOelnq
 github.com/sagernet/sing-shadowsocks2 v0.2.1/go.mod h1:RnXS0lExcDAovvDeniJ4IKa2IuChrdipolPYWBv9hWQ=
 github.com/sagernet/sing-shadowtls v0.2.1-0.20250503051639-fcd445d33c11 h1:tK+75l64tm9WvEFrYRE1t0YxoFdWQqw/h7Uhzj0vJ+w=
 github.com/sagernet/sing-shadowtls v0.2.1-0.20250503051639-fcd445d33c11/go.mod h1:sWqKnGlMipCHaGsw1sTTlimyUpgzP4WP3pjhCsYt9oA=
-github.com/sagernet/sing-tun v0.8.3-0.20260311132553-5485872f601f h1:uj3rzedphq1AiL0PpuVoob5RtKsPBcMRd8aqo+q0rqA=
-github.com/sagernet/sing-tun v0.8.3-0.20260311132553-5485872f601f/go.mod h1:pLCo4o+LacXEzz0bhwhJkKBjLlKOGPBNOAZ97ZVZWzs=
+github.com/sagernet/sing-tun v0.8.7-0.20260323120017-8eb4e8acfc2d h1:vi0j6301f6H8t2GYgAC2PA2AdnGdMwkP34B4+N03Qt4=
+github.com/sagernet/sing-tun v0.8.7-0.20260323120017-8eb4e8acfc2d/go.mod h1:pLCo4o+LacXEzz0bhwhJkKBjLlKOGPBNOAZ97ZVZWzs=
 github.com/sagernet/smux v1.5.50-sing-box-mod.1 h1:XkJcivBC9V4wBjiGXIXZ229aZCU1hzcbp6kSkkyQ478=
 github.com/sagernet/smux v1.5.50-sing-box-mod.1/go.mod h1:NjhsCEWedJm7eFLyhuBgIEzwfhRmytrUoiLluxs5Sk8=
 github.com/sagernet/wireguard-go v0.0.2-beta.1.0.20260224074747-506b7631853c h1:f9cXNB+IOOPnR8DOLMTpr42jf7naxh5Un5Y09BBf5Cg=
@@ -206,8 +206,8 @@ github.com/xchacha20-poly1305/TLS-scribe v0.12.1 h1:9KHvZ/ie7gHl787L2S/s0RzqvAPA
 github.com/xchacha20-poly1305/TLS-scribe v0.12.1/go.mod h1:B/sYsfSuNW5R/+ZmPfg+q/LtT1/PPXKprtZtOaj9O/8=
 github.com/xchacha20-poly1305/anchor v0.7.1 h1:eNGdCeaqGX+Gghy5grhzV53uDaxVwHgs7EerGum1j9U=
 github.com/xchacha20-poly1305/anchor v0.7.1/go.mod h1:EFLk1U04Kdc6tHgL7VCp1PQ9S1bhUU5Gn+nd9W8NTjs=
-github.com/xchacha20-poly1305/anja v0.1.13-0.20260308014442-10be91512659 h1:DywN7FApU29shvSJ2K/3g5lLaPrW8da1M5v1XN4DvfA=
-github.com/xchacha20-poly1305/anja v0.1.13-0.20260308014442-10be91512659/go.mod h1:NFUjVDYBDYY1JWttZwOdgkLOSAkCBOGnp58vLnIA4uc=
+github.com/xchacha20-poly1305/anja v0.22.12 h1:zIJNPR0pVyuD3FAZ+xXxx+a1aAZ20JKPuW3PUy48LMA=
+github.com/xchacha20-poly1305/anja v0.22.12/go.mod h1:NFUjVDYBDYY1JWttZwOdgkLOSAkCBOGnp58vLnIA4uc=
 github.com/xchacha20-poly1305/libping v0.10.1 h1:R9vGFJZKIfhV7hK9Wx186ilVhBmLr6Lqm8uEAuU0Hiw=
 github.com/xchacha20-poly1305/libping v0.10.1/go.mod h1:RuJvaUFkwSJ8XlDKVIGpmGhzTcZvOPe9QVQAg4jLtfQ=
 github.com/xchacha20-poly1305/sing-trusttunnel v0.2.1-0.20260314153016-08d91e19d8c2 h1:3uEyOiBSSLwwavDBHw++ajcTpCFotkkzqKpJb02ANoc=

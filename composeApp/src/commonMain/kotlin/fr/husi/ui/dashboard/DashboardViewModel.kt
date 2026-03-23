@@ -549,7 +549,7 @@ class DashboardViewModel : ViewModel() {
             || outbound.contains(query)
             || chain.contains(query)
             || protocol?.contains(query) == true
-            || process?.contains(query) == true
+            || processes?.any { it.contains(query) } == true
             || uid.toString().contains(query)
 
     private suspend fun loadProxySets(

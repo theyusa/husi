@@ -68,7 +68,7 @@ class AndroidPlatformInterface : PlatformInterface {
             if (uid == Process.INVALID_UID) error("android: connection owner not found")
             PackageCache.awaitLoadSync()
             val packages = PackageCache.uidMap[uid]
-            return ConnectionOwner(uid, packages?.firstOrNull().orEmpty())
+            return ConnectionOwner(uid, packages?.toStringIterator(packages.size))
         } catch (e: Exception) {
             Logs.e(e)
             throw e

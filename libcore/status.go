@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"io"
 	"runtime"
+	"slices"
 	"strings"
 	"time"
 
@@ -57,15 +58,15 @@ func buildTrackerInfo(metadata trafficcontrol.TrackerMetadata) *TrackerInfo {
 		rule = F.ToString(metadata.Rule, " => ", metadata.Rule.Action())
 	}
 	var (
-		process string
-		uid     int32 = -1
+		processes []string
+		uid       int32 = -1
 	)
 	if processInfo := metadata.Metadata.ProcessInfo; processInfo != nil {
 		if C.IsAndroid {
-			process = processInfo.AndroidPackageName
+			processes = slices.Clone(processInfo.AndroidPackageNames)
 			uid = processInfo.UserId
 		} else {
-			process = processInfo.ProcessPath
+			processes = append(processes, processInfo.ProcessPath)
 			uid = int32(processInfo.ProcessID)
 		}
 	}
@@ -89,7 +90,7 @@ func buildTrackerInfo(metadata trafficcontrol.TrackerMetadata) *TrackerInfo {
 		Outbound:      generateBound(metadata.Outbound, metadata.OutboundType),
 		Chain:         strings.Join(metadata.Chain, " => "),
 		Protocol:      metadata.Metadata.Protocol,
-		Process:       process,
+		processes:     processes,
 		UID:           uid,
 	}
 }
@@ -118,9 +119,9 @@ type TrackerInfo struct {
 	ClosedAtUnix  int64
 	Outbound      string
 	Chain         string
-	Protocol      string
-	Process       string
-	UID           int32
+	Protocol  string
+	processes []string
+	UID       int32
 }
 
 func (t *TrackerInfo) GetUUID() string {
@@ -139,6 +140,10 @@ func (t *TrackerInfo) GetClosedAt() string {
 		return ""
 	}
 	return time.Unix(t.ClosedAtUnix, 0).Local().Format(time.DateTime)
+}
+
+func (t *TrackerInfo) GetProcesses() StringIterator {
+	return newIterator(t.processes)
 }
 
 // generateBound formats inbound/outbound's name.
@@ -210,9 +215,9 @@ func (t *TrackerInfo) WriteToBinary(writer io.Writer) error {
 	if err != nil {
 		return E.Cause(err, "write protocol")
 	}
-	err = vario.WriteString(writer, t.Process)
+	err = vario.WriteStringSlice(writer, t.processes)
 	if err != nil {
-		return E.Cause(err, "write process")
+		return E.Cause(err, "write processes")
 	}
 	err = binary.Write(writer, binary.BigEndian, t.UID)
 	if err != nil {
@@ -283,7 +288,7 @@ func readTrackerInfo(reader io.Reader) (*TrackerInfo, error) {
 	if err != nil {
 		return nil, E.Cause(err, "read protocol")
 	}
-	trackerInfo.Process, err = vario.ReadString(reader)
+	trackerInfo.processes, err = vario.ReadStringSlice(reader)
 	if err != nil {
 		return nil, E.Cause(err, "read process")
 	}

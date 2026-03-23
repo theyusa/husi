@@ -161,14 +161,14 @@ func (w *boxPlatformInterfaceWrapper) UsePlatformConnectionOwnerFinder() bool {
 }
 
 type ConnectionOwner struct {
-	UserId             int32
-	AndroidPackageName string
+	UserId              int32
+	androidPackageNames []string
 }
 
-func NewConnectionOwner(userId int32, androidPackageName string) *ConnectionOwner {
+func NewConnectionOwner(userId int32, androidPackageNames StringIterator) *ConnectionOwner {
 	return &ConnectionOwner{
-		UserId:             userId,
-		AndroidPackageName: androidPackageName,
+		UserId:              userId,
+		androidPackageNames: iteratorToArray(androidPackageNames),
 	}
 }
 
@@ -205,8 +205,8 @@ func (w *boxPlatformInterfaceWrapper) FindConnectionOwner(request *adapter.FindC
 		return nil, err
 	}
 	return &adapter.ConnectionOwner{
-		UserId:             result.UserId,
-		AndroidPackageName: result.AndroidPackageName,
+		UserId:              result.UserId,
+		AndroidPackageNames: result.androidPackageNames,
 		// ProcessPath: result.ProcessPath, // Not available in Android
 	}, nil
 }

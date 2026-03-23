@@ -29,18 +29,22 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import org.jetbrains.compose.resources.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import fr.husi.compose.theme.LogColors
 import fr.husi.compose.BoxedVerticalScrollbar
-import fr.husi.resources.*
+import fr.husi.compose.theme.LogColors
 import fr.husi.libcore.Libcore
+import fr.husi.resources.Res
+import fr.husi.resources.connection_status_active
+import fr.husi.resources.connection_status_closed
+import fr.husi.resources.delete_forever
+import fr.husi.resources.traffic
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.resources.vectorResource
 
 @Composable
 internal fun DashboardConnectionsScreen(
@@ -127,7 +131,7 @@ private fun ConnectionCard(
     resolveProcessInfo: suspend (String?, Int) -> ProcessInfo?,
     openDetail: (id: String) -> Unit,
 ) {
-    val process = connection.process
+    val process = connection.processes?.firstOrNull()
     val uid = connection.uid
     var processInfo by remember { mutableStateOf<ProcessInfo?>(null) }
     // No keys because LazyColumn's item keys handle it
