@@ -378,6 +378,28 @@ Plugin name list:
 * `mieru`
 * `shadowquic`
 
+## 🏃‍♂️ Run
+
+### Desktop
+
+Requirement: >= Java Runtime **21**
+
+_No bundled JRE for end users_
+
+#### Options
+
+`--dir`, `-d`: Data directory
+
+`--log-level`, `-l`: Log level override (0-6)
+
+`--many`, `-m`: Ignore exist instance 
+
+`--help`, `-h`: Usage info 
+
+#### Arguments
+
+URLs to import.
+
 ## ☠️ End users
 
 [Wiki](https://codeberg.org/xchacha20-poly1305/husi/wiki)
