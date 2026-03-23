@@ -24,7 +24,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import fr.husi.resources.*
@@ -54,9 +54,9 @@ internal abstract class ProfileEditorViewModel<T : AbstractBean> : ViewModel() {
 
     private val _initialState = MutableStateFlow<ProfileEditorUiState?>(null)
     val isDirty by lazy(LazyThreadSafetyMode.NONE) {
-        uiState.map { currentState ->
-            _initialState.value?.let { initialState ->
-                initialState != currentState
+        combine(uiState, _initialState) { currentState, initialState ->
+            initialState?.let {
+                it != currentState
             } ?: false
         }.stateIn(
             scope = viewModelScope,
@@ -75,17 +75,12 @@ internal abstract class ProfileEditorViewModel<T : AbstractBean> : ViewModel() {
     lateinit var proxyEntity: ProxyEntity
     lateinit var bean: T
     var isSubscription = false
-    private var initializedFor: Pair<Long, Boolean>? = null
 
     fun initialize(editingId: Long, isSubscription: Boolean) {
-        val args = editingId to isSubscription
-        if (initializedFor == args) {
-            return
-        }
-        initializedFor = args
         this@ProfileEditorViewModel.editingId = editingId
         this@ProfileEditorViewModel.isSubscription = isSubscription
         viewModelScope.launch {
+            _initialState.value = null
             bean = if (isNew) {
                 createBean().applyDefaultValues()
             } else {

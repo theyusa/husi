@@ -330,6 +330,7 @@ kotlin {
         val commonTest by getting {
             dependencies {
                 implementation(kotlin("test"))
+                implementation(libs.kotlinx.coroutines.test)
                 implementation(project.dependencies.platform(libs.junit.bom))
                 implementation(libs.junit.jupiter.api)
                 runtimeOnly(libs.junit.platform.launcher)
