@@ -20,6 +20,7 @@ internal data class MieruUiState(
     val password: String = "",
     val mtu: Int = 1400,
     val muxNumber: Int = 0,
+    val trafficPattern: String = "",
 ) : ProfileEditorUiState
 
 @Stable
@@ -42,6 +43,7 @@ internal class MieruSettingsViewModel : ProfileEditorViewModel<MieruBean>() {
                 password = password,
                 mtu = mtu,
                 muxNumber = serverMuxNumber,
+                trafficPattern = trafficPattern,
             )
         }
     }
@@ -58,6 +60,7 @@ internal class MieruSettingsViewModel : ProfileEditorViewModel<MieruBean>() {
         password = state.password
         mtu = state.mtu
         serverMuxNumber = state.muxNumber
+        trafficPattern = state.trafficPattern
     }
 
     override fun setCustomConfig(config: String) {
@@ -102,6 +105,10 @@ internal class MieruSettingsViewModel : ProfileEditorViewModel<MieruBean>() {
 
     fun setMuxNumber(number: Int) {
         _uiState.update { it.copy(muxNumber = number) }
+    }
+
+    fun setTrafficPattern(trafficPattern: String) {
+        _uiState.update { it.copy(trafficPattern = trafficPattern) }
     }
 
 }

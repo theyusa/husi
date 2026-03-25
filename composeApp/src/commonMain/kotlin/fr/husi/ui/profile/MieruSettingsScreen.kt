@@ -9,6 +9,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.text.AnnotatedString
 import androidx.lifecycle.viewmodel.compose.viewModel
+import fr.husi.compose.MultilineTextField
 import fr.husi.compose.PasswordPreference
 import fr.husi.compose.PreferenceCategory
 import fr.husi.compose.UIntegerTextField
@@ -25,6 +26,7 @@ import fr.husi.resources.mtu
 import fr.husi.resources.mux_preference
 import fr.husi.resources.not_set
 import fr.husi.resources.off
+import fr.husi.resources.pattern
 import fr.husi.resources.person
 import fr.husi.resources.profile_config
 import fr.husi.resources.profile_name
@@ -34,15 +36,16 @@ import fr.husi.resources.public_icon
 import fr.husi.resources.router
 import fr.husi.resources.server_address
 import fr.husi.resources.server_port
+import fr.husi.resources.traffic_pattern
 import fr.husi.resources.username
 import fr.husi.ui.NavRoutes
-import kotlin.random.Random
 import me.zhanghai.compose.preference.ListPreference
 import me.zhanghai.compose.preference.ListPreferenceType
 import me.zhanghai.compose.preference.TextFieldPreference
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
+import kotlin.random.Random
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -179,6 +182,20 @@ private fun LazyListScope.mieruSettings(
             summary = { Text(stringResource(muxSummary(uiState.muxNumber))) },
             type = ListPreferenceType.DROPDOWN_MENU,
             valueToText = { AnnotatedString(stringResource(muxSummary(it))) },
+        )
+    }
+    item("traffic_pattern") {
+        TextFieldPreference(
+            value = uiState.trafficPattern,
+            onValueChange = viewModel::setTrafficPattern,
+            title = { Text(stringResource(Res.string.traffic_pattern)) },
+            textToValue = { it },
+            icon = { Icon(vectorResource(Res.drawable.pattern), null) },
+            summary = { Text(contentOrUnset(uiState.trafficPattern)) },
+            valueToText = { it },
+            textField = { value, onValueChange, onOk ->
+                MultilineTextField(value, onValueChange, onOk)
+            },
         )
     }
 }
