@@ -128,7 +128,7 @@ class ConfigurationScreenViewModel : ViewModel() {
 
     val selectedGroup = DataStore.configurationStore.longFlow(Key.PROFILE_GROUP)
 
-    private val childViewModels = mutableMapOf<Long, GroupProfilesHolderViewModel>()
+    internal val childViewModels = mutableMapOf<Long, GroupProfilesHolderViewModel>()
     private val testErrorMessages = ConcurrentHashMap<Long, String>()
 
     fun registerChild(groupId: Long, vm: GroupProfilesHolderViewModel) {

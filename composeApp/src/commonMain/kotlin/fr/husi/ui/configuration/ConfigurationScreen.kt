@@ -31,6 +31,7 @@ import androidx.compose.material3.AppBarWithSearch
 import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExpandedFullScreenSearchBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -39,6 +40,7 @@ import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.PrimaryScrollableTabRow
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBarDefaults
+import androidx.compose.material3.SearchBarValue
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -267,6 +269,33 @@ fun ConfigurationScreen(
     var showOrderMenu by remember { mutableStateOf(false) }
     val searchBarState = rememberSearchBarState()
     val searchTextFieldState = vm.searchTextFieldState
+    val appBarWithSearchColors = SearchBarDefaults.appBarWithSearchColors()
+    val searchInputField: @Composable () -> Unit = {
+        SearchBarDefaults.InputField(
+            textFieldState = searchTextFieldState,
+            searchBarState = searchBarState,
+            onSearch = { focusManager.clearFocus() },
+            placeholder = { Text(stringResource(Res.string.search_go)) },
+            leadingIcon = {
+                Icon(vectorResource(Res.drawable.search), null)
+            },
+            trailingIcon = if (searchBarState.currentValue == SearchBarValue.Expanded) {
+                {
+                    SimpleIconButton(
+                        imageVector = vectorResource(Res.drawable.close),
+                        contentDescription = stringResource(Res.string.cancel),
+                        onClick = {
+                            vm.clearSearchQuery()
+                            scope.launch { searchBarState.animateToCollapsed() }
+                        },
+                    )
+                }
+            } else {
+                null
+            },
+            colors = appBarWithSearchColors.searchBarColors.inputFieldColors,
+        )
+    }
 
     val currentOrder =
         if (pagerState.pageCount > 0 && pagerState.currentPage < uiState.groups.size) {
@@ -276,7 +305,6 @@ fun ConfigurationScreen(
         }
 
     val scrollBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior()
-    val appBarWithSearchColors = SearchBarDefaults.appBarWithSearchColors()
     val overlappedFraction by remember(scrollBehavior) {
         derivedStateOf {
             if (scrollBehavior.scrollOffsetLimit != 0f) {
@@ -357,32 +385,7 @@ fun ConfigurationScreen(
             ) {
                 AppBarWithSearch(
                     state = searchBarState,
-                    inputField = {
-                        SearchBarDefaults.InputField(
-                            textFieldState = searchTextFieldState,
-                            searchBarState = searchBarState,
-                            onSearch = { focusManager.clearFocus() },
-                            placeholder = { Text(stringResource(Res.string.search_go)) },
-                            leadingIcon = {
-                                Icon(
-                                    vectorResource(Res.drawable.search),
-                                    null,
-                                )
-                            },
-                            trailingIcon = if (searchTextFieldState.text.isNotEmpty()) {
-                                {
-                                    SimpleIconButton(
-                                        imageVector = vectorResource(Res.drawable.close),
-                                        contentDescription = stringResource(Res.string.cancel),
-                                        onClick = vm::clearSearchQuery,
-                                    )
-                                }
-                            } else {
-                                null
-                            },
-                            colors = appBarWithSearchColors.searchBarColors.inputFieldColors,
-                        )
-                    },
+                    inputField = searchInputField,
                     navigationIcon = {
                         PlatformMenuIcon(
                             imageVector = vectorResource(Res.drawable.menu),
@@ -631,6 +634,91 @@ fun ConfigurationScreen(
         vm = vm,
         uiState = uiState,
     )
+
+    ExpandedFullScreenSearchBar(
+        state = searchBarState,
+        inputField = searchInputField,
+    ) {
+        val currentGroup = uiState.groups.getOrNull(pagerState.currentPage)
+        val childVm = currentGroup?.let { vm.childViewModels[it.id] }
+        if (childVm != null) {
+            val expandedScope = rememberCoroutineScope()
+            val expandedSnackbarState = remember { SnackbarHostState() }
+            Box(modifier = Modifier.fillMaxSize()) {
+                GroupHolderScreen(
+                    modifier = Modifier.fillMaxSize(),
+                    viewModel = childVm,
+                    showActions = true,
+                    bottomPadding = 0.dp,
+                    onProfileSelect = { id ->
+                        vm.onProfileSelect(id)
+                        expandedScope.launch { searchBarState.animateToCollapsed() }
+                    },
+                    onOpenProfileEditor = onOpenProfileEditor?.let { callback ->
+                        { route ->
+                            expandedScope.launch { searchBarState.animateToCollapsed() }
+                            callback(route)
+                        }
+                    },
+                    needReload = {
+                        expandedScope.launch {
+                            if (!DataStore.serviceState.started) return@launch
+                            val result = expandedSnackbarState.showSnackbar(
+                                message = repo.getString(Res.string.need_reload),
+                                actionLabel = repo.getString(Res.string.apply),
+                                duration = SnackbarDuration.Short,
+                            )
+                            if (result == SnackbarResult.ActionPerformed) {
+                                repo.reloadService()
+                            }
+                        }
+                    },
+                    showQR = { name, url ->
+                        expandedScope.launch { searchBarState.animateToCollapsed() }
+                        // QR dialog will be shown in the parent composition
+                    },
+                    onCopySuccess = {
+                        expandedScope.launch {
+                            expandedSnackbarState.showSnackbar(
+                                message = repo.getString(Res.string.copy_success),
+                                actionLabel = repo.getString(Res.string.ok),
+                                duration = SnackbarDuration.Short,
+                            )
+                        }
+                    },
+                    showSnackbar = { message ->
+                        expandedScope.launch {
+                            expandedSnackbarState.showSnackbar(
+                                message = getStringOrRes(message),
+                                actionLabel = repo.getString(Res.string.ok),
+                                duration = SnackbarDuration.Short,
+                            )
+                        }
+                    },
+                    showUndoSnackbar = { count, onUndo ->
+                        expandedScope.launch {
+                            val result = expandedSnackbarState.showAndDismissOld(
+                                message = repo.getPluralString(
+                                    Res.plurals.removed,
+                                    count,
+                                    count,
+                                ),
+                                actionLabel = repo.getString(Res.string.undo),
+                                duration = SnackbarDuration.Short,
+                            )
+                            if (result == SnackbarResult.ActionPerformed) {
+                                onUndo()
+                            }
+                        }
+                    },
+                )
+                SnackbarHost(
+                    expandedSnackbarState,
+                    modifier = Modifier.align(Alignment.BottomCenter),
+                )
+            }
+        }
+    }
 
     LaunchedEffect(Unit) {
         mainViewModel.uiEvent.collect { event ->

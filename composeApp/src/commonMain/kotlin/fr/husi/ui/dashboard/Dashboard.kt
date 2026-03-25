@@ -40,6 +40,7 @@ import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBarDefaults
+import androidx.compose.material3.SearchBarValue
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -130,12 +131,15 @@ fun DashboardScreen(
             leadingIcon = {
                 Icon(vectorResource(Res.drawable.search), null)
             },
-            trailingIcon = if (searchTextFieldState.text.isNotEmpty()) {
+            trailingIcon = if (searchBarState.currentValue == SearchBarValue.Expanded) {
                 {
                     SimpleIconButton(
                         imageVector = vectorResource(Res.drawable.close),
                         contentDescription = stringResource(Res.string.cancel),
-                        onClick = viewModel::clearSearchQuery,
+                        onClick = {
+                            viewModel.clearSearchQuery()
+                            scope.launch { searchBarState.animateToCollapsed() }
+                        },
                     )
                 }
             } else {
