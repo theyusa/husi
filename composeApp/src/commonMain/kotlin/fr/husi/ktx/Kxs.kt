@@ -17,6 +17,7 @@ import kotlinx.serialization.json.doubleOrNull
 import kotlinx.serialization.json.longOrNull
 
 val kxs: Json = Json {
+    allowComments = true // Widely supported since V2Ray.
     prettyPrint = true
     ignoreUnknownKeys = true
     explicitNulls = false
