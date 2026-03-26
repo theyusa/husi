@@ -35,6 +35,24 @@ VIAddVersionKey "LegalCopyright" "${MAINTAINER}"
 ; --- MUI settings ---
 !define MUI_ABORTWARNING
 
+Var CreateDesktopShortcut
+Var CreateStartMenuShortcut
+Var CheckboxDesktopShortcut
+Var CheckboxStartMenuShortcut
+
+; --- Pages ---
+!insertmacro MUI_PAGE_LICENSE "__HUSI_LICENSE_FILE__"
+!insertmacro MUI_PAGE_DIRECTORY
+!insertmacro MUI_PAGE_INSTFILES
+Page custom shortcutsPageCreate shortcutsPageLeave
+!insertmacro MUI_PAGE_FINISH
+
+!insertmacro MUI_UNPAGE_CONFIRM
+!insertmacro MUI_UNPAGE_INSTFILES
+
+!insertmacro MUI_LANGUAGE "English"
+!insertmacro MUI_LANGUAGE "SimpChinese"
+
 LangString ShortcutPageTitle ${LANG_ENGLISH} "Shortcuts"
 LangString ShortcutPageTitle ${LANG_SIMPCHINESE} "快捷方式"
 LangString ShortcutAppName ${LANG_ENGLISH} "${APP_NAME}"
@@ -53,24 +71,6 @@ LangString UninstallSectionName ${LANG_ENGLISH} "Uninstall"
 LangString UninstallSectionName ${LANG_SIMPCHINESE} "卸载"
 LangString UninstallShortcutName ${LANG_ENGLISH} "Uninstall"
 LangString UninstallShortcutName ${LANG_SIMPCHINESE} "卸载"
-
-Var CreateDesktopShortcut
-Var CreateStartMenuShortcut
-Var CheckboxDesktopShortcut
-Var CheckboxStartMenuShortcut
-
-; --- Pages ---
-!insertmacro MUI_PAGE_LICENSE "__HUSI_LICENSE_FILE__"
-!insertmacro MUI_PAGE_DIRECTORY
-!insertmacro MUI_PAGE_INSTFILES
-Page custom shortcutsPageCreate shortcutsPageLeave
-!insertmacro MUI_PAGE_FINISH
-
-!insertmacro MUI_UNPAGE_CONFIRM
-!insertmacro MUI_UNPAGE_INSTFILES
-
-!insertmacro MUI_LANGUAGE "English"
-!insertmacro MUI_LANGUAGE "SimpChinese"
 
 Function .onInit
     StrCpy $CreateDesktopShortcut ${BST_CHECKED}
@@ -180,7 +180,7 @@ done:
 FunctionEnd
 
 ; --- Uninstall section ---
-Section "$(UninstallSectionName)"
+Section "un.$(UninstallSectionName)"
     ; Remove files
     Delete "$INSTDIR\${APP_NAME}.exe"
     Delete "$INSTDIR\LICENSE"
