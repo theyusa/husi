@@ -8,7 +8,7 @@ internal actual fun SingBoxOptions.Inbound_TunOptions.applyPlatformConfig() {
     if (DataStore.tunStrictRoute) {
         strict_route = true
     }
-    if (PlatformInfo.isLinux) {
+    if (PlatformInfo.isLinux && DataStore.tunAutoRedirect) {
         auto_redirect = true
     }
 }

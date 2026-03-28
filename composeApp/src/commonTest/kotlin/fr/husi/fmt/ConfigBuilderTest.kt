@@ -1,5 +1,6 @@
 package fr.husi.fmt
 
+import fr.husi.Key
 import fr.husi.database.DataStore
 import fr.husi.database.ProxyEntity
 import fr.husi.database.ProxyGroup
@@ -8,6 +9,7 @@ import fr.husi.fmt.internal.ChainBean
 import fr.husi.fmt.internal.ProxySetBean
 import fr.husi.fmt.socks.SOCKSBean
 import fr.husi.ktx.applyDefaultValues
+import fr.husi.platform.PlatformInfo
 import fr.husi.repository.FakeRepository
 import fr.husi.repository.repo
 import kotlinx.coroutines.runBlocking
@@ -269,11 +271,45 @@ class ConfigBuilderTest {
         assertEquals("front-a", outbounds["front-b"]?.get("detour")?.jsonPrimitive?.content)
     }
 
+    @Test
+    fun `buildConfig should follow tun auto redirect setting on desktop`() = runBlocking {
+        DataStore.serviceMode = Key.MODE_VPN
+
+        val group = ProxyGroup(name = "group").applyDefaultValues()
+        group.id = SagerDatabase.groupDao.createGroup(group)
+
+        val proxy = createSocksProxy(
+            groupId = group.id,
+            order = 1,
+            name = "main",
+            host = "1.1.1.1",
+            port = 1080,
+        )
+
+        DataStore.tunAutoRedirect = true
+        val enabledTunInbound = parseTunInbound(buildConfig(proxy))
+        if (PlatformInfo.isLinux) {
+            assertEquals("true", enabledTunInbound["auto_redirect"]?.jsonPrimitive?.content)
+        } else {
+            assertEquals(null, enabledTunInbound["auto_redirect"])
+        }
+
+        DataStore.tunAutoRedirect = false
+        val disabledTunInbound = parseTunInbound(buildConfig(proxy))
+        assertEquals(null, disabledTunInbound["auto_redirect"])
+    }
+
     private fun parseOutbounds(result: ConfigBuildResult) =
         Json.parseToJsonElement(result.config).jsonObject["outbounds"]!!
             .jsonArray
             .associateBy { it.jsonObject["tag"]!!.jsonPrimitive.content }
             .mapValues { it.value.jsonObject }
+
+    private fun parseTunInbound(result: ConfigBuildResult) =
+        Json.parseToJsonElement(result.config).jsonObject["inbounds"]!!
+            .jsonArray
+            .first { it.jsonObject["tag"]!!.jsonPrimitive.content == TAG_TUN }
+            .jsonObject
 
     private suspend fun createSocksProxy(
         groupId: Long,

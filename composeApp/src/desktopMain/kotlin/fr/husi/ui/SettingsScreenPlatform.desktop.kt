@@ -10,8 +10,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.husi.Key
 import fr.husi.compose.PreferenceType
 import fr.husi.database.DataStore
+import fr.husi.platform.PlatformInfo
 import fr.husi.resources.Res
 import fr.husi.resources.arrow_and_edge
+import fr.husi.resources.tun_auto_redirect
 import fr.husi.resources.tun_strict_route
 import me.zhanghai.compose.preference.SwitchPreference
 import org.jetbrains.compose.resources.stringResource
@@ -44,6 +46,23 @@ internal actual fun LazyListScope.platformRouteOptions(needReload: () -> Unit, i
             icon = { Icon(vectorResource(Res.drawable.arrow_and_edge), null) },
             enabled = isVpnMode,
         )
+    }
+    if (PlatformInfo.isLinux) { // TODO Windows
+        item(Key.TUN_AUTO_REDIRECT, PreferenceType.SWITCH) {
+            val value by DataStore.configurationStore
+                .booleanFlow(Key.TUN_AUTO_REDIRECT, true)
+                .collectAsStateWithLifecycle(true)
+            SwitchPreference(
+                value = value,
+                onValueChange = {
+                    DataStore.tunAutoRedirect = it
+                    needReload()
+                },
+                title = { Text(stringResource(Res.string.tun_auto_redirect)) },
+                icon = { Icon(vectorResource(Res.drawable.arrow_and_edge), null) },
+                enabled = isVpnMode,
+            )
+        }
     }
 }
 
