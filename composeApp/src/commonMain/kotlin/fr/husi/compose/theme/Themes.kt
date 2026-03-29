@@ -1,6 +1,5 @@
 package fr.husi.compose.theme
 
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
@@ -132,8 +131,9 @@ fun AppTheme(content: @Composable () -> Unit) {
     }
 
     CompositionLocalProvider(LocalAppDarkMode provides isDarkMode) {
-        MaterialTheme(
+        currentPlatformThemeApi().ApplyTheme(
             colorScheme = colorScheme,
+            isDarkMode = isDarkMode,
             content = content,
         )
     }

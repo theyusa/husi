@@ -3,8 +3,8 @@ package fr.husi.ui.profile
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
+import fr.husi.compose.material3.Icon
+import fr.husi.compose.material3.Text
 import androidx.compose.ui.text.AnnotatedString
 import fr.husi.compose.MultilineTextField
 import fr.husi.compose.PortTextField

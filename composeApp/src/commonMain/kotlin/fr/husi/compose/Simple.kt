@@ -2,12 +2,12 @@ package fr.husi.compose
 
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonColors
 import androidx.compose.material3.IconButtonDefaults
+import fr.husi.compose.material3.Icon
+import fr.husi.compose.material3.IconButton
 import androidx.compose.material3.PlainTooltip
-import androidx.compose.material3.Text
+import fr.husi.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TooltipAnchorPosition
 import androidx.compose.material3.TooltipBox

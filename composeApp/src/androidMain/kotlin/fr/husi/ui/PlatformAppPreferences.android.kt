@@ -1,8 +1,8 @@
 package fr.husi.ui
 
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
+import fr.husi.compose.material3.Icon
+import fr.husi.compose.material3.Text
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.husi.Key

@@ -2,7 +2,7 @@ package fr.husi.ui
 
 import android.content.Context
 import android.content.Intent
-import androidx.compose.material3.Icon
+import fr.husi.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.FileProvider

@@ -2,7 +2,7 @@ package fr.husi.ui.configuration
 
 import android.content.Intent
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.Text
+import fr.husi.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import fr.husi.resources.Res

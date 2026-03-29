@@ -10,19 +10,18 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import fr.husi.compose.material3.DrawerItem
+import fr.husi.compose.material3.Icon
+import fr.husi.compose.material3.IconButton
+import fr.husi.compose.material3.NavigationDrawer
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationDrawerItem
-import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.PlainTooltip
-import androidx.compose.material3.Text
+import fr.husi.compose.material3.Text
+import fr.husi.compose.material3.rememberDrawerStateHolder
 import androidx.compose.material3.TooltipAnchorPosition
 import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
-import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -47,9 +46,7 @@ import fr.husi.bg.Executable
 import fr.husi.bg.ServiceState
 import fr.husi.compose.BackHandler
 import fr.husi.compose.BoxedVerticalScrollbar
-import fr.husi.compose.DrawerCompat
 import fr.husi.compose.TextButton
-import fr.husi.compose.drawerIsCollapsible
 import fr.husi.database.SagerDatabase
 import fr.husi.fmt.PluginEntry
 import fr.husi.ktx.restartApplication
@@ -131,22 +128,18 @@ fun MainScreen(
     val savedStateConfiguration = remember { NavRoutes.savedStateConfiguration }
     val backStack = rememberNavBackStack(savedStateConfiguration, NavRoutes.Configuration)
     val resultBus = remember { ResultEventBus() }
-    val canCollapseDrawer = drawerIsCollapsible()
-    val drawerState = rememberDrawerState(
-        if (canCollapseDrawer) {
-            DrawerValue.Closed
-        } else {
-            DrawerValue.Open
-        },
-    )
+    val drawerStateHolder = rememberDrawerStateHolder()
     val currentRoute = backStack.lastOrNull() as? NavRoutes
+    val selectedDrawerRoute = backStack.lastOrNull {
+        (it as? NavRoutes)?.isDrawerRoute() == true
+    } as? NavRoutes
     val isAtStartDestination = currentRoute == NavRoutes.Configuration
     val serviceStatus by BackendState.status.collectAsStateWithLifecycle()
     var profilePickerSession by remember { mutableStateOf<ProfilePickerSession?>(null) }
 
     fun closeDrawer() {
-        if (canCollapseDrawer) {
-            scope.launch { drawerState.close() }
+        if (drawerStateHolder.canCollapse) {
+            scope.launch { drawerStateHolder.close() }
         }
     }
 
@@ -217,7 +210,7 @@ fun MainScreen(
 
     BackHandler(enabled = true) {
         when {
-            canCollapseDrawer && drawerState.isOpen -> scope.launch { drawerState.close() }
+            drawerStateHolder.canCollapse && drawerStateHolder.isOpen -> scope.launch { drawerStateHolder.close() }
 
             !isAtStartDestination -> {
                 val popped = popBackStack()
@@ -250,15 +243,15 @@ fun MainScreen(
         }
     }
 
-    DrawerCompat(
-        drawerState = drawerState,
+    NavigationDrawer(
+        drawerStateHolder = drawerStateHolder,
         drawerContent = {
             @Composable
             fun BuildDrawerItem(info: DrawerItemInfo) {
                 DrawerItem(
                     info = info,
                     closeDrawer = ::closeDrawer,
-                    currentRoute = currentRoute,
+                    selectedDrawerRoute = selectedDrawerRoute,
                     onNavigate = ::navigateToDrawerRoute,
                 )
             }
@@ -312,14 +305,13 @@ fun MainScreen(
             }
             for (info in items1) BuildDrawerItem(info)
             HorizontalDivider(modifier = Modifier.padding(vertical = dividerPadding))
-            NavigationDrawerItem(
+            DrawerItem(
                 label = { Text(stringResource(Res.string.document)) },
                 selected = false,
                 onClick = {
                     closeDrawer()
                     uriHandler.openUri("https://codeberg.org/xchacha20-poly1305/husi/wiki")
                 },
-                modifier = modifier.padding(NavigationDrawerItemDefaults.ItemPadding),
                 icon = {
                     Icon(vectorResource(Res.drawable.data_usage), null)
                 },
@@ -331,12 +323,12 @@ fun MainScreen(
                     NavRoutes.About,
                 ),
             )
-            if (canCollapseDrawer) {
+            if (drawerStateHolder.canCollapse) {
                 HorizontalDivider(modifier = Modifier.padding(vertical = dividerPadding))
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(NavigationDrawerItemDefaults.ItemPadding),
+                        .padding(horizontal = 28.dp),
                     horizontalArrangement = Arrangement.End,
                 ) {
                     val tooltipState = rememberTooltipState()
@@ -368,14 +360,14 @@ fun MainScreen(
         },
     ) {
         fun onDrawerClick() {
-            if (!canCollapseDrawer) {
+            if (!drawerStateHolder.canCollapse) {
                 return
             }
             scope.launch {
-                if (drawerState.isOpen) {
-                    drawerState.close()
+                if (drawerStateHolder.isOpen) {
+                    drawerStateHolder.close()
                 } else {
-                    drawerState.open()
+                    drawerStateHolder.open()
                 }
             }
         }
@@ -772,11 +764,11 @@ private fun DrawerItem(
     modifier: Modifier = Modifier,
     info: DrawerItemInfo,
     closeDrawer: () -> Unit,
-    currentRoute: NavRoutes?,
+    selectedDrawerRoute: NavRoutes?,
     onNavigate: (NavRoutes) -> Unit,
 ) {
-    val selected = currentRoute.matchesRoute(info.route)
-    NavigationDrawerItem(
+    val selected = selectedDrawerRoute.matchesRoute(info.route)
+    DrawerItem(
         label = { Text(stringResource(info.label)) },
         selected = selected,
         onClick = {
@@ -785,7 +777,7 @@ private fun DrawerItem(
                 onNavigate(info.route)
             }
         },
-        modifier = modifier.padding(NavigationDrawerItemDefaults.ItemPadding),
+        modifier = modifier,
         icon = {
             Icon(vectorResource(info.icon), null)
         },
@@ -797,6 +789,23 @@ private fun NavRoutes?.matchesRoute(
 ): Boolean {
     val current = this ?: return false
     return current::class == route::class
+}
+
+private fun NavRoutes.isDrawerRoute(): Boolean {
+    return when (this) {
+        NavRoutes.Configuration,
+        NavRoutes.Groups,
+        NavRoutes.Route,
+        NavRoutes.Settings,
+        NavRoutes.Plugin,
+        NavRoutes.Log,
+        NavRoutes.Dashboard,
+        NavRoutes.Tools,
+        NavRoutes.About,
+            -> true
+
+        else -> false
+    }
 }
 
 private data class ProfilePickerSession(

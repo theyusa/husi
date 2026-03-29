@@ -3,6 +3,7 @@ ksp = "2.3.6"
 kotlinComposePlugin = "2.3.20"
 composeMultiplatform = "1.10.2"
 composeMaterial3 = "1.11.0-alpha04"
+koin = "4.2.0"
 kotlinCoroutines = "1.10.2"
 kotlinxSerialization = "1.10.0"
 kotlinxDatetime = "0.7.1"
@@ -31,6 +32,7 @@ kryo = "5.6.2"
 ini4j = "0.5.4"
 junitBom = "6.0.3"
 aboutlibraries = "14.0.0-b03"
+androidxTv = "1.0.1"
 agp = "9.1.0"
 kotlinGradlePlugin = "2.3.20"
 
@@ -48,6 +50,7 @@ androidx-activity-ktx = { module = "androidx.activity:activity-ktx", version.ref
 androidx-work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "androidxWork" }
 androidx-work-multiprocess = { module = "androidx.work:work-multiprocess", version.ref = "androidxWork" }
 androidx-datastore = { module = "androidx.datastore:datastore", version.ref = "androidxDatastore" }
+androidx-tv-material = { module = "androidx.tv:tv-material", version.ref = "androidxTv" }
 androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "androidxDatastore" }
 androidx-compose-bom = { module = "androidx.compose:compose-bom", version.ref = "androidxComposeBom" }
 androidx-compose-ui = { module = "androidx.compose.ui:ui" }
@@ -89,6 +92,9 @@ jetbrains-compose-ui-tooling-preview = { module = "org.jetbrains.compose.ui:ui-t
 jetbrains-lifecycle-viewmodel-compose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "jetbrainsLifecycle" }
 jetbrains-lifecycle-runtime-compose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose", version.ref = "jetbrainsLifecycle" }
 jetbrains-navigation3-ui = { module = "org.jetbrains.androidx.navigation3:navigation3-ui", version.ref = "jetbrainsNavigation3Ui" }
+koin-bom = { module = "io.insert-koin:koin-bom", version.ref = "koin" }
+koin-core = { module = "io.insert-koin:koin-core" }
+koin-compose = { module = "io.insert-koin:koin-compose" }
 
 [plugins]
 aboutlibraries = { id = "com.mikepenz.aboutlibraries.plugin", version.ref = "aboutlibraries" }

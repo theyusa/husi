@@ -27,6 +27,7 @@ import fr.husi.bg.ServiceState
 import fr.husi.compose.getPlainText
 import fr.husi.compose.theme.AppTheme
 import fr.husi.database.DataStore
+import fr.husi.di.initHusiKoin
 import fr.husi.keyevent.KeyEventManagerDesktop
 import fr.husi.keyevent.LocalKeyEventManager
 import fr.husi.keyevent.isTypeControlPressed
@@ -296,6 +297,7 @@ private fun initDesktopRuntime(startupArgs: DesktopStartupArgs) {
         ?: File(System.getProperty("user.home"), ".config").resolve("husi")
     baseDir.mkdirs()
     desktopRepo = DesktopRepository(baseDir)
+    initHusiKoin()
     val filesDir = repo.filesDir.absolutePath + "/"
 
     if (!startupArgs.many) {

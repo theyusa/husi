@@ -287,9 +287,14 @@ kotlin {
                 implementation(libs.zxing.core)
                 implementation(project(":library:compose-code-editor:codeeditor"))
                 implementation(project(":library:DragDropSwipeLazyColumn"))
+
+                implementation(project.dependencies.platform(libs.koin.bom))
+                implementation(libs.koin.core)
+                implementation(libs.koin.compose)
             }
         }
         val androidMain by getting {
+            languageSettings.optIn("androidx.tv.material3.ExperimentalTvMaterial3Api")
             dependencies {
                 implementation(
                     fileTree("libs") {
@@ -325,6 +330,8 @@ kotlin {
                 implementation(libs.guava)
 
                 implementation(libs.process.phoenix)
+
+                implementation(libs.androidx.tv.material)
             }
         }
         val commonTest by getting {

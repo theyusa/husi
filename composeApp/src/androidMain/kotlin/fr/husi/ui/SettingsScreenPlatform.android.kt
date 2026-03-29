@@ -6,8 +6,8 @@ import android.content.pm.PackageManager
 import android.os.Build
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
+import fr.husi.compose.material3.Icon
+import fr.husi.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
