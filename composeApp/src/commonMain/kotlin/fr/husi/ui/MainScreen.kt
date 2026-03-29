@@ -742,7 +742,6 @@ fun MainScreen(
                     Column(
                         modifier = Modifier
                             .weight(1f)
-                            .fillMaxHeight()
                             .verticalScroll(scrollState),
                     ) {
                         Text(stringOrRes(dialog.message))
