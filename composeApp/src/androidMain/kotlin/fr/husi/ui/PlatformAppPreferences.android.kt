@@ -1,16 +1,25 @@
 package fr.husi.ui
 
 import androidx.compose.foundation.lazy.LazyListScope
-import fr.husi.compose.material3.Icon
-import fr.husi.compose.material3.Text
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.husi.Key
 import fr.husi.compose.PreferenceType
+import fr.husi.compose.material3.Icon
+import fr.husi.compose.material3.Text
 import fr.husi.database.DataStore
-import fr.husi.resources.*
+import fr.husi.resources.Res
+import fr.husi.resources.apps
+import fr.husi.resources.apps_message
+import fr.husi.resources.keyboard_tab
+import fr.husi.resources.legend_toggle
+import fr.husi.resources.not_set
+import fr.husi.resources.proxied_apps
+import fr.husi.resources.proxied_apps_summary
+import fr.husi.resources.update_proxy_apps_when_install
 import me.zhanghai.compose.preference.Preference
 import me.zhanghai.compose.preference.SwitchPreference
+import me.zhanghai.compose.preference.TwoTargetSwitchPreference
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
@@ -45,10 +54,13 @@ internal actual fun LazyListScope.proxyAppsPreferences(
         val value by DataStore.configurationStore
             .booleanFlow(Key.PROXY_APPS, false)
             .collectAsStateWithLifecycle(false)
-        SwitchPreference(
+        TwoTargetSwitchPreference(
             value = value,
             onValueChange = {
-                openAppManager()
+                DataStore.proxyApps = it
+                if (it) {
+                    openAppManager()
+                }
             },
             title = { Text(stringResource(Res.string.proxied_apps)) },
             icon = {
@@ -58,6 +70,12 @@ internal actual fun LazyListScope.proxyAppsPreferences(
                 )
             },
             summary = { Text(stringResource(Res.string.proxied_apps_summary)) },
+            onClick = {
+                if (!value) {
+                    DataStore.proxyApps = true
+                }
+                openAppManager()
+            },
         )
     }
     item(Key.UPDATE_PROXY_APPS_WHEN_INSTALL, PreferenceType.SWITCH) {

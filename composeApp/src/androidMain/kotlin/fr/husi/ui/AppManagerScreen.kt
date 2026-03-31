@@ -52,8 +52,12 @@ internal actual fun AppManagerScreen(
     }
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    LaunchedEffect(uiState.shouldFinish) {
-        if (uiState.shouldFinish) onBackPress()
+    LaunchedEffect(viewModel) {
+        viewModel.uiEvent.collect { event ->
+            when (event) {
+                AppManagerUiEvent.Finish -> onBackPress()
+            }
+        }
     }
 
     AppListScaffold(

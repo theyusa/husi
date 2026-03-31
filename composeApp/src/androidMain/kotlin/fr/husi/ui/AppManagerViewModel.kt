@@ -8,8 +8,10 @@ import fr.husi.Key
 import fr.husi.database.DataStore
 import fr.husi.utils.AppScanner
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -23,7 +25,6 @@ internal data class AppManagerUiState(
     val scanned: List<String>? = null,
     val scanProcess: Float? = null,
     val snackbarMessage: StringOrRes? = null,
-    val shouldFinish: Boolean = false,
 )
 
 @Immutable
@@ -33,10 +34,17 @@ internal enum class ProxyMode {
     BYPASS,
 }
 
+@Immutable
+internal sealed interface AppManagerUiEvent {
+    data object Finish : AppManagerUiEvent
+}
+
 @Stable
 internal class AppManagerViewModel : BaseAppListViewModel() {
-    private val _uiState = MutableStateFlow(AppManagerUiState())
-    val uiState = _uiState.asStateFlow()
+    val uiState: StateFlow<AppManagerUiState>
+        field = MutableStateFlow(AppManagerUiState())
+    val uiEvent: SharedFlow<AppManagerUiEvent>
+        field = MutableSharedFlow<AppManagerUiEvent>()
 
     private var scanJob: Job? = null
 
@@ -44,9 +52,9 @@ internal class AppManagerViewModel : BaseAppListViewModel() {
         if (!DataStore.proxyApps) {
             DataStore.proxyApps = true
         }
-        _uiState.update { it.copy(mode = currentProxyMode()) }
+        uiState.update { it.copy(mode = currentProxyMode()) }
         packageManager = pm
-        _uiState.update {
+        uiState.update {
             it.copy(isLoading = true, apps = emptyList())
         }
         viewModelScope.launch(singleThreadContext) {
@@ -64,12 +72,16 @@ internal class AppManagerViewModel : BaseAppListViewModel() {
         collectSearchText()
     }
 
-    override fun updateApps(apps: List<ProxiedApp>, filteredApps: List<ProxiedApp>, isLoading: Boolean) {
-        _uiState.update { it.copy(isLoading = isLoading, apps = apps, filteredApps = filteredApps) }
+    override fun updateApps(
+        apps: List<ProxiedApp>,
+        filteredApps: List<ProxiedApp>,
+        isLoading: Boolean,
+    ) {
+        uiState.update { it.copy(isLoading = isLoading, apps = apps, filteredApps = filteredApps) }
     }
 
     override fun updateSnackbar(message: StringOrRes?) {
-        _uiState.update { it.copy(snackbarMessage = message) }
+        uiState.update { it.copy(snackbarMessage = message) }
     }
 
     override suspend fun afterMutation() = writeToDataStore()
@@ -90,7 +102,7 @@ internal class AppManagerViewModel : BaseAppListViewModel() {
         scanJob = viewModelScope.launch(singleThreadContext) {
             val cachedApps = cachedApps
             val bypass = DataStore.bypassMode
-            _uiState.update {
+            uiState.update {
                 it.copy(
                     scanned = emptyList(),
                     scanProcess = null,
@@ -98,7 +110,7 @@ internal class AppManagerViewModel : BaseAppListViewModel() {
             }
             for ((packageName, packageInfo) in cachedApps) {
                 if (!isActive) {
-                    _uiState.update {
+                    uiState.update {
                         it.copy(
                             scanned = null,
                             scanProcess = null,
@@ -107,10 +119,9 @@ internal class AppManagerViewModel : BaseAppListViewModel() {
                     return@launch
                 }
 
-                val old = _uiState.value
-                val scanned = old.scanned!! + packageName
-                _uiState.update {
-                    it.copy(
+                uiState.update { state ->
+                    val scanned = state.scanned!! + packageName
+                    state.copy(
                         scanned = scanned,
                         scanProcess = (scanned.size.toDouble() / cachedApps.size.toDouble()).toFloat(),
                     )
@@ -132,7 +143,7 @@ internal class AppManagerViewModel : BaseAppListViewModel() {
                 }
             }
             writeToDataStore()
-            _uiState.emit(_uiState.value.copy(scanned = null, scanProcess = null))
+            uiState.emit(uiState.value.copy(scanned = null, scanProcess = null))
         }
     }
 
@@ -162,11 +173,9 @@ internal class AppManagerViewModel : BaseAppListViewModel() {
         when (mode) {
             ProxyMode.DISABLED -> {
                 DataStore.proxyApps = false
-                _uiState.update { state ->
-                    state.copy(
-                        shouldFinish = true,
-                    )
-                }
+                uiState.update { it.copy(mode = mode) }
+                uiEvent.emit(AppManagerUiEvent.Finish)
+                return@launch
             }
 
             ProxyMode.BYPASS -> {
@@ -179,6 +188,6 @@ internal class AppManagerViewModel : BaseAppListViewModel() {
                 DataStore.bypassMode = false
             }
         }
-        _uiState.update { it.copy(mode = mode) }
+        uiState.update { it.copy(mode = mode) }
     }
 }
