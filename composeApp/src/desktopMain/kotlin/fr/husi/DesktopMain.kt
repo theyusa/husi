@@ -1,17 +1,10 @@
 package fr.husi
 
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.input.key.KeyEvent
-import androidx.compose.ui.input.key.KeyEventType
-import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.type
-import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Tray
@@ -20,21 +13,15 @@ import androidx.compose.ui.window.application
 import androidx.compose.ui.window.isTraySupported
 import androidx.compose.ui.window.rememberTrayState
 import androidx.compose.ui.window.rememberWindowState
-import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.husi.bg.BackendState
 import fr.husi.bg.DeepLinkDispatcher
 import fr.husi.bg.ServiceState
-import fr.husi.compose.getPlainText
 import fr.husi.compose.theme.AppTheme
 import fr.husi.database.DataStore
 import fr.husi.di.initHusiKoin
-import fr.husi.keyevent.KeyEventManagerDesktop
-import fr.husi.keyevent.LocalKeyEventManager
-import fr.husi.keyevent.isTypeControlPressed
 import fr.husi.ktx.Logs
 import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.exitApplication
-import fr.husi.ktx.runOnDefaultDispatcher
 import fr.husi.ktx.toStringIterator
 import fr.husi.libcore.Client
 import fr.husi.libcore.Libcore
@@ -57,7 +44,6 @@ import fr.husi.resources.service_mode_vpn
 import fr.husi.resources.start
 import fr.husi.resources.stop
 import fr.husi.ui.MainScreen
-import fr.husi.ui.MainViewModel
 import fr.husi.utils.CrashHandler
 import fr.husi.utils.copyBundledRuleSetAssetsIfNeeded
 import kotlinx.cli.ArgParser
@@ -71,7 +57,6 @@ import java.awt.Desktop
 import java.io.File
 import javax.swing.JOptionPane
 import kotlin.system.exitProcess
-import androidx.compose.ui.input.key.Key as InputKey
 
 private const val MIN_LOG_LEVEL = 0
 private const val MAX_LOG_LEVEL = 6
@@ -87,7 +72,6 @@ fun main(args: Array<String>) {
     }
 
     application {
-        val keyEventManager = remember { KeyEventManagerDesktop() }
         var windowVisible by remember { mutableStateOf(true) }
 
         val trayState = rememberTrayState()
@@ -194,41 +178,9 @@ fun main(args: Array<String>) {
                 visible = windowVisible,
                 title = stringResource(Res.string.app_name),
                 icon = painterResource(Res.drawable.ic_service_active),
-                onKeyEvent = { keyEvent ->
-                    if (windowState.isMinimized || !windowVisible) return@Window false
-                    if (keyEvent.type != KeyEventType.KeyDown) return@Window false
-                    keyEventManager.dispatch(keyEvent)
-                },
             ) {
-                val viewModel = viewModel { MainViewModel() }
-                val clipboard = LocalClipboard.current
-
-                fun handleKeyEvent(keyEvent: KeyEvent): Boolean {
-                    if (!keyEvent.isTypeControlPressed) return false
-                    if (keyEvent.key != InputKey.V) return false
-                    runOnDefaultDispatcher {
-                        clipboard.getPlainText()?.let {
-                            viewModel.importFromUri(it)
-                        }
-                    }
-                    return true
-                }
-
-                DisposableEffect(Unit) {
-                    keyEventManager.register(::handleKeyEvent)
-                    onDispose {
-                        keyEventManager.unregister(::handleKeyEvent)
-                    }
-                }
                 AppTheme {
-                    CompositionLocalProvider(
-                        LocalKeyEventManager provides keyEventManager,
-                    ) {
-                        MainScreen(
-                            viewModel = viewModel,
-                            moveToBackground = {},
-                        )
-                    }
+                    MainScreen(moveToBackground = {})
                 }
             }
         }

@@ -1,9 +1,10 @@
+@file:OptIn(KoinDelicateAPI::class, KoinExperimentalAPI::class)
+
 package fr.husi.ui
 
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
-import androidx.activity.viewModels
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.lifecycle.lifecycleScope
 import fr.husi.Key
@@ -17,10 +18,15 @@ import fr.husi.service.ServiceConnector
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
+import org.koin.android.scope.AndroidScopeComponent
+import org.koin.androidx.scope.activityRetainedScope
+import org.koin.compose.scope.UnboundKoinScope
+import org.koin.core.annotation.KoinDelicateAPI
+import org.koin.core.annotation.KoinExperimentalAPI
 
-class MainActivity : ComposeActivity() {
+class MainActivity : ComposeActivity(), AndroidScopeComponent {
 
-    private val viewModel: MainViewModel by viewModels()
+    override val scope by activityRetainedScope()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,23 +46,23 @@ class MainActivity : ComposeActivity() {
 
         when (intent.action) {
             Intent.ACTION_VIEW -> onNewIntent(intent)
-            Intent.ACTION_PROCESS_TEXT -> {
-                viewModel.parseProxy(intent.getStringExtra(Intent.EXTRA_PROCESS_TEXT))
-            }
-
             else -> {}
         }
 
         setContent {
             val permissionPlatform = rememberAndroidPermissionPlatform()
-            CompositionLocalProvider(
-                LocalPermissionPlatform provides permissionPlatform,
-            ) {
-                AppTheme {
-                    MainScreen(
-                        viewModel = viewModel,
-                        moveToBackground = { moveTaskToBack(true) },
-                    )
+            UnboundKoinScope(scope) {
+                CompositionLocalProvider(
+                    LocalPermissionPlatform provides permissionPlatform,
+                ) {
+                    AppTheme {
+                        MainScreen(
+                            moveToBackground = { moveTaskToBack(true) },
+                            initialProcessText = intent
+                                .takeIf { it.action == Intent.ACTION_PROCESS_TEXT }
+                                ?.getStringExtra(Intent.EXTRA_PROCESS_TEXT),
+                        )
+                    }
                 }
             }
         }

@@ -7,6 +7,7 @@ import fr.husi.compose.theme.PlatformThemeApi
 import fr.husi.compose.theme.TvPlatformThemeApi
 import fr.husi.compose.theme.standardPlatformThemeApi
 import fr.husi.repository.repo
+import org.koin.core.module.Module
 
 internal actual fun platformMaterialApi(): PlatformMaterialApi {
     return if (repo.isTv) {
@@ -23,3 +24,5 @@ internal actual fun platformThemeApi(): PlatformThemeApi {
         standardPlatformThemeApi()
     }
 }
+
+internal actual fun platformKoinModules(): List<Module> = listOf(androidNavigationModule)

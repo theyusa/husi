@@ -62,7 +62,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
@@ -95,6 +98,7 @@ import fr.husi.compose.paddingExceptBottom
 import fr.husi.database.DataStore
 import fr.husi.database.ProxyEntity
 import fr.husi.database.displayType
+import fr.husi.keyevent.isTypeControlPressed
 import fr.husi.ktx.runOnIoDispatcher
 import fr.husi.ktx.showAndDismissOld
 import fr.husi.repository.repo
@@ -373,9 +377,23 @@ fun ConfigurationScreen(
         )
     }
 
+    fun importFromClipboard() {
+        lifecycleOwner.lifecycleScope.launch {
+            val text = clipboard.getPlainText()
+            mainViewModel.parseProxy(text)
+        }
+    }
+
     Scaffold(
         modifier = modifier
             .fillMaxSize()
+            .onPreviewKeyEvent { keyEvent ->
+                if (!keyEvent.isTypeControlPressed || keyEvent.key != Key.V) {
+                    return@onPreviewKeyEvent false
+                }
+                importFromClipboard()
+                true
+            }
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             Column(
@@ -411,10 +429,7 @@ fun ConfigurationScreen(
                                     text = { Text(stringResource(Res.string.action_import)) },
                                     onClick = {
                                         showAddMenu = false
-                                        lifecycleOwner.lifecycleScope.launch {
-                                            val text = clipboard.getPlainText()
-                                            mainViewModel.parseProxy(text)
-                                        }
+                                        importFromClipboard()
                                     },
                                 )
                                 DropdownMenuItem(

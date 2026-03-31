@@ -78,7 +78,6 @@ import fr.husi.resources.tasker_settings
 import fr.husi.resources.tasker_start_current_profile
 import fr.husi.resources.unsaved_changes_prompt
 import fr.husi.ui.ComposeActivity
-import fr.husi.ui.MainViewModel
 import fr.husi.ui.configuration.ProfileSelectSheet
 import kotlinx.coroutines.runBlocking
 import me.zhanghai.compose.preference.ListPreference
@@ -90,7 +89,6 @@ import org.jetbrains.compose.resources.vectorResource
 class TaskerActivity : ComposeActivity() {
 
     private val viewModel by viewModels<TaskerActivityViewModel>()
-    private val mainViewModel by viewModels<MainViewModel>()
     private lateinit var settings: TaskerBundle
 
     override fun onCreate(savedInstanceState: Bundle?) {

@@ -290,7 +290,10 @@ kotlin {
 
                 implementation(project.dependencies.platform(libs.koin.bom))
                 implementation(libs.koin.core)
+                implementation(libs.koin.core.viewmodel)
                 implementation(libs.koin.compose)
+                implementation(libs.koin.compose.viewmodel)
+                implementation(libs.koin.compose.navigation3)
             }
         }
         val androidMain by getting {
@@ -316,6 +319,7 @@ kotlin {
 
                 implementation(libs.androidx.compose.ui.viewbinding)
                 implementation(libs.androidx.activity.compose)
+                implementation(libs.koin.android)
 
                 implementation(libs.accompanist.drawablepainter)
 

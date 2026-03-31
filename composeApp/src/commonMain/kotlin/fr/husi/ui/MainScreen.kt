@@ -1,3 +1,5 @@
+@file:OptIn(KoinExperimentalAPI::class)
+
 package fr.husi.ui
 
 import androidx.compose.foundation.layout.Arrangement
@@ -11,14 +13,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
-import fr.husi.compose.material3.DrawerItem
-import fr.husi.compose.material3.Icon
-import fr.husi.compose.material3.IconButton
-import fr.husi.compose.material3.NavigationDrawer
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PlainTooltip
-import fr.husi.compose.material3.Text
-import fr.husi.compose.material3.rememberDrawerStateHolder
 import androidx.compose.material3.TooltipAnchorPosition
 import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
@@ -36,7 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import fr.husi.AlertType
@@ -47,6 +43,12 @@ import fr.husi.bg.ServiceState
 import fr.husi.compose.BackHandler
 import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.TextButton
+import fr.husi.compose.material3.DrawerItem
+import fr.husi.compose.material3.Icon
+import fr.husi.compose.material3.IconButton
+import fr.husi.compose.material3.NavigationDrawer
+import fr.husi.compose.material3.Text
+import fr.husi.compose.material3.rememberDrawerStateHolder
 import fr.husi.database.SagerDatabase
 import fr.husi.fmt.PluginEntry
 import fr.husi.ktx.restartApplication
@@ -93,18 +95,7 @@ import fr.husi.resources.view_list
 import fr.husi.resources.warning_amber
 import fr.husi.results.LocalResultEventBus
 import fr.husi.results.ResultEventBus
-import fr.husi.ui.configuration.ConfigurationScreen
 import fr.husi.ui.configuration.ProfileSelectSheet
-import fr.husi.ui.dashboard.ConnectionDetailScreen
-import fr.husi.ui.dashboard.DashboardScreen
-import fr.husi.ui.profile.ConfigEditScreen
-import fr.husi.ui.profile.ProfileEditorScreen
-import fr.husi.ui.tools.GetCertScreen
-import fr.husi.ui.tools.RuleSetMatchScreen
-import fr.husi.ui.tools.SpeedtestScreen
-import fr.husi.ui.tools.StunScreen
-import fr.husi.ui.tools.ToolsScreen
-import fr.husi.ui.tools.VPNScannerScreen
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import kotlinx.collections.immutable.persistentListOf
@@ -114,12 +105,48 @@ import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
+import org.koin.compose.currentKoinScope
+import org.koin.compose.navigation3.EntryProvider
+import org.koin.compose.navigation3.koinEntryProvider
+import org.koin.compose.scope.KoinScope
+import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.annotation.KoinExperimentalAPI
+import org.koin.core.parameter.parametersOf
+import org.koin.core.scope.Scope
+import kotlin.random.Random
 
 @Composable
 fun MainScreen(
     modifier: Modifier = Modifier,
+    moveToBackground: () -> Unit,
+    initialProcessText: String? = null,
+) {
+    val scopeId = remember {
+        "main-screen:${Random.nextLong()}"
+    }
+    KoinScope<MainScreenScope>(scopeID = scopeId) {
+        val mainScreenScope = currentKoinScope()
+        val viewModel = koinViewModel<MainViewModel>()
+        val entryProvider = koinEntryProvider<NavKey>(scope = mainScreenScope)
+        MainScreenContent(
+            modifier = modifier,
+            viewModel = viewModel,
+            moveToBackground = moveToBackground,
+            initialProcessText = initialProcessText,
+            koinScope = mainScreenScope,
+            entryProvider = entryProvider,
+        )
+    }
+}
+
+@Composable
+private fun MainScreenContent(
+    modifier: Modifier = Modifier,
     viewModel: MainViewModel,
     moveToBackground: () -> Unit,
+    initialProcessText: String?,
+    koinScope: Scope,
+    entryProvider: EntryProvider<NavKey>,
 ) {
     val permission = LocalPermissionPlatform.current
     val uriHandler = LocalUriHandler.current
@@ -129,50 +156,22 @@ fun MainScreen(
     val backStack = rememberNavBackStack(savedStateConfiguration, NavRoutes.Configuration)
     val resultBus = remember { ResultEventBus() }
     val drawerStateHolder = rememberDrawerStateHolder()
-    val currentRoute = backStack.lastOrNull() as? NavRoutes
-    val selectedDrawerRoute = backStack.lastOrNull {
-        (it as? NavRoutes)?.isDrawerRoute() == true
-    } as? NavRoutes
-    val isAtStartDestination = currentRoute == NavRoutes.Configuration
+    val navigator = remember(koinScope, backStack) {
+        koinScope.get<Navigator> {
+            parametersOf(backStack)
+        }
+    }
+    val selectedDrawerRoute = navigator.selectedDrawerRoute
+    val isAtStartDestination = navigator.isAtStartDestination
     val serviceStatus by BackendState.status.collectAsStateWithLifecycle()
-    var profilePickerSession by remember { mutableStateOf<ProfilePickerSession?>(null) }
+    val profilePickerController = remember(koinScope) {
+        koinScope.get<ProfilePickerController>()
+    }
 
     fun closeDrawer() {
         if (drawerStateHolder.canCollapse) {
             scope.launch { drawerStateHolder.close() }
         }
-    }
-
-    fun dismissProfilePicker() {
-        profilePickerSession = null
-    }
-
-    fun popBackStack(): Boolean {
-        if (backStack.size <= 1) {
-            return false
-        }
-        backStack.removeLastOrNull()
-        return true
-    }
-
-    fun navigateTo(route: NavRoutes) {
-        backStack.add(route)
-    }
-
-    fun navigateToDrawerRoute(route: NavRoutes) {
-        while (backStack.size > 1) {
-            backStack.removeLastOrNull()
-        }
-        if (backStack.lastOrNull() != route) {
-            backStack.add(route)
-        }
-    }
-
-    val openProfilePicker: OpenProfilePicker = { preSelected, onSelected ->
-        profilePickerSession = ProfilePickerSession(
-            preSelected = preSelected,
-            onSelected = onSelected,
-        )
     }
 
     /**
@@ -213,9 +212,9 @@ fun MainScreen(
             drawerStateHolder.canCollapse && drawerStateHolder.isOpen -> scope.launch { drawerStateHolder.close() }
 
             !isAtStartDestination -> {
-                val popped = popBackStack()
+                val popped = navigator.popBackStack()
                 if (!popped) {
-                    navigateToDrawerRoute(NavRoutes.Configuration)
+                    navigator.navigateToDrawerRoute(NavRoutes.Configuration)
                 }
             }
 
@@ -226,6 +225,12 @@ fun MainScreen(
     LaunchedEffect(serviceStatus.state) {
         if (serviceStatus.state != ServiceState.Connected) {
             viewModel.resetUrlTestStatus()
+        }
+    }
+
+    LaunchedEffect(initialProcessText) {
+        if (!initialProcessText.isNullOrBlank()) {
+            viewModel.parseProxy(initialProcessText)
         }
     }
 
@@ -252,7 +257,7 @@ fun MainScreen(
                     info = info,
                     closeDrawer = ::closeDrawer,
                     selectedDrawerRoute = selectedDrawerRoute,
-                    onNavigate = ::navigateToDrawerRoute,
+                    onNavigate = navigator::navigateToDrawerRoute,
                 )
             }
 
@@ -372,237 +377,28 @@ fun MainScreen(
             }
         }
 
+        remember(koinScope) {
+            koinScope.get<DrawerController> {
+                parametersOf(::onDrawerClick)
+            }
+        }
+
         CompositionLocalProvider(
             LocalResultEventBus provides resultBus,
         ) {
             NavDisplay(
                 backStack = backStack,
-                onBack = ::popBackStack,
-                entryProvider = entryProvider(
-                    fallback = { key ->
-                        error("Unknown route: $key")
-                    },
-                ) {
-                    entry<NavRoutes.Configuration> {
-                        ConfigurationScreen(
-                            mainViewModel = viewModel,
-                            onNavigationClick = ::onDrawerClick,
-                            onOpenProfileEditor = { navigateTo(it) },
-                        )
-                    }
-
-                    entry<NavRoutes.Groups> {
-                        GroupScreen(
-                            mainViewModel = viewModel,
-                            onDrawerClick = ::onDrawerClick,
-                            openGroupSettings = { groupId ->
-                                navigateTo(NavRoutes.GroupSettings(groupId = groupId))
-                            },
-                        )
-                    }
-
-                    entry<NavRoutes.Route> {
-                        RouteScreen(
-                            mainViewModel = viewModel,
-                            onDrawerClick = ::onDrawerClick,
-                            openRouteSettings = { routeId ->
-                                navigateTo(NavRoutes.RouteSettings(routeId = routeId))
-                            },
-                            openAssets = {
-                                navigateTo(NavRoutes.Assets)
-                            },
-                        )
-                    }
-
-                    entry<NavRoutes.Settings> {
-                        SettingsScreen(
-                            mainViewModel = viewModel,
-                            onDrawerClick = ::onDrawerClick,
-                            openAppManager = { navigateTo(NavRoutes.AppManager) },
-                        )
-                    }
-
-                    entry<NavRoutes.Plugin> {
-                        PluginScreen(
-                            mainViewModel = viewModel,
-                            onDrawerClick = ::onDrawerClick,
-                        )
-                    }
-
-                    entry<NavRoutes.Log> {
-                        LogcatScreen(
-                            mainViewModel = viewModel,
-                            onDrawerClick = ::onDrawerClick,
-                        )
-                    }
-
-                    entry<NavRoutes.Dashboard> {
-                        DashboardScreen(
-                            mainViewModel = viewModel,
-                            onDrawerClick = ::onDrawerClick,
-                            openConnectionDetail = { uuid ->
-                                navigateTo(NavRoutes.ConnectionsDetail(uuid = uuid))
-                            },
-                        )
-                    }
-
-                    entry<NavRoutes.ConnectionsDetail> { key ->
-                        ConnectionDetailScreen(
-                            uuid = key.uuid,
-                            popup = ::popBackStack,
-                            openRouteSettings = { initialState ->
-                                navigateTo(
-                                    NavRoutes.RouteSettings(
-                                        routeId = -1L,
-                                        useDraft = true,
-                                        initialState = initialState,
-                                    ),
-                                )
-                            },
-                        )
-                    }
-
-                    entry<NavRoutes.ProfileEditor> { route ->
-                        ProfileEditorScreen(
-                            type = route.type,
-                            profileId = route.id,
-                            isSubscription = route.subscription,
-                            onOpenProfileSelect = openProfilePicker,
-                            onOpenConfigEditor = { navigateTo(it) },
-                            onResult = { updated ->
-                                resultBus.sendResult(route.resultKey, updated)
-                                popBackStack()
-                            },
-                        )
-                    }
-
-                    entry<NavRoutes.AppManager> {
-                        AppManagerScreen(
-                            onBackPress = { popBackStack() },
-                        )
-                    }
-
-                    entry<NavRoutes.GroupSettings> { key ->
-                        GroupSettingsScreen(
-                            groupId = key.groupId,
-                            onBackPress = { popBackStack() },
-                            onOpenProfileSelect = openProfilePicker,
-                        )
-                    }
-
-                    entry<NavRoutes.RouteSettings> { key ->
-                        val initialState = if (key.useDraft) key.initialState else null
-                        RouteSettingsScreen(
-                            routeId = key.routeId,
-                            initialState = initialState,
-                            onBackPress = { popBackStack() },
-                            onSaved = ::popBackStack,
-                            onOpenProfileSelect = openProfilePicker,
-                            onOpenAppList = { navigateTo(it) },
-                            onOpenConfigEditor = { navigateTo(it) },
-                        )
-                    }
-
-                    entry<NavRoutes.AppList> { route ->
-                        AppListScreen(
-                            initialPackages = route.initialPackages,
-                            resultKey = route.resultKey,
-                            onBack = ::popBackStack,
-                        )
-                    }
-
-                    entry<NavRoutes.ConfigEditor> { route ->
-                        ConfigEditScreen(
-                            initialText = route.initialText,
-                            resultKey = route.resultKey,
-                            onBack = ::popBackStack,
-                        )
-                    }
-
-                    entry<NavRoutes.Assets> {
-                        AssetsScreen(
-                            onBackPress = { popBackStack() },
-                            onOpenAssetEditor = { route ->
-                                navigateTo(route)
-                            },
-                        )
-                    }
-
-                    entry<NavRoutes.AssetEdit> { key ->
-                        AssetEditScreen(
-                            assetName = key.assetName,
-                            resultKey = key.resultKey,
-                            onBack = ::popBackStack,
-                        )
-                    }
-
-                    entry<NavRoutes.Tools> {
-                        ToolsScreen(
-                            mainViewModel = viewModel,
-                            onDrawerClick = ::onDrawerClick,
-                            onOpenTool = { toolsRoute ->
-                                navigateTo(toolsRoute)
-                            },
-                        )
-                    }
-
-                    entry<NavRoutes.ToolsPage.Stun> {
-                        StunScreen(
-                            onBackPress = ::popBackStack,
-                        )
-                    }
-
-                    entry<NavRoutes.ToolsPage.GetCert> {
-                        GetCertScreen(
-                            onBack = ::popBackStack,
-                        )
-                    }
-
-                    entry<NavRoutes.ToolsPage.VPNScanner> {
-                        VPNScannerScreen(
-                            onBackPress = ::popBackStack,
-                        )
-                    }
-
-                    entry<NavRoutes.ToolsPage.SpeedTest> {
-                        SpeedtestScreen(
-                            onBackPress = ::popBackStack,
-                        )
-                    }
-
-                    entry<NavRoutes.ToolsPage.RuleSetMatch> {
-                        RuleSetMatchScreen(
-                            onBackPress = ::popBackStack,
-                        )
-                    }
-
-                    entry<NavRoutes.About> {
-                        AboutScreen(
-                            mainViewModel = viewModel,
-                            onDrawerClick = ::onDrawerClick,
-                            onNavigateToLibraries = { navigateTo(NavRoutes.Libraries) },
-                        )
-                    }
-
-                    entry<NavRoutes.Libraries> {
-                        LibrariesScreen(
-                            onBackPress = ::popBackStack,
-                        )
-                    }
-                },
+                onBack = navigator::popBackStack,
+                entryProvider = entryProvider,
             )
 
-            profilePickerSession?.let { session ->
+            profilePickerController.session?.let { session ->
                 ProfileSelectSheet(
                     preSelected = session.preSelected,
-                    onDismiss = ::dismissProfilePicker,
-                    onSelected = { id ->
-                        session.onSelected(id)
-                        dismissProfilePicker()
-                    },
+                    onDismiss = profilePickerController::dismiss,
+                    onSelected = profilePickerController::select,
                 )
             }
-
         }
     }
 
@@ -790,25 +586,3 @@ private fun NavRoutes?.matchesRoute(
     val current = this ?: return false
     return current::class == route::class
 }
-
-private fun NavRoutes.isDrawerRoute(): Boolean {
-    return when (this) {
-        NavRoutes.Configuration,
-        NavRoutes.Groups,
-        NavRoutes.Route,
-        NavRoutes.Settings,
-        NavRoutes.Plugin,
-        NavRoutes.Log,
-        NavRoutes.Dashboard,
-        NavRoutes.Tools,
-        NavRoutes.About,
-            -> true
-
-        else -> false
-    }
-}
-
-private data class ProfilePickerSession(
-    val preSelected: Long?,
-    val onSelected: (Long) -> Unit,
-)
