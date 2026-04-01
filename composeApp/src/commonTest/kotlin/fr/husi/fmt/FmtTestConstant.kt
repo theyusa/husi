@@ -26,6 +26,12 @@ object FmtTestConstant {
 
     const val MIERU_URL =
         "mierus://user:pass@example.com:8080?profile=myprofile&mtu=1400&multiplexing=MULTIPLEXING_HIGH"
+    const val MIERU_TRAFFIC_PATTERN_BASE64 =
+        "CCoQARoECAEQCiIYCAMQASoIMDAwMTAyMDMqCDA0MDUwNjA3"
+    const val MIERU_TRAFFIC_PATTERN_URL =
+        "mierus://user:pass@example.com?profile=default&traffic-pattern=$MIERU_TRAFFIC_PATTERN_BASE64"
+    const val MIERU_TRAFFIC_PATTERN_CONFIG_URL =
+        "mierus://user:secret@example.com:8080?traffic-pattern=$MIERU_TRAFFIC_PATTERN_BASE64"
 
     const val NAIVE_HTTPS_URL =
         "naive+https://user:pass@example.com:443?sni=sni.example.com#test-node"

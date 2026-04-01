@@ -37,6 +37,13 @@ class MieruFmtTest {
     }
 
     @Test
+    fun `parseMieru should preserve base64 traffic pattern from share link`() {
+        val bean = parseMieru(FmtTestConstant.MIERU_TRAFFIC_PATTERN_URL)
+
+        assertEquals(FmtTestConstant.MIERU_TRAFFIC_PATTERN_BASE64, bean.trafficPattern)
+    }
+
+    @Test
     fun `toUri should preserve serializable fields through parseMieru`() {
         val source = MieruBean().apply {
             serverAddress = "example.com"
@@ -167,5 +174,78 @@ class MieruFmtTest {
         assertEquals(true, nonce["applyToAllUDPPacket"])
         assertEquals(6, assertIs<Number>(nonce["minLen"]).toInt())
         assertEquals(8, assertIs<Number>(nonce["maxLen"]).toInt())
+    }
+
+    @Test
+    fun `buildMieruConfig should accept base64 trafficPattern input`() {
+        val bean = MieruBean().apply {
+            serverAddress = "example.com"
+            serverPort = 8080
+            username = "user"
+            password = "secret"
+            protocol = MieruBean.PROTOCOL_TCP
+            trafficPattern = FmtTestConstant.MIERU_TRAFFIC_PATTERN_BASE64
+        }
+        bean.initializeDefaultValues()
+
+        val config = bean.buildMieruConfig(port = 2080, logLevel = 0).toJsonMapKxs()
+        val trafficPattern = config["trafficPattern"].asJsonMap()
+
+        assertEquals(42, assertIs<Number>(trafficPattern["seed"]).toInt())
+        assertEquals(true, trafficPattern["unlockAll"])
+        val nonce = trafficPattern["nonce"].asJsonMap()
+        assertEquals("NONCE_TYPE_FIXED", nonce["type"])
+    }
+
+    @Test
+    fun `toUri should export trafficPattern as base64 protobuf`() {
+        val source = MieruBean().apply {
+            serverAddress = "example.com"
+            serverPort = 8080
+            username = "user"
+            password = "pass"
+            trafficPattern = """
+                {
+                  "trafficPattern": {
+                    "seed": 42,
+                    "unlockAll": true,
+                    "tcpFragment": {
+                      "enable": true,
+                      "maxSleepMs": 10
+                    },
+                    "nonce": {
+                      "type": "NONCE_TYPE_FIXED",
+                      "applyToAllUDPPacket": true,
+                      "customHexStrings": [
+                        "00010203",
+                        "04050607"
+                      ]
+                    }
+                  }
+                }
+            """.trimIndent()
+        }
+
+        val uri = source.toUri()
+        val parsed = parseMieru(uri)
+
+        assertEquals(
+            true,
+            uri.contains("traffic-pattern=${FmtTestConstant.MIERU_TRAFFIC_PATTERN_BASE64}"),
+        )
+        assertEquals(FmtTestConstant.MIERU_TRAFFIC_PATTERN_BASE64, parsed.trafficPattern)
+    }
+
+    @Test
+    fun `buildMieruConfig should decode base64 trafficPattern from share link`() {
+        val bean = parseMieru(FmtTestConstant.MIERU_TRAFFIC_PATTERN_CONFIG_URL)
+        bean.protocol = MieruBean.PROTOCOL_TCP
+        bean.initializeDefaultValues()
+
+        val config = bean.buildMieruConfig(port = 2080, logLevel = 0).toJsonMapKxs()
+        val trafficPattern = config["trafficPattern"].asJsonMap()
+
+        assertEquals(42, assertIs<Number>(trafficPattern["seed"]).toInt())
+        assertEquals(true, trafficPattern["unlockAll"])
     }
 }

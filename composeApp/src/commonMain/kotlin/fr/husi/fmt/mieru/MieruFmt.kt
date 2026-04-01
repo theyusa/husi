@@ -57,9 +57,16 @@ fun MieruBean.buildMieruConfig(port: Int, logLevel: Int): String {
             ),
         ),
     )
-    trafficPattern.blankAsNull()?.let {
-        val trafficPatternJson = it.toJsonMapKxs()
-        basic["trafficPattern"] = trafficPatternJson["trafficPattern"] ?: trafficPatternJson
+    trafficPattern.blankAsNull()?.let { trafficPattern ->
+        basic["trafficPattern"] = runCatching {
+            trafficPattern.toJsonMapKxs().let {
+                it["trafficPattern"] ?: it
+            }
+        }.getOrElse { _ ->
+            Libcore.decodeMieruTrafficPattern(trafficPattern).toJsonMapKxs().let {
+                it["trafficPattern"] ?: it
+            }
+        }
     }
     return basic.toJsonStringKxs()
 }
@@ -77,6 +84,7 @@ fun parseMieru(link: String): MieruBean = MieruBean().apply {
     serverMuxNumber = url.queryParameter("multiplexing")?.let {
         parseMieruMux(it)
     } ?: 0
+    trafficPattern = url.queryParameter("traffic-pattern")
 }
 
 fun MieruBean.toUri(): String = Libcore.newURL("mierus").apply {
@@ -93,6 +101,14 @@ fun MieruBean.toUri(): String = Libcore.newURL("mierus").apply {
     }
     serverMuxNumber.takeIf { it > 0 }?.let {
         addQueryParameter("multiplexing", mieruMuxToString(it))
+    }
+    trafficPattern.blankAsNull()?.let { trafficPattern ->
+        val base64TrafficPattern = runCatching {
+            Libcore.encodeMieruTrafficPattern(trafficPattern)
+        }.getOrElse {
+            trafficPattern
+        }
+        addQueryParameter("traffic-pattern", base64TrafficPattern)
     }
 }.string
 

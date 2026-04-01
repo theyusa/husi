@@ -1,6 +1,6 @@
 module libcore
 
-go 1.25.5
+go 1.26
 
 require (
 	github.com/dyhkwong/sing-juicity v0.1.0-beta.6
@@ -12,6 +12,7 @@ require (
 	github.com/sagernet/sing-box v1.14.0-alpha.4
 	github.com/sagernet/sing-tun v0.8.7-0.20260323120017-8eb4e8acfc2d
 	github.com/sagernet/sing-vmess v0.2.8-0.20250909125414-3aed155119a1
+	github.com/stretchr/testify v1.11.1
 	github.com/xchacha20-poly1305/TLS-scribe v0.12.1
 	github.com/xchacha20-poly1305/anchor v0.7.1
 	github.com/xchacha20-poly1305/anja v0.22.12
@@ -19,6 +20,7 @@ require (
 	github.com/xchacha20-poly1305/sing-trusttunnel v0.2.1-0.20260314153016-08d91e19d8c2
 	golang.org/x/sync v0.19.0
 	golang.org/x/sys v0.41.0
+	google.golang.org/protobuf v1.36.11
 )
 
 tool (
@@ -35,7 +37,6 @@ require (
 	github.com/oschwald/geoip2-golang v1.11.0
 	github.com/oschwald/maxminddb-golang v1.13.1
 	github.com/v2fly/v2ray-core/v5 v5.47.0
-	google.golang.org/protobuf v1.36.11
 )
 
 require (
@@ -46,6 +47,7 @@ require (
 	github.com/caddyserver/zerossl v0.1.5 // indirect
 	github.com/database64128/netx-go v0.1.1 // indirect
 	github.com/database64128/tfo-go/v2 v2.3.2 // indirect
+	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/ebitengine/purego v0.9.1 // indirect
 	github.com/florianl/go-nfqueue/v2 v2.0.2 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
@@ -71,6 +73,7 @@ require (
 	github.com/metacubex/utls v1.8.4 // indirect
 	github.com/mholt/acmez/v3 v3.1.6 // indirect
 	github.com/pierrec/lz4/v4 v4.1.21 // indirect
+	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/quic-go/qpack v0.6.0 // indirect
 	github.com/sagernet/bbolt v0.0.0-20231014093535-ea5cb2fe9f0a // indirect
 	github.com/sagernet/cronet-go v0.0.0-20260309100020-c128886ff3fc // indirect
@@ -133,5 +136,6 @@ require (
 	golang.zx2c4.com/wintun v0.0.0-20230126152724-0fa3db229ce2 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20251202230838-ff82c1b0f217 // indirect
 	google.golang.org/grpc v1.79.2 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 	lukechampine.com/blake3 v1.4.1 // indirect
 )
