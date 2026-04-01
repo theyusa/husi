@@ -10,7 +10,7 @@ import kotlinx.serialization.Serializable as KxsSerializable
 import kotlinx.serialization.json.JsonElement
 
 object SingBoxOptions {
-    // Generate on line +400
+    // Generate on line +411
 
     const val NetworkTCP = "tcp"
     const val NetworkUDP = "udp"
@@ -441,6 +441,9 @@ object SingBoxOptions {
         var certificate: CertificateOptions? = null
 
         @JvmField
+        var certificate_providers: MutableList<CertificateProvider>? = null
+
+        @JvmField
         var endpoints: MutableList<Endpoint>? = null
 
         @JvmField
@@ -807,6 +810,12 @@ object SingBoxOptions {
         var find_process: Boolean? = null
 
         @JvmField
+        var find_neighbor: Boolean? = null
+
+        @JvmField
+        var dhcp_lease_files: MutableList<String>? = null
+
+        @JvmField
         var auto_detect_interface: Boolean? = null
 
         @JvmField
@@ -1091,6 +1100,9 @@ object SingBoxOptions {
         var kernel_rx: Boolean? = null
 
         @JvmField
+        var certificate_provider: CertificateProviderOptions? = null
+
+        @JvmField
         var acme: JsonElement? = null
 
         @JvmField
@@ -1155,6 +1167,22 @@ object SingBoxOptions {
 
         @JvmField
         var client_subnet: String? = null
+
+    }
+
+    @KxsSerializable
+    open class CertificateProvider : SingBoxOption() {
+
+        @JvmField
+        var type: String? = null
+
+        @JvmField
+        var tag: String? = null
+
+    }
+
+    @KxsSerializable
+    open class CertificateProviderOptions : SingBoxOption() {
 
     }
 
@@ -1269,6 +1297,12 @@ object SingBoxOptions {
 
         @JvmField
         var default_interface_address: MutableList<String>? = null
+
+        @JvmField
+        var source_mac_address: MutableList<String>? = null
+
+        @JvmField
+        var source_hostname: MutableList<String>? = null
 
         @JvmField
         var preferred_by: MutableList<String>? = null
@@ -1668,6 +1702,12 @@ object SingBoxOptions {
         var default_interface_address: MutableList<String>? = null
 
         @JvmField
+        var source_mac_address: MutableList<String>? = null
+
+        @JvmField
+        var source_hostname: MutableList<String>? = null
+
+        @JvmField
         var rule_set: MutableList<String>? = null
 
         @JvmField
@@ -1923,6 +1963,9 @@ object SingBoxOptions {
         var udp_timeout: Long? = null
 
         @JvmField
+        var detour: String? = null
+
+        @JvmField
         var proxy_protocol: Boolean? = null
 
         @JvmField
@@ -1943,9 +1986,6 @@ object SingBoxOptions {
 
         @JvmField
         var udp_disable_domain_unmapping: Boolean? = null
-
-        @JvmField
-        var detour: String? = null
 
         @JvmField
         var users: MutableList<User>? = null
@@ -2050,6 +2090,12 @@ object SingBoxOptions {
         var exclude_package: MutableList<String>? = null
 
         @JvmField
+        var include_mac_address: MutableList<String>? = null
+
+        @JvmField
+        var exclude_mac_address: MutableList<String>? = null
+
+        @JvmField
         var udp_timeout: Long? = null
 
         @JvmField
@@ -2073,9 +2119,6 @@ object SingBoxOptions {
 
         @JvmField
         var udp_disable_domain_unmapping: Boolean? = null
-
-        @JvmField
-        var detour: String? = null
 
         @JvmField
         var gso: Boolean? = null
@@ -2176,6 +2219,9 @@ object SingBoxOptions {
         var udp_timeout: Long? = null
 
         @JvmField
+        var detour: String? = null
+
+        @JvmField
         var proxy_protocol: Boolean? = null
 
         @JvmField
@@ -2196,9 +2242,6 @@ object SingBoxOptions {
 
         @JvmField
         var udp_disable_domain_unmapping: Boolean? = null
-
-        @JvmField
-        var detour: String? = null
 
         @JvmField
         var network: String? = null
@@ -3116,6 +3159,9 @@ object SingBoxOptions {
         var hop_interval: String? = null
 
         @JvmField
+        var hop_interval_max: String? = null
+
+        @JvmField
         var up_mbps: Int? = null
 
         @JvmField
@@ -3133,6 +3179,9 @@ object SingBoxOptions {
         // Generate note: nested type OutboundTLSOptionsContainer
         @JvmField
         var tls: OutboundTLSOptions? = null
+
+        @JvmField
+        var bbr_profile: String? = null
 
         @JvmField
         var brutal_debug: Boolean? = null
@@ -4408,7 +4457,5 @@ object SingBoxOptions {
         var inet6_range: String? = null
 
     }
-
-
 
 }

@@ -32,6 +32,8 @@ internal data class HysteriaUiState(
     val hopInterval: String = "10s",
     val clientCert: String = "",
     val clientKey: String = "",
+    val congestionControl: String = HysteriaBean.CONGESTION_CONTROL_BBR,
+    val bbrProfile: Int = HysteriaBean.BBR_PROFILE_STANDARD,
     val ech: Boolean = false,
     val echConfig: String = "",
     val echQueryServerName: String = "",
@@ -69,8 +71,11 @@ internal class HysteriaSettingsViewModel : ProfileEditorViewModel<HysteriaBean>(
                 hopInterval = hopInterval,
                 clientCert = clientCert,
                 clientKey = clientKey,
+                congestionControl = congestionControl,
+                bbrProfile = bbrProfile,
                 ech = ech,
                 echConfig = echConfig,
+                echQueryServerName = echQueryServerName,
             )
         }
     }
@@ -99,8 +104,11 @@ internal class HysteriaSettingsViewModel : ProfileEditorViewModel<HysteriaBean>(
         hopInterval = state.hopInterval
         clientCert = state.clientCert
         clientKey = state.clientKey
+        congestionControl = state.congestionControl
+        bbrProfile = state.bbrProfile
         ech = state.ech
         echConfig = state.echConfig
+        echQueryServerName = state.echQueryServerName
     }
 
     override fun setCustomConfig(config: String) {
@@ -189,6 +197,14 @@ internal class HysteriaSettingsViewModel : ProfileEditorViewModel<HysteriaBean>(
 
     fun setClientKey(key: String) {
         _uiState.update { it.copy(clientKey = key) }
+    }
+
+    fun setCongestionControl(congestionControl: String) {
+        _uiState.update { it.copy(congestionControl = congestionControl) }
+    }
+
+    fun setBBRProfile(bbrProfile: Int) {
+        _uiState.update { it.copy(bbrProfile = bbrProfile) }
     }
 
     fun setEch(enabled: Boolean) {

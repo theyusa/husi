@@ -1,22 +1,31 @@
 package fr.husi.ui.profile
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material3.ExperimentalMaterial3Api
-import fr.husi.compose.material3.Icon
-import fr.husi.compose.material3.Text
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.husi.compose.DurationTextField
 import fr.husi.compose.MultilineTextField
 import fr.husi.compose.PasswordPreference
 import fr.husi.compose.PreferenceCategory
 import fr.husi.compose.UIntegerTextField
+import fr.husi.compose.ValidatedTextField
+import fr.husi.compose.material3.Icon
+import fr.husi.compose.material3.Text
 import fr.husi.fmt.hysteria.HysteriaBean
 import fr.husi.ktx.contentOrUnset
 import fr.husi.ktx.intListN
+import fr.husi.ktx.readableMessage
+import fr.husi.libcore.Libcore
 import fr.husi.resources.Res
 import fr.husi.resources.allow_insecure
 import fr.husi.resources.allow_insecure_sum
@@ -36,8 +45,13 @@ import fr.husi.resources.enhanced_encryption
 import fr.husi.resources.hop_interval
 import fr.husi.resources.hysteria_auth_payload
 import fr.husi.resources.hysteria_auth_type
+import fr.husi.resources.hysteria_bbr_profile
+import fr.husi.resources.hysteria_bbr_profile_aggressive
+import fr.husi.resources.hysteria_bbr_profile_conservative
+import fr.husi.resources.hysteria_bbr_profile_standard
 import fr.husi.resources.hysteria_connection_receive_window
 import fr.husi.resources.hysteria_disable_mtu_discovery
+import fr.husi.resources.hysteria_hop_interval_range_hint
 import fr.husi.resources.hysteria_obfs
 import fr.husi.resources.hysteria_stream_receive_window
 import fr.husi.resources.layers
@@ -64,6 +78,7 @@ import fr.husi.resources.texture
 import fr.husi.resources.timelapse
 import fr.husi.resources.toc
 import fr.husi.resources.transform
+import fr.husi.resources.tuic_congestion_controller
 import fr.husi.resources.tuic_disable_sni
 import fr.husi.resources.update
 import fr.husi.resources.vpn_key
@@ -75,6 +90,7 @@ import me.zhanghai.compose.preference.ListPreference
 import me.zhanghai.compose.preference.ListPreferenceType
 import me.zhanghai.compose.preference.SwitchPreference
 import me.zhanghai.compose.preference.TextFieldPreference
+import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 import kotlin.random.Random
@@ -91,11 +107,6 @@ fun HysteriaSettingsScreen(
     val viewModel: HysteriaSettingsViewModel = viewModel(
         key = if (profileId >= 0L) "hysteria-settings-$profileId" else "hysteria-settings-new-$sessionKey",
     ) { HysteriaSettingsViewModel() }
-    val protocolNames = listOf(
-        "UDP",
-        "FakeTCP (Root Required)",
-        "WeChat Video",
-    )
 
     LaunchedEffect(profileId, isSubscription) {
         viewModel.initialize(profileId, isSubscription)
@@ -107,14 +118,13 @@ fun HysteriaSettingsScreen(
         onResult = onResult,
         onOpenConfigEditor = onOpenConfigEditor,
     ) { uiState, _ ->
-        hysteriaSettings(uiState as HysteriaUiState, viewModel, protocolNames)
+        hysteriaSettings(uiState as HysteriaUiState, viewModel)
     }
 }
 
 private fun LazyListScope.hysteriaSettings(
     uiState: HysteriaUiState,
     viewModel: HysteriaSettingsViewModel,
-    protocolNames: List<String>,
 ) {
     item("name") {
         TextFieldPreference(
@@ -176,7 +186,12 @@ private fun LazyListScope.hysteriaSettings(
             summary = { Text(contentOrUnset(uiState.hopInterval)) },
             valueToText = { it },
             textField = { value, onValueChange, onOk ->
-                DurationTextField(value, onValueChange, onOk)
+                HopIntervalTextField(
+                    value = value,
+                    onValueChange = onValueChange,
+                    onOk = onOk,
+                    supportRange = uiState.protocolVersion == HysteriaBean.PROTOCOL_VERSION_2,
+                )
             },
         )
     }
@@ -226,6 +241,13 @@ private fun LazyListScope.hysteriaSettings(
     }
     if (uiState.protocolVersion == HysteriaBean.PROTOCOL_VERSION_1) {
         item("protocol") {
+            val protocolNames = remember {
+                listOf(
+                    "UDP",
+                    "FakeTCP (Root Required)",
+                    "WeChat Video",
+                )
+            }
             ListPreference(
                 value = uiState.protocol,
                 values = intListN(3),
@@ -395,6 +417,50 @@ private fun LazyListScope.hysteriaSettings(
                 },
             )
         }
+        item("congestion_control") {
+            val hysteriaCongestionControls = remember {
+                listOf(
+                    HysteriaBean.CONGESTION_CONTROL_BBR,
+                    HysteriaBean.CONGESTION_CONTROL_RENO,
+                )
+            }
+
+            fun congestionControlName(control: String): String = when (control) {
+                HysteriaBean.CONGESTION_CONTROL_BBR -> "BBR"
+                HysteriaBean.CONGESTION_CONTROL_RENO -> "Reno"
+                else -> error("impossible")
+            }
+            ListPreference(
+                value = uiState.congestionControl,
+                values = hysteriaCongestionControls,
+                onValueChange = { viewModel.setCongestionControl(it) },
+                title = { Text(stringResource(Res.string.tuic_congestion_controller)) },
+                icon = { Icon(vectorResource(Res.drawable.compare_arrows), null) },
+                summary = { Text(congestionControlName(uiState.congestionControl)) },
+                type = ListPreferenceType.DROPDOWN_MENU,
+                valueToText = { AnnotatedString(congestionControlName(it)) },
+            )
+        }
+        if (uiState.congestionControl == HysteriaBean.CONGESTION_CONTROL_BBR) {
+            fun bbrProfileName(profile: Int): StringResource = when (profile) {
+                HysteriaBean.BBR_PROFILE_CONSERVATIVE -> Res.string.hysteria_bbr_profile_conservative
+                HysteriaBean.BBR_PROFILE_STANDARD -> Res.string.hysteria_bbr_profile_standard
+                HysteriaBean.BBR_PROFILE_AGGRESSIVE -> Res.string.hysteria_bbr_profile_aggressive
+                else -> error("impossible")
+            }
+            item("bbr_profile") {
+                ListPreference(
+                    value = uiState.bbrProfile,
+                    values = intListN(3),
+                    onValueChange = { viewModel.setBBRProfile(it) },
+                    title = { Text(stringResource(Res.string.hysteria_bbr_profile)) },
+                    icon = { Icon(vectorResource(Res.drawable.transform), null) },
+                    summary = { Text(stringResource(bbrProfileName(uiState.bbrProfile))) },
+                    type = ListPreferenceType.DROPDOWN_MENU,
+                    valueToText = { AnnotatedString(stringResource(bbrProfileName(it))) },
+                )
+            }
+        }
     }
 
     item("category_ech") {
@@ -433,6 +499,52 @@ private fun LazyListScope.hysteriaSettings(
             enabled = uiState.ech,
             summary = { Text(contentOrUnset(uiState.echQueryServerName)) },
             valueToText = { it },
+        )
+    }
+}
+
+@Composable
+private fun HopIntervalTextField(
+    value: TextFieldValue,
+    onValueChange: (TextFieldValue) -> Unit,
+    onOk: () -> Unit,
+    supportRange: Boolean,
+) {
+    if (!supportRange) {
+        DurationTextField(value, onValueChange, onOk)
+        return
+    }
+
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Text(
+            text = stringResource(Res.string.hysteria_hop_interval_range_hint),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MaterialTheme.typography.bodySmall,
+        )
+        ValidatedTextField(
+            value = value,
+            onValueChange = onValueChange,
+            onOk = onOk,
+            validator = { text ->
+                when {
+                    text.isBlank() -> null
+                    text.lines().size > 1 -> "Unexpected new line"
+                    text.count { it == '-' } > 1 -> "Only one '-' is allowed"
+                    else -> {
+                        val parts = text.split("-", limit = 2)
+                        if (parts.any { it.isBlank() }) {
+                            "Duration range is incomplete"
+                        } else try {
+                            for (part in parts) {
+                                Libcore.parseDuration(part)
+                            }
+                            null
+                        } catch (e: Exception) {
+                            e.readableMessage
+                        }
+                    }
+                }
+            },
         )
     }
 }

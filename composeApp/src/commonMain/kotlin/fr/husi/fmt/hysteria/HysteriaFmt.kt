@@ -10,15 +10,16 @@ import fr.husi.fmt.listable
 import fr.husi.fmt.parseBoxTLS
 import fr.husi.ktx.JSONMap
 import fr.husi.ktx.blankAsNull
+import fr.husi.ktx.emptyAsNull
 import fr.husi.ktx.getBool
 import fr.husi.ktx.getIntOrNull
 import fr.husi.ktx.getStr
 import fr.husi.ktx.isIpAddress
-import fr.husi.ktx.toJsonStringKxs
 import fr.husi.ktx.listByLineOrComma
 import fr.husi.ktx.parseBoolean
 import fr.husi.ktx.queryParameterNotBlank
 import fr.husi.ktx.sha256Hex
+import fr.husi.ktx.toJsonStringKxs
 import fr.husi.ktx.wrapIPV6Host
 import fr.husi.libcore.Libcore
 import java.io.File
@@ -148,8 +149,12 @@ fun JSONMap.parseHysteria1Json(): HysteriaBean {
     // TODO parse HY2 JSON
     return HysteriaBean().apply {
         protocolVersion = HysteriaBean.PROTOCOL_VERSION_1
-        serverAddress = (this@parseHysteria1Json["server"] as? String).orEmpty().substringBeforeLast(":")
-        serverPorts = (this@parseHysteria1Json["server"] as? String).orEmpty().substringAfterLast(":")
+        serverAddress = (this@parseHysteria1Json["server"] as? String)
+            .orEmpty()
+            .substringBeforeLast(":")
+        serverPorts = (this@parseHysteria1Json["server"] as? String)
+            .orEmpty()
+            .substringAfterLast(":")
         getStr("hop_interval")?.also {
             hopInterval = it + "s"
         }
@@ -229,7 +234,9 @@ fun HysteriaBean.buildHysteriaConfig(
                 "recv_window_conn" to if (streamReceiveWindow > 0) streamReceiveWindow else null,
                 "recv_window" to if (connectionReceiveWindow > 0) connectionReceiveWindow else null,
                 "disable_mtu_discovery" to if (disableMtuDiscovery) true else null,
-                "resolver" to DataStore.localDNSPort.takeIf { it > 0 }?.let { "udp://127.0.0.1:$it" },
+                "resolver" to DataStore.localDNSPort.takeIf { it > 0 }?.let {
+                    "udp://127.0.0.1:$it"
+                },
                 "hop_interval" to if (hopSeconds > 0) hopSeconds else null,
                 "up_mbps" to generateUploadSpeed(),
                 "down_mbps" to generateDownloadSpeed(),
@@ -278,16 +285,52 @@ fun HysteriaBean.buildHysteriaConfig(
                     "clientCertificate" to certPath,
                     "clientKey" to keyPath,
                 ),
-                "transport" to mutableMapOf<String, Any?>(
-                    "type" to "udp",
-                    "udp" to if (hopInterval.isNotBlank()) mutableMapOf(
-                        "hopInterval" to hopInterval,
-                    ) else null,
-                ),
+                "transport" to buildMap<String, Any?> {
+                    put("type", "udp")
+                    put(
+                        "udp",
+                        buildMap<String, Any?> {
+                            hopInterval.blankAsNull()?.let {
+                                when (val splitResult = SplitResult.splitDash(it)) {
+                                    is SplitResult.Single -> put(
+                                        "hopInterval",
+                                        splitResult.value,
+                                    )
+
+                                    is SplitResult.Range -> {
+                                        put("minHopInterval", splitResult.start)
+                                        put("maxHopInterval", splitResult.end)
+                                    }
+                                }
+                            }
+                        },
+                    )
+                },
                 "bandwidth" to if (uploadSpeed > 0 || downloadSpeed > 0) mutableMapOf<String, Any?>(
                     "up" to if (uploadSpeed > 0) "$uploadSpeed mbps" else null,
                     "down" to if (downloadSpeed > 0) "$downloadSpeed mbps" else null,
                 ) else null,
+                "congestion" to buildMap<String, Any?> {
+                    put(
+                        "type",
+                        congestionControl.emptyAsNull() ?: HysteriaBean.CONGESTION_CONTROL_BBR,
+                    )
+                    when (congestionControl) {
+                        "", HysteriaBean.CONGESTION_CONTROL_BBR -> {
+                            put(
+                                "bbrProfile",
+                                when (bbrProfile) {
+                                    HysteriaBean.BBR_PROFILE_CONSERVATIVE -> "conservative"
+                                    HysteriaBean.BBR_PROFILE_STANDARD -> "standard"
+                                    HysteriaBean.BBR_PROFILE_AGGRESSIVE -> "aggressive"
+                                    else -> error("unreachable")
+                                },
+                            )
+                        }
+
+                        else -> {}
+                    }
+                },
             ).toJsonStringKxs()
         }
 
@@ -355,7 +398,15 @@ fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): SingBoxOptions.Outboun
             when (val hopPort = HopPort.from(bean.serverPorts)) {
                 is HopPort.Single -> server_port = hopPort.port
                 is HopPort.Ports -> {
-                    hop_interval = bean.hopInterval
+                    bean.hopInterval.blankAsNull()?.let {
+                        when (val splitResult = SplitResult.splitDash(it)) {
+                            is SplitResult.Single -> hop_interval = splitResult.value
+                            is SplitResult.Range -> {
+                                hop_interval = splitResult.start
+                                hop_interval_max = splitResult.end
+                            }
+                        }
+                    }
                     server_ports = hopPort.singStyle().toMutableList()
                 }
             }
@@ -400,6 +451,22 @@ fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): SingBoxOptions.Outboun
         }
 
         else -> throw error("unknown protocol version ${bean.protocolVersion}")
+    }
+}
+
+private sealed interface SplitResult {
+    data class Single(val value: String) : SplitResult
+    data class Range(val start: String, val end: String) : SplitResult
+
+    companion object {
+        fun splitDash(input: String): SplitResult {
+            val dashIndex = input.indexOf("-")
+            return if (dashIndex >= 0) {
+                Range(input.substring(0, dashIndex), input.substring(dashIndex + 1))
+            } else {
+                Single(input)
+            }
+        }
     }
 }
 

@@ -16,9 +16,17 @@ class HysteriaBean : AbstractBean() {
         const val TYPE_NONE = 0
         const val TYPE_STRING = 1
         const val TYPE_BASE64 = 2
+
         const val PROTOCOL_UDP = 0
         const val PROTOCOL_FAKETCP = 1
         const val PROTOCOL_WECHAT_VIDEO = 2
+
+        const val CONGESTION_CONTROL_BBR = "bbr"
+        const val CONGESTION_CONTROL_RENO = "reno"
+
+        const val BBR_PROFILE_CONSERVATIVE = 0
+        const val BBR_PROFILE_STANDARD = 1
+        const val BBR_PROFILE_AGGRESSIVE = 2
 
         @JvmField
         val CREATOR = object : CREATOR<HysteriaBean>() {
@@ -60,6 +68,10 @@ class HysteriaBean : AbstractBean() {
     var clientCert: String = ""
     var clientKey: String = ""
 
+    // Hy2
+    var congestionControl: String = CONGESTION_CONTROL_BBR
+    var bbrProfile: Int = BBR_PROFILE_STANDARD
+
     override val canMapping get() = protocol != PROTOCOL_FAKETCP
 
     override fun initializeDefaultValues() {
@@ -69,7 +81,7 @@ class HysteriaBean : AbstractBean() {
     }
 
     override fun serialize(output: ByteBufferOutput) {
-        output.writeInt(5)
+        output.writeInt(6)
         super.serialize(output)
 
         output.writeInt(protocolVersion)
@@ -104,6 +116,10 @@ class HysteriaBean : AbstractBean() {
 
         // version 5
         output.writeString(echQueryServerName)
+
+        // version 6
+        output.writeString(congestionControl)
+        output.writeInt(bbrProfile)
     }
 
     override fun deserialize(input: ByteBufferInput) {
@@ -148,6 +164,11 @@ class HysteriaBean : AbstractBean() {
         if (version >= 5) {
             echQueryServerName = input.readString()
         }
+
+        if (version >= 6) {
+            congestionControl = input.readString()
+            bbrProfile = input.readInt()
+        }
     }
 
     override fun applyFeatureSettings(other: AbstractBean) {
@@ -158,6 +179,8 @@ class HysteriaBean : AbstractBean() {
         other.hopInterval = hopInterval
         other.ech = ech
         other.echConfig = echConfig
+        other.congestionControl = congestionControl
+        other.bbrProfile = bbrProfile
     }
 
     override val defaultPort get() = 443

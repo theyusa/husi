@@ -95,6 +95,8 @@ var boxList = []any{
 	option.WireGuardPeer{},
 	// option.V2RayTransportOptions{},
 	option.DomainResolveOptions{},
+	option.CertificateProvider{},
+	option.CertificateProviderOptions{},
 
 	// MITM
 	// option.MITMOptions{},
