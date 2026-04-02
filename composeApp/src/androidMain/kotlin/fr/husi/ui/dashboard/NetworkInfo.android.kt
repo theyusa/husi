@@ -1,7 +1,11 @@
 package fr.husi.ui.dashboard
 
+import android.content.Context
+import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
-import fr.husi.repository.androidRepo
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.delay
 import java.net.Inet4Address
 import java.net.Inet6Address
@@ -13,9 +17,22 @@ private const val PRIORITY_CELLULAR = 1
 private const val PRIORITY_OTHER = 2
 private const val PRIORITY_VPN = 3
 
-actual suspend fun buildPlatformNetworkInfo(): Triple<List<NetworkInterfaceInfo>, String?, String?> {
-    @Suppress("DEPRECATION") val networks = androidRepo.connectivity.allNetworks.toList().ifEmpty {
-        androidRepo.connectivity.activeNetwork?.let(::listOf).orEmpty()
+@Composable
+actual fun rememberLoadPlatformNetworkInfo(): suspend () -> Triple<List<NetworkInterfaceInfo>, String?, String?> {
+    val context = LocalContext.current
+    val connectivity = remember(context) {
+        context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+    }
+    return remember(connectivity) {
+        { buildPlatformNetworkInfo(connectivity) }
+    }
+}
+
+private suspend fun buildPlatformNetworkInfo(
+    connectivity: ConnectivityManager,
+): Triple<List<NetworkInterfaceInfo>, String?, String?> {
+    @Suppress("DEPRECATION") val networks = connectivity.allNetworks.toList().ifEmpty {
+        connectivity.activeNetwork?.let(::listOf).orEmpty()
     }
     if (networks.isEmpty()) return Triple(emptyList(), null, null)
 
@@ -23,8 +40,8 @@ actual suspend fun buildPlatformNetworkInfo(): Triple<List<NetworkInterfaceInfo>
     val knownNames = mutableSetOf<String>()
 
     for (item in networks) {
-        val capabilities = androidRepo.connectivity.getNetworkCapabilities(item) ?: continue
-        val linkProperties = androidRepo.connectivity.getLinkProperties(item) ?: continue
+        val capabilities = connectivity.getNetworkCapabilities(item) ?: continue
+        val linkProperties = connectivity.getLinkProperties(item) ?: continue
         val interfaceName = linkProperties.interfaceName ?: continue
         if (!knownNames.add(interfaceName)) continue
 

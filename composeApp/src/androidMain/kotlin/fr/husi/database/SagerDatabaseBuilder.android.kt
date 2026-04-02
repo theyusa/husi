@@ -3,15 +3,15 @@ package fr.husi.database
 import androidx.room.Room
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import fr.husi.Key
-import fr.husi.repository.androidRepo
+import fr.husi.repository.resolveAndroidRepository
 import kotlinx.coroutines.Dispatchers
 
 internal actual object SagerDatabaseProvider {
     actual fun create(): SagerDatabase {
-        val dbFile = androidRepo.resolveDatabaseFile(Key.DB_PROFILE)
+        val dbFile = resolveAndroidRepository().resolveDatabaseFile(Key.DB_PROFILE)
         dbFile.parentFile?.mkdirs()
         return Room.databaseBuilder<SagerDatabase>(
-            context = androidRepo.context,
+            context = resolveAndroidRepository().context,
             name = dbFile.absolutePath,
         )
             .addMigrations(

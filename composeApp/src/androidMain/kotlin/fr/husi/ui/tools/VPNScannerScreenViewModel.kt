@@ -13,7 +13,6 @@ import com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile
 import fr.husi.ktx.Logs
 import fr.husi.ktx.toStringIterator
 import fr.husi.libcore.Libcore
-import fr.husi.repository.androidRepo
 import fr.husi.utils.PackageCache
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -84,9 +83,9 @@ internal class VPNScannerScreenViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(VPNScannerUiState())
     val uiState = _uiState.asStateFlow()
 
-    fun scanVPN() {
+    fun scanVPN(packageManager: PackageManager) {
         viewModelScope.launch(Dispatchers.IO) {
-            scanVPN0()
+            scanVPN0(packageManager)
         }
     }
 
@@ -100,9 +99,8 @@ internal class VPNScannerScreenViewModel : ViewModel() {
         }
     }
 
-    private suspend fun scanVPN0() {
+    private suspend fun scanVPN0(packageManager: PackageManager) {
         _uiState.emit(_uiState.value.copy(appInfos = emptyList(), progress = 0f))
-        val packageManager = androidRepo.packageManager
         val flag =
             PackageManager.GET_SERVICES or if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 PackageManager.MATCH_UNINSTALLED_PACKAGES

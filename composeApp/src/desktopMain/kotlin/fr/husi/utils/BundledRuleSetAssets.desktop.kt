@@ -1,12 +1,12 @@
 package fr.husi.utils
 
 import fr.husi.ktx.Logs
-import fr.husi.repository.repo
+import fr.husi.repository.resolveRepository
 import java.io.File
 
 internal actual suspend fun copyBundledRuleSetAssetsIfNeeded() {
     val classLoader = Thread.currentThread().contextClassLoader ?: ClassLoader.getSystemClassLoader()
-    val targetDir = File(repo.filesDir, "sing-box")
+    val targetDir = File(resolveRepository().filesDir, "sing-box")
     syncBundledRuleSetAssets(
         targetDir = targetDir,
         readResourceBytes = { readResourceBytes(classLoader, it) },

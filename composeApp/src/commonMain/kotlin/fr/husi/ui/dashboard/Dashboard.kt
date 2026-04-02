@@ -88,7 +88,7 @@ import fr.husi.ui.getStringOrRes
 import kotlinx.coroutines.launch
 import kotlin.math.max
 import fr.husi.resources.*
-import fr.husi.repository.repo
+import fr.husi.repository.resolveRepository
 
 private const val PAGE_STATUS = 0
 private const val PAGE_CONNECTIONS = 1
@@ -98,19 +98,20 @@ private const val PAGE_PROXY_SET = 2
 fun DashboardScreen(
     modifier: Modifier = Modifier,
     mainViewModel: MainViewModel,
-    viewModel: DashboardViewModel = viewModel { DashboardViewModel() },
     onDrawerClick: () -> Unit,
     openConnectionDetail: (uuid: String) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
     val snackbarState = remember { SnackbarHostState() }
+    val loadPlatformNetworkInfo = rememberLoadPlatformNetworkInfo()
 
     val pagerState = rememberPagerState(
         initialPage = 0,
         pageCount = { 3 },
     )
 
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val dashboardViewModel: DashboardViewModel = viewModel { DashboardViewModel(loadPlatformNetworkInfo) }
+    val uiState by dashboardViewModel.uiState.collectAsStateWithLifecycle()
     var isOverflowMenuExpanded by remember { mutableStateOf(false) }
     var showResetAlert by remember { mutableStateOf(false) }
     var bottomVisible by remember { mutableStateOf(true) }
@@ -121,7 +122,7 @@ fun DashboardScreen(
     val isConnectionsPage = pagerState.currentPage == PAGE_CONNECTIONS
 
     val searchBarState = rememberSearchBarState()
-    val searchTextFieldState = viewModel.searchTextFieldState
+    val searchTextFieldState = dashboardViewModel.searchTextFieldState
     val searchInputField: @Composable () -> Unit = {
         SearchBarDefaults.InputField(
             textFieldState = searchTextFieldState,
@@ -137,7 +138,7 @@ fun DashboardScreen(
                         imageVector = vectorResource(Res.drawable.close),
                         contentDescription = stringResource(Res.string.cancel),
                         onClick = {
-                            viewModel.clearSearchQuery()
+                            dashboardViewModel.clearSearchQuery()
                             scope.launch { searchBarState.animateToCollapsed() }
                         },
                     )
@@ -176,7 +177,7 @@ fun DashboardScreen(
 
     val serviceStatus by BackendState.status.collectAsStateWithLifecycle()
     LaunchedEffect(serviceStatus.state.connected) {
-        viewModel.initialize(serviceStatus.state.connected)
+        dashboardViewModel.initialize(serviceStatus.state.connected)
     }
 
     Scaffold(
@@ -208,7 +209,7 @@ fun DashboardScreen(
                                     vectorResource(Res.drawable.pause)
                                 },
                                 contentDescription = stringResource(Res.string.pause),
-                                onClick = { viewModel.togglePause() },
+                                onClick = { dashboardViewModel.togglePause() },
                             )
                             SimpleIconButton(
                                 imageVector = vectorResource(Res.drawable.cleaning_services),
@@ -244,7 +245,7 @@ fun DashboardScreen(
                                         DropdownMenuItem(
                                             selected = !uiState.isDescending,
                                             onClick = {
-                                                viewModel.setSortDescending(false)
+                                                dashboardViewModel.setSortDescending(false)
                                                 isOverflowMenuExpanded = false
                                             },
                                             text = { Text(stringResource(Res.string.ascending)) },
@@ -253,7 +254,7 @@ fun DashboardScreen(
                                         DropdownMenuItem(
                                             selected = uiState.isDescending,
                                             onClick = {
-                                                viewModel.setSortDescending(true)
+                                                dashboardViewModel.setSortDescending(true)
                                                 isOverflowMenuExpanded = false
                                             },
                                             text = { Text(stringResource(Res.string.descending)) },
@@ -294,7 +295,7 @@ fun DashboardScreen(
                                                 onCheckedChange = {
                                                     if (!it) return@DropdownMenuItem
                                                     isOverflowMenuExpanded = false
-                                                    viewModel.setSortMode(sortMode)
+                                                    dashboardViewModel.setSortMode(sortMode)
                                                 },
                                                 text = { Text(stringResource(text)) },
                                                 shapes = MenuDefaults.itemShape(i, sortModes.size),
@@ -321,7 +322,7 @@ fun DashboardScreen(
                                         DropdownMenuItem(
                                             text = { Text(stringResource(Res.string.connection_status_active)) },
                                             onClick = {
-                                                viewModel.setQueryActivate(!uiState.showActivate)
+                                                dashboardViewModel.setQueryActivate(!uiState.showActivate)
                                             },
                                             leadingIcon = {
                                                 Checkbox(
@@ -333,7 +334,7 @@ fun DashboardScreen(
                                         DropdownMenuItem(
                                             text = { Text(stringResource(Res.string.connection_status_closed)) },
                                             onClick = {
-                                                viewModel.setQueryClosed(!uiState.showClosed)
+                                                dashboardViewModel.setQueryClosed(!uiState.showClosed)
                                             },
                                             leadingIcon = {
                                                 Checkbox(
@@ -418,7 +419,7 @@ fun DashboardScreen(
                         scope.launch {
                             snackbarState.showSnackbar(
                                 message = getStringOrRes(message),
-                                actionLabel = repo.getString(Res.string.ok),
+                                actionLabel = resolveRepository().getString(Res.string.ok),
                                 duration = SnackbarDuration.Short,
                             )
                         }
@@ -472,12 +473,12 @@ fun DashboardScreen(
                     PAGE_STATUS -> DashboardStatusScreen(
                         uiState = uiState,
                         bottomPadding = bottomPadding,
-                        selectClashMode = { viewModel.setClashMode(it) },
+                        selectClashMode = { dashboardViewModel.setClashMode(it) },
                         onCopySuccess = {
                             scope.launch {
                                 snackbarState.showSnackbar(
-                                    message = repo.getString(Res.string.copy_success),
-                                    actionLabel = repo.getString(Res.string.ok),
+                                    message = resolveRepository().getString(Res.string.copy_success),
+                                    actionLabel = resolveRepository().getString(Res.string.ok),
                                     duration = SnackbarDuration.Short,
                                 )
                             }
@@ -488,9 +489,9 @@ fun DashboardScreen(
                     PAGE_CONNECTIONS -> DashboardConnectionsScreen(
                         uiState = uiState,
                         bottomPadding = bottomPadding,
-                        resolveProcessInfo = viewModel::resolveProcessInfo,
+                        resolveProcessInfo = dashboardViewModel::resolveProcessInfo,
                         closeConnection = { uuid ->
-                            viewModel.closeConnection(uuid)
+                            dashboardViewModel.closeConnection(uuid)
                         },
                         openDetail = openConnectionDetail,
                         onVisibleChange = { bottomVisible = it },
@@ -500,10 +501,10 @@ fun DashboardScreen(
                         uiState = uiState,
                         bottomPadding = bottomPadding,
                         selectProxy = { group, proxy ->
-                            viewModel.selectOutbound(group, proxy)
+                            dashboardViewModel.selectOutbound(group, proxy)
                         },
-                        urlTestForSingle = viewModel::urlTestForSingle,
-                        urlTestForGroup = viewModel::urlTestForGroup,
+                        urlTestForSingle = dashboardViewModel::urlTestForSingle,
+                        urlTestForGroup = dashboardViewModel::urlTestForGroup,
                         onVisibleChange = { bottomVisible = it },
                     )
 
@@ -520,9 +521,9 @@ fun DashboardScreen(
         DashboardConnectionsScreen(
             uiState = uiState.copy(connections = uiState.filteredConnections),
             bottomPadding = 0.dp,
-            resolveProcessInfo = viewModel::resolveProcessInfo,
+            resolveProcessInfo = dashboardViewModel::resolveProcessInfo,
             closeConnection = { uuid ->
-                viewModel.closeConnection(uuid)
+                dashboardViewModel.closeConnection(uuid)
             },
             openDetail = openConnectionDetail,
             onVisibleChange = {},
@@ -533,11 +534,11 @@ fun DashboardScreen(
         onDismissRequest = { showResetAlert = false },
         confirmButton = {
             TextButton(stringResource(Res.string.ok)) {
-                viewModel.resetNetwork()
+                dashboardViewModel.resetNetwork()
                 scope.launch {
                     snackbarState.showSnackbar(
-                        message = repo.getString(Res.string.have_reset_network),
-                        actionLabel = repo.getString(Res.string.ok),
+                        message = resolveRepository().getString(Res.string.have_reset_network),
+                        actionLabel = resolveRepository().getString(Res.string.ok),
                         duration = SnackbarDuration.Short,
                     )
                 }
@@ -562,7 +563,7 @@ fun DashboardScreen(
                 is MainViewModelUiEvent.Snackbar -> scope.launch {
                     snackbarState.showSnackbar(
                         message = getStringOrRes(event.message),
-                        actionLabel = repo.getString(Res.string.ok),
+                        actionLabel = resolveRepository().getString(Res.string.ok),
                         duration = SnackbarDuration.Short,
                     )
                 }

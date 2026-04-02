@@ -7,7 +7,7 @@ import android.system.Os
 import android.system.OsConstants
 import androidx.annotation.MainThread
 import fr.husi.ktx.Logs
-import fr.husi.repository.androidRepo
+import fr.husi.repository.resolveAndroidRepository
 import fr.husi.utils.Commandline
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -49,7 +49,7 @@ actual class GuardedProcessPool actual constructor(
         }    // ignore
 
         fun start() {
-            process = ProcessBuilder(cmd).directory(androidRepo.noBackupFilesDir).apply {
+            process = ProcessBuilder(cmd).directory(resolveAndroidRepository().noBackupFilesDir).apply {
                 environment().putAll(env)
             }.start()
         }

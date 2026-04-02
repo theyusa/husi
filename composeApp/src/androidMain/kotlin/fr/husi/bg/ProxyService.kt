@@ -6,7 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.PowerManager
 import androidx.core.content.ContextCompat
-import fr.husi.repository.androidRepo
+import fr.husi.repository.resolveAndroidRepository
 
 class ProxyService : Service(), BaseService.Interface {
     override fun attachBaseContext(newBase: Context) {
@@ -24,7 +24,7 @@ class ProxyService : Service(), BaseService.Interface {
 
     @SuppressLint("WakelockTimeout")
     override fun acquireWakeLock() {
-        wakeLock = androidRepo.power.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "husi:proxy")
+        wakeLock = resolveAndroidRepository().power.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "husi:proxy")
             .apply { acquire() }
     }
 

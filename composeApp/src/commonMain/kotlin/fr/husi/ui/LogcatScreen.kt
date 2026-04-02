@@ -86,7 +86,7 @@ import fr.husi.compose.rememberScrollHideState
 import fr.husi.compose.setPlainText
 import fr.husi.ktx.readableMessage
 import fr.husi.ktx.showAndDismissOld
-import fr.husi.repository.repo
+import fr.husi.repository.resolveRepository
 import fr.husi.utils.SendLog
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
@@ -154,7 +154,7 @@ fun LogcatScreen(
         uiState.errorMessage?.let { message ->
             snackbarState.showAndDismissOld(
                 message = message,
-                actionLabel = repo.getString(Res.string.ok),
+                actionLabel = resolveRepository().getString(Res.string.ok),
                 duration = SnackbarDuration.Short,
             )
         }
@@ -258,7 +258,7 @@ fun LogcatScreen(
                                 scope.launch {
                                     snackbarState.showSnackbar(
                                         message = getStringOrRes(message),
-                                        actionLabel = repo.getString(Res.string.ok),
+                                        actionLabel = resolveRepository().getString(Res.string.ok),
                                         duration = SnackbarDuration.Short,
                                     )
                                 }
@@ -409,7 +409,7 @@ fun LogcatScreen(
                 is MainViewModelUiEvent.Snackbar -> scope.launch {
                     snackbarState.showSnackbar(
                         message = getStringOrRes(event.message),
-                        actionLabel = repo.getString(Res.string.ok),
+                        actionLabel = resolveRepository().getString(Res.string.ok),
                         duration = SnackbarDuration.Short,
                     )
                 }
@@ -446,7 +446,7 @@ fun LogcatScreen(
                 },
                 onClick = {
                     scope.launch {
-                        val log = SendLog.buildLog(repo.externalAssetsDir)
+                        val log = SendLog.buildLog(resolveRepository().externalAssetsDir)
                         clipboard.setPlainText(log)
                     }
                 },
@@ -454,7 +454,7 @@ fun LogcatScreen(
             ShareActionRow(scope) { e->
                 snackbarState.showSnackbar(
                     message = e.readableMessage,
-                    actionLabel = repo.getString(Res.string.ok),
+                    actionLabel = resolveRepository().getString(Res.string.ok),
                     duration = SnackbarDuration.Short,
                 )
             }

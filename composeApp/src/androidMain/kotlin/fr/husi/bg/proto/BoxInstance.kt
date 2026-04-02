@@ -10,7 +10,7 @@ import fr.husi.fmt.buildConfig
 import fr.husi.ktx.Logs
 import fr.husi.ktx.readableMessage
 import fr.husi.ktx.runOnDefaultDispatcher
-import fr.husi.repository.repo
+import fr.husi.repository.resolveRepository
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -30,7 +30,7 @@ abstract class BoxInstance(
     open lateinit var processes: GuardedProcessPool
     private var cacheFiles = ArrayList<File>()
     fun isInitialized(): Boolean {
-        return ::config.isInitialized && repo.boxService?.hasInstance() == true
+        return ::config.isInitialized && resolveRepository().boxService?.hasInstance() == true
     }
 
     protected open fun buildConfig() {
@@ -38,7 +38,7 @@ abstract class BoxInstance(
     }
 
     protected open suspend fun loadConfig() {
-        repo.boxService!!.newInstance(config.config)
+        resolveRepository().boxService!!.newInstance(config.config)
     }
 
     open suspend fun init(isVPN: Boolean) {
@@ -56,7 +56,7 @@ abstract class BoxInstance(
             }
         }
         launchPlugins(config, pluginConfigs, processes, cacheFiles)
-        repo.boxService!!.startInstance()
+        resolveRepository().boxService!!.startInstance()
     }
 
     @OptIn(DelicateCoroutinesApi::class)
@@ -72,14 +72,14 @@ abstract class BoxInstance(
 
         if (::processes.isInitialized) processes.close(GlobalScope + Dispatchers.IO)
 
-        if (repo.boxService?.hasInstance() == true) {
+        if (resolveRepository().boxService?.hasInstance() == true) {
             try {
-                repo.boxService!!.stopInstance()
+                resolveRepository().boxService!!.stopInstance()
             } catch (e: Exception) {
                 Logs.w(e)
                 // Kill the process if it is not closed properly to clean exist inbound listeners.
                 // Do not kill in main process, whose test not starts any listener.
-                if (!repo.isMainProcess && e.readableMessage.contains("sing-box did not close in time")) runOnDefaultDispatcher {
+                if (!resolveRepository().isMainProcess && e.readableMessage.contains("sing-box did not close in time")) runOnDefaultDispatcher {
                     delay(500) // Wait for error handling
                     exitProcess(0)
                 }

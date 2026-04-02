@@ -68,7 +68,8 @@ import fr.husi.compose.paddingExceptBottom
 import fr.husi.compose.setPlainText
 import fr.husi.ktx.readableMessage
 import fr.husi.repository.FakeRepository
-import fr.husi.repository.repo
+import fr.husi.repository.resolveRepository
+import fr.husi.ui.ensurePreviewRepository
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import kotlinx.coroutines.launch
@@ -118,7 +119,7 @@ internal fun GetCertScreen(
                 scope.launch {
                     clipboard.setPlainText(it)
                     snackbarHostState.showSnackbar(
-                        message = repo.getString(Res.string.copy_success),
+                        message = resolveRepository().getString(Res.string.copy_success),
                         duration = SnackbarDuration.Short,
                     )
                 }
@@ -331,7 +332,7 @@ private fun CopyButton(modifier: Modifier = Modifier, copy: () -> Unit) {
 @Preview
 @Composable
 private fun PreviewGetCert() {
-    repo = FakeRepository()
+    ensurePreviewRepository()
 
     GetCertScreen(
         viewModel = GetCertScreenViewModel(),

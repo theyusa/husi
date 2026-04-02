@@ -21,7 +21,7 @@ import fr.husi.ktx.kxs
 import fr.husi.ktx.parseProxies
 import fr.husi.ktx.toJsonMapKxs
 import fr.husi.libcore.Libcore
-import fr.husi.repository.repo
+import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
 import fr.husi.resources.no_proxies_found
 import kotlinx.coroutines.runBlocking
@@ -273,6 +273,6 @@ object RawUpdater : GroupUpdater() {
     }
 
     private inline fun <reified T> errNotFound(): T = runBlocking {
-        error(repo.getString(Res.string.no_proxies_found))
+        error(resolveRepository().getString(Res.string.no_proxies_found))
     }
 }

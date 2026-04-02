@@ -18,8 +18,8 @@ import fr.husi.database.DataStore
 import fr.husi.ktx.onMainDispatcher
 import fr.husi.ktx.runOnMainDispatcher
 import fr.husi.lib.R
-import fr.husi.repository.androidRepo
-import fr.husi.repository.repo
+import fr.husi.repository.resolveAndroidRepository
+import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
 import fr.husi.resources.action_switch
 import fr.husi.resources.forward_success
@@ -67,21 +67,21 @@ class ServiceNotification(
         useBuilder {
             if (showDirectSpeed) {
                 val speedDetail = runBlocking {
-                    repo.getString(
+                    resolveRepository().getString(
                         Res.string.speed_detail,
-                        repo.getString(
+                        resolveRepository().getString(
                             Res.string.speed,
                             Formatter.formatFileSize(context, stats.txRateProxy),
                         ),
-                        repo.getString(
+                        resolveRepository().getString(
                             Res.string.speed,
                             Formatter.formatFileSize(context, stats.rxRateProxy),
                         ),
-                        repo.getString(
+                        resolveRepository().getString(
                             Res.string.speed,
                             Formatter.formatFileSize(context, stats.txRateDirect),
                         ),
-                        repo.getString(
+                        resolveRepository().getString(
                             Res.string.speed,
                             Formatter.formatFileSize(context, stats.rxRateDirect),
                         ),
@@ -91,13 +91,13 @@ class ServiceNotification(
                 it.setContentText(speedDetail)
             } else {
                 val speedSimple = runBlocking {
-                    repo.getString(
+                    resolveRepository().getString(
                         Res.string.traffic,
-                        repo.getString(
+                        resolveRepository().getString(
                             Res.string.speed,
                             Formatter.formatFileSize(context, stats.txRateProxy),
                         ),
-                        repo.getString(
+                        resolveRepository().getString(
                             Res.string.speed,
                             Formatter.formatFileSize(context, stats.rxRateProxy),
                         ),
@@ -107,7 +107,7 @@ class ServiceNotification(
             }
             it.setSubText(
                 runBlocking {
-                    repo.getString(
+                    resolveRepository().getString(
                         Res.string.traffic,
                         Formatter.formatFileSize(context, stats.txTotal),
                         Formatter.formatFileSize(context, stats.rxTotal),
@@ -139,10 +139,10 @@ class ServiceNotification(
     private val builder = runBlocking {
         NotificationCompat.Builder(service as Context, channel)
             .setWhen(0)
-            .setTicker(repo.getString(Res.string.forward_success))
+            .setTicker(resolveRepository().getString(Res.string.forward_success))
             .setContentTitle(title)
             .setOnlyAlertOnce(true)
-            .setContentIntent(androidRepo.configureIntent(service))
+            .setContentIntent(resolveAndroidRepository().configureIntent(service))
             .setSmallIcon(R.drawable.ic_service_active)
             .setCategory(NotificationCompat.CATEGORY_SERVICE)
             .setPriority(if (visible) NotificationCompat.PRIORITY_LOW else NotificationCompat.PRIORITY_MIN)
@@ -180,7 +180,7 @@ class ServiceNotification(
 
             val closeAction = NotificationCompat.Action.Builder(
                 0,
-                runBlocking { repo.getString(Res.string.stop) },
+                runBlocking { resolveRepository().getString(Res.string.stop) },
                 PendingIntent.getBroadcast(
                     service, 0, Intent(Action.CLOSE).setPackage(service.packageName), flags,
                 ),
@@ -189,7 +189,7 @@ class ServiceNotification(
 
             val switchAction = NotificationCompat.Action.Builder(
                 0,
-                runBlocking { repo.getString(Res.string.action_switch) },
+                runBlocking { resolveRepository().getString(Res.string.action_switch) },
                 PendingIntent.getActivity(
                     service, 0, Intent(service, SwitchActivity::class.java), flags,
                 ),
@@ -198,7 +198,7 @@ class ServiceNotification(
 
             val resetUpstreamAction = NotificationCompat.Action.Builder(
                 0,
-                runBlocking { repo.getString(Res.string.reset_connections) },
+                runBlocking { resolveRepository().getString(Res.string.reset_connections) },
                 PendingIntent.getBroadcast(
                     service, 0, Intent(Action.RESET_UPSTREAM_CONNECTIONS), flags,
                 ),

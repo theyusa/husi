@@ -15,7 +15,7 @@ import fr.husi.fmt.shadowquic.buildShadowQUICConfig
 import fr.husi.libcore.Libcore
 import fr.husi.platform.PlatformInfo
 import fr.husi.plugin.PluginManager
-import fr.husi.repository.repo
+import fr.husi.repository.resolveRepository
 import java.io.File
 
 fun initPlugins(
@@ -23,6 +23,7 @@ fun initPlugins(
     isVPN: Boolean,
     cacheFiles: MutableList<File>,
 ): Map<Int, Pair<Int, String>> {
+    val repository = resolveRepository()
     val pluginConfigs = hashMapOf<Int, Pair<Int, String>>()
     val logLevel = DataStore.logLevel
     for ((chain) in config.externalIndex) {
@@ -45,7 +46,7 @@ fun initPlugins(
                     }
                     pluginConfigs[port] =
                         profile.type to bean.buildHysteriaConfig(port, isVPN) { type ->
-                            File(repo.cacheDir, "hysteria_${System.currentTimeMillis()}.$type").also {
+                            File(repository.cacheDir, "hysteria_${System.currentTimeMillis()}.$type").also {
                                 it.parentFile?.mkdirs()
                                 cacheFiles.add(it)
                             }
@@ -74,7 +75,7 @@ fun launchPlugins(
     processes: GuardedProcessPool,
     cacheFiles: MutableList<File>,
 ) {
-    val cacheDir = File(repo.cacheDir, "tmpcfg")
+    val cacheDir = File(resolveRepository().cacheDir, "tmpcfg")
     cacheDir.mkdirs()
 
     for ((chain) in config.externalIndex) {

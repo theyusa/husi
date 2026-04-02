@@ -132,7 +132,9 @@ fun GroupItemIterator.toList(): List<ProxySetItem> {
 }
 
 @Stable
-class DashboardViewModel : ViewModel() {
+class DashboardViewModel(
+    private val loadPlatformNetworkInfo: suspend () -> Triple<List<NetworkInterfaceInfo>, String?, String?>,
+) : ViewModel() {
     private val _uiState = MutableStateFlow(DashboardState())
     val uiState = _uiState.asStateFlow()
 
@@ -367,7 +369,7 @@ class DashboardViewModel : ViewModel() {
     }
 
     private suspend fun refreshNetworkInterfaces() {
-        val (interfaces, ipv4, ipv6) = buildPlatformNetworkInfo()
+        val (interfaces, ipv4, ipv6) = loadPlatformNetworkInfo()
         _uiState.update { state ->
             state.copy(
                 networkInterfaces = interfaces,

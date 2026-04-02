@@ -49,7 +49,7 @@ import fr.husi.ktx.USER_AGENT
 import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.contentOrUnset
 import fr.husi.ktx.intListN
-import fr.husi.repository.repo
+import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
 import fr.husi.resources.apply
 import fr.husi.resources.auto_update
@@ -179,14 +179,14 @@ internal fun GroupSettingsScreen(
                                     null,
                                 )
                             },
-                            label = runBlocking { repo.getString(Res.string.delete) },
+                            label = runBlocking { resolveRepository().getString(Res.string.delete) },
                         )
                         clickableItem(
                             onClick = ::saveAndExit,
                             icon = {
                                 Icon(vectorResource(Res.drawable.done), null)
                             },
-                            label = runBlocking { repo.getString(Res.string.apply) },
+                            label = runBlocking { resolveRepository().getString(Res.string.apply) },
                         )
                     }
                 },

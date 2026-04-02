@@ -15,7 +15,7 @@ import fr.husi.database.SagerDatabase
 import fr.husi.database.displayType
 import fr.husi.ktx.onIoDispatcher
 import fr.husi.ktx.runOnDefaultDispatcher
-import fr.husi.repository.repo
+import fr.husi.repository.resolveRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow

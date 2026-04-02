@@ -1,18 +1,20 @@
 package fr.husi.utils
 
 import android.Manifest
+import android.content.Context
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import fr.husi.ktx.listenForPackageChanges
 import fr.husi.plugin.Plugins
-import fr.husi.repository.androidRepo
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.util.concurrent.atomic.AtomicBoolean
 
 object PackageCache {
+    lateinit var context: Context
+    lateinit var packageManager: PackageManager
 
     lateinit var installedPackages: Map<String, PackageInfo>
     lateinit var installedPluginPackages: Map<String, PackageInfo>
@@ -23,10 +25,12 @@ object PackageCache {
     var registerd = AtomicBoolean(false)
 
     // called from init (suspend)
-    fun register() {
+    fun register(context: Context) {
         if (registerd.getAndSet(true)) return
+        this.context = context.applicationContext
+        packageManager = this.context.packageManager
         reload()
-        androidRepo.context.listenForPackageChanges(false) {
+        this.context.listenForPackageChanges(false) {
             reload()
             labelMap.clear()
         }
@@ -34,7 +38,7 @@ object PackageCache {
     }
 
     fun reload() {
-        val rawPackageInfo = androidRepo.packageManager.getInstalledPackages(
+        val rawPackageInfo = packageManager.getInstalledPackages(
             PackageManager.MATCH_UNINSTALLED_PACKAGES
                     or PackageManager.GET_PERMISSIONS
                     or PackageManager.GET_PROVIDERS
@@ -52,7 +56,7 @@ object PackageCache {
             Plugins.isPlugin(it)
         }.associateBy { it.packageName }
 
-        val installed = androidRepo.packageManager.getInstalledApplications(PackageManager.GET_META_DATA)
+        val installed = packageManager.getInstalledApplications(PackageManager.GET_META_DATA)
         installedApps = installed.associateBy { it.packageName }
         packageMap = installed.associate { it.packageName to it.uid }
         uidMap.clear()
@@ -79,7 +83,7 @@ object PackageCache {
             return
         }
         if (!registerd.get()) {
-            register()
+            error("PackageCache.register(context) must be called before awaitLoadSync()")
             return
         }
         runBlocking {

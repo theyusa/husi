@@ -13,8 +13,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.husi.compose.BackHandler
-import fr.husi.repository.FakeRepository
-import fr.husi.repository.repo
+import fr.husi.ui.ensurePreviewRepository
 import fr.husi.resources.Res
 import fr.husi.resources.cleaning_services
 import fr.husi.resources.clear_selections
@@ -38,7 +37,7 @@ internal actual fun AppListScreen(
     val viewModel: AppListViewModel = viewModel(key = resultKey) { AppListViewModel() }
     val context = LocalContext.current
     LaunchedEffect(viewModel, initialPackages) {
-        viewModel.initialize(context.packageManager, initialPackages)
+        viewModel.initialize(context.packageManager, context.packageName, initialPackages)
     }
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -94,9 +93,7 @@ internal actual fun AppListScreen(
 @Preview
 @Composable
 private fun PreviewAppListScreen() {
-    LaunchedEffect(Unit) {
-        repo = FakeRepository()
-    }
+    ensurePreviewRepository()
 
     AppListScreen(
         initialPackages = emptySet(),

@@ -51,7 +51,7 @@ import fr.husi.ui.NavRoutes
 import fr.husi.ui.getStringOrRes
 import kotlinx.coroutines.launch
 import fr.husi.resources.*
-import fr.husi.repository.repo
+import fr.husi.repository.resolveRepository
 
 private const val PAGE_NETWORK = 0
 private const val PAGE_BACKUP = 1
@@ -121,7 +121,7 @@ fun ToolsScreen(
                     scope.launch {
                         snackbarState.showSnackbar(
                             message = getStringOrRes(message),
-                            actionLabel = repo.getString(Res.string.ok),
+                            actionLabel = resolveRepository().getString(Res.string.ok),
                             duration = SnackbarDuration.Short,
                         )
                     }
@@ -192,7 +192,7 @@ fun ToolsScreen(
                             scope.launch {
                                 snackbarState.showSnackbar(
                                     message = message,
-                                    actionLabel = repo.getString(Res.string.ok),
+                                    actionLabel = resolveRepository().getString(Res.string.ok),
                                     duration = SnackbarDuration.Short,
                                 )
                             }
@@ -205,7 +205,7 @@ fun ToolsScreen(
                             scope.launch {
                                 snackbarState.showSnackbar(
                                     message = message,
-                                    actionLabel = repo.getString(Res.string.ok),
+                                    actionLabel = resolveRepository().getString(Res.string.ok),
                                     duration = SnackbarDuration.Short,
                                 )
                             }
@@ -224,7 +224,7 @@ fun ToolsScreen(
                 is MainViewModelUiEvent.Snackbar -> scope.launch {
                     snackbarState.showSnackbar(
                         message = getStringOrRes(event.message),
-                        actionLabel = repo.getString(Res.string.ok),
+                        actionLabel = resolveRepository().getString(Res.string.ok),
                         duration = SnackbarDuration.Short,
                     )
                 }

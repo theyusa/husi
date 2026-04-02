@@ -101,7 +101,7 @@ import fr.husi.database.displayType
 import fr.husi.keyevent.isTypeControlPressed
 import fr.husi.ktx.runOnIoDispatcher
 import fr.husi.ktx.showAndDismissOld
-import fr.husi.repository.repo
+import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
 import fr.husi.resources.action_anytls
 import fr.husi.resources.action_direct
@@ -608,7 +608,7 @@ fun ConfigurationScreen(
                     scope.launch {
                         snackbarState.showSnackbar(
                             message = getStringOrRes(message),
-                            actionLabel = repo.getString(Res.string.ok),
+                            actionLabel = resolveRepository().getString(Res.string.ok),
                             duration = SnackbarDuration.Short,
                         )
                     }
@@ -679,12 +679,12 @@ fun ConfigurationScreen(
                         expandedScope.launch {
                             if (!DataStore.serviceState.started) return@launch
                             val result = expandedSnackbarState.showSnackbar(
-                                message = repo.getString(Res.string.need_reload),
-                                actionLabel = repo.getString(Res.string.apply),
+                                message = resolveRepository().getString(Res.string.need_reload),
+                                actionLabel = resolveRepository().getString(Res.string.apply),
                                 duration = SnackbarDuration.Short,
                             )
                             if (result == SnackbarResult.ActionPerformed) {
-                                repo.reloadService()
+                                resolveRepository().reloadService()
                             }
                         }
                     },
@@ -695,8 +695,8 @@ fun ConfigurationScreen(
                     onCopySuccess = {
                         expandedScope.launch {
                             expandedSnackbarState.showSnackbar(
-                                message = repo.getString(Res.string.copy_success),
-                                actionLabel = repo.getString(Res.string.ok),
+                                message = resolveRepository().getString(Res.string.copy_success),
+                                actionLabel = resolveRepository().getString(Res.string.ok),
                                 duration = SnackbarDuration.Short,
                             )
                         }
@@ -705,7 +705,7 @@ fun ConfigurationScreen(
                         expandedScope.launch {
                             expandedSnackbarState.showSnackbar(
                                 message = getStringOrRes(message),
-                                actionLabel = repo.getString(Res.string.ok),
+                                actionLabel = resolveRepository().getString(Res.string.ok),
                                 duration = SnackbarDuration.Short,
                             )
                         }
@@ -713,12 +713,12 @@ fun ConfigurationScreen(
                     showUndoSnackbar = { count, onUndo ->
                         expandedScope.launch {
                             val result = expandedSnackbarState.showAndDismissOld(
-                                message = repo.getPluralString(
+                                message = resolveRepository().getPluralString(
                                     Res.plurals.removed,
                                     count,
                                     count,
                                 ),
-                                actionLabel = repo.getString(Res.string.undo),
+                                actionLabel = resolveRepository().getString(Res.string.undo),
                                 duration = SnackbarDuration.Short,
                             )
                             if (result == SnackbarResult.ActionPerformed) {
@@ -741,7 +741,7 @@ fun ConfigurationScreen(
                 is MainViewModelUiEvent.Snackbar -> scope.launch {
                     snackbarState.showSnackbar(
                         message = getStringOrRes(event.message),
-                        actionLabel = repo.getString(Res.string.ok),
+                        actionLabel = resolveRepository().getString(Res.string.ok),
                         duration = SnackbarDuration.Short,
                     )
                 }
@@ -818,12 +818,12 @@ fun ConfigurationContent(
                         scope.launch {
                             if (!DataStore.serviceState.started) return@launch
                             val result = snackbarState.showSnackbar(
-                                message = repo.getString(Res.string.need_reload),
-                                actionLabel = repo.getString(Res.string.apply),
+                                message = resolveRepository().getString(Res.string.need_reload),
+                                actionLabel = resolveRepository().getString(Res.string.apply),
                                 duration = SnackbarDuration.Short,
                             )
                             if (result == SnackbarResult.ActionPerformed) {
-                                repo.reloadService()
+                                resolveRepository().reloadService()
                             }
                         }
                     },
@@ -833,8 +833,8 @@ fun ConfigurationContent(
                     onCopySuccess = {
                         scope.launch {
                             snackbarState.showSnackbar(
-                                message = repo.getString(Res.string.copy_success),
-                                actionLabel = repo.getString(Res.string.ok),
+                                message = resolveRepository().getString(Res.string.copy_success),
+                                actionLabel = resolveRepository().getString(Res.string.ok),
                                 duration = SnackbarDuration.Short,
                             )
                         }
@@ -843,7 +843,7 @@ fun ConfigurationContent(
                         scope.launch {
                             snackbarState.showSnackbar(
                                 message = getStringOrRes(message),
-                                actionLabel = repo.getString(Res.string.ok),
+                                actionLabel = resolveRepository().getString(Res.string.ok),
                                 duration = SnackbarDuration.Short,
                             )
                         }
@@ -851,12 +851,12 @@ fun ConfigurationContent(
                     showUndoSnackbar = { count, onUndo ->
                         scope.launch {
                             val result = snackbarState.showAndDismissOld(
-                                message = repo.getPluralString(
+                                message = resolveRepository().getPluralString(
                                     Res.plurals.removed,
                                     count,
                                     count,
                                 ),
-                                actionLabel = repo.getString(Res.string.undo),
+                                actionLabel = resolveRepository().getString(Res.string.undo),
                                 duration = SnackbarDuration.Short,
                             )
                             if (result == SnackbarResult.ActionPerformed) {
@@ -884,7 +884,7 @@ fun ConfigurationContent(
             showSnackbar = { message ->
                 snackbarState.showSnackbar(
                     message = message,
-                    actionLabel = repo.getString(Res.string.ok),
+                    actionLabel = resolveRepository().getString(Res.string.ok),
                     duration = SnackbarDuration.Short,
                 )
             },

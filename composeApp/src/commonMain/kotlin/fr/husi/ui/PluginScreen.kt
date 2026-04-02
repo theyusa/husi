@@ -58,7 +58,7 @@ import fr.husi.compose.withNavigation
 import fr.husi.database.DataStore
 import fr.husi.ktx.restartApplication
 import fr.husi.platform.PlatformInfo
-import fr.husi.repository.repo
+import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
 import fr.husi.resources.menu
 import fr.husi.resources.need_restart
@@ -90,6 +90,7 @@ fun PluginScreen(
     val listState = rememberLazyListState()
     val scrollHideVisible by rememberScrollHideState(listState)
     val uriHandler = LocalUriHandler.current
+    val openPluginCard = rememberOpenPluginCard()
 
     val isExpert by if (BuildConfig.DEBUG) {
         remember { mutableStateOf(true) }
@@ -102,8 +103,8 @@ fun PluginScreen(
     fun needRestart() {
         scope.launch {
             val result = snackbarState.showSnackbar(
-                message = repo.getString(Res.string.need_restart),
-                actionLabel = repo.getString(Res.string.ok),
+                message = resolveRepository().getString(Res.string.need_restart),
+                actionLabel = resolveRepository().getString(Res.string.ok),
                 duration = SnackbarDuration.Short,
             )
             if (result == SnackbarResult.ActionPerformed) {
@@ -139,7 +140,7 @@ fun PluginScreen(
                     scope.launch {
                         snackbarState.showSnackbar(
                             message = getStringOrRes(message),
-                            actionLabel = repo.getString(Res.string.ok),
+                            actionLabel = resolveRepository().getString(Res.string.ok),
                             duration = SnackbarDuration.Short,
                         )
                     }
@@ -166,7 +167,7 @@ fun PluginScreen(
                         .fillMaxHeight(),
                     contentPadding = contentPadding,
                 ) {
-                    installedPlugins(plugins, uriHandler::openUri)
+                    installedPlugins(plugins, openPluginCard, uriHandler::openUri)
                     platformPluginPreferences(isExpert, ::needRestart)
                 }
 
@@ -189,7 +190,7 @@ fun PluginScreen(
                 is MainViewModelUiEvent.Snackbar -> scope.launch {
                     snackbarState.showSnackbar(
                         message = getStringOrRes(event.message),
-                        actionLabel = repo.getString(Res.string.ok),
+                        actionLabel = resolveRepository().getString(Res.string.ok),
                         duration = SnackbarDuration.Short,
                     )
                 }
@@ -211,6 +212,7 @@ fun PluginScreen(
 
 private fun LazyListScope.installedPlugins(
     plugins: List<PluginDisplay>,
+    openPluginCard: (PluginDisplay) -> Unit,
     openUri: (String) -> Unit,
 ) {
     item("plugins_card") {

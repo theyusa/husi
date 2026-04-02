@@ -3,7 +3,7 @@ package fr.husi.plugin
 import android.content.pm.PackageInfo
 import android.content.pm.ProviderInfo
 import fr.husi.database.DataStore
-import fr.husi.repository.repo
+import fr.husi.repository.resolveRepository
 import fr.husi.utils.PackageCache
 import fr.husi.resources.*
 import kotlinx.coroutines.runBlocking
@@ -49,7 +49,7 @@ object Plugins {
     fun displayExeProvider(pkgName: String): String {
         return when {
             pkgName.startsWith(AUTHORITIES_PREFIX_HUSI_EXE) -> runBlocking {
-                repo.getString(Res.string.app_name)
+                resolveRepository().getString(Res.string.app_name)
             }
 
             pkgName.startsWith(AUTHORITIES_PREFIX_SEKAI_EXE) -> "SagerNet"

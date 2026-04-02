@@ -33,7 +33,7 @@ import fr.husi.ktx.generateUserAgent
 import fr.husi.ktx.kxs
 import fr.husi.libcore.Libcore
 import fr.husi.libcore.URL
-import fr.husi.repository.repo
+import fr.husi.repository.resolveRepository
 import kotlinx.serialization.Serializable
 import fr.husi.resources.*
 
@@ -79,6 +79,7 @@ object OpenOnlineConfigUpdater : GroupUpdater() {
         userInterface: GroupManager.Interface?,
         byUser: Boolean,
     ) {
+        val repository = resolveRepository()
         val token: OOCSubscriptionToken
         val baseLink: URL
         val certSha256: String?
@@ -114,7 +115,7 @@ object OpenOnlineConfigUpdater : GroupUpdater() {
             certSha256 = token.certSha256
         } catch (e: Exception) {
             Logs.e("OOC token check failed, token = ${subscription.token}", e)
-            error(repo.getString(Res.string.ooc_subscription_token_invalid))
+            error(repository.getString(Res.string.ooc_subscription_token_invalid))
         }
 
         val response = Libcore.newHttpClient().apply {
@@ -133,14 +134,14 @@ object OpenOnlineConfigUpdater : GroupUpdater() {
             kxs.decodeFromString(response.contentString)
         } catch (e: Exception) {
             Logs.e("OOC response parse failed", e)
-            error(repo.getString(Res.string.ooc_subscription_token_invalid))
+            error(repository.getString(Res.string.ooc_subscription_token_invalid))
         }
 
         val protocols = oocResponse.protocols
         for (protocol in protocols) {
             if (protocol !in OOC_PROTOCOLS) {
                 userInterface?.alert(
-                    repo.getString(Res.string.ooc_missing_protocol, protocol),
+                    repository.getString(Res.string.ooc_missing_protocol, protocol),
                 )
             }
         }

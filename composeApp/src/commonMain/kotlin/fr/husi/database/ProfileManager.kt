@@ -10,7 +10,7 @@ import fr.husi.fmt.SingBoxOptions.ACTION_SNIFF
 import fr.husi.fmt.SingBoxOptions.NetworkICMP
 import fr.husi.fmt.SingBoxOptions.NetworkUDP
 import fr.husi.ktx.applyDefaultValues
-import fr.husi.repository.repo
+import fr.husi.repository.resolveRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -23,6 +23,7 @@ import fr.husi.resources.*
 object ProfileManager {
 
     private val defaultGroupLock = Any()
+    private val repository get() = resolveRepository()
 
     suspend fun createProfile(groupId: Long, bean: AbstractBean): ProxyEntity {
         bean.applyDefaultValues()
@@ -126,14 +127,14 @@ object ProfileManager {
                 createRule(
                     RuleEntity(
                         enabled = true,
-                        name = repo.getString(Res.string.sniff),
+                        name = repository.getString(Res.string.sniff),
                         action = ACTION_SNIFF,
                     ),
                 )
                 createRule(
                     RuleEntity(
                         enabled = true,
-                        name = repo.getString(Res.string.hijack_dns),
+                        name = repository.getString(Res.string.hijack_dns),
                         protocol = setOf("dns"),
                         action = ACTION_HIJACK_DNS,
                     ),
@@ -142,14 +143,14 @@ object ProfileManager {
                     RuleEntity(
                         enabled = true,
                         action = ACTION_ROUTE,
-                        name = repo.getString(Res.string.bypass_icmp),
+                        name = repository.getString(Res.string.bypass_icmp),
                         network = setOf(NetworkICMP),
                         outbound = RuleEntity.OUTBOUND_DIRECT,
                     ),
                 )
                 createRule(
                     RuleEntity(
-                        name = repo.getString(Res.string.route_opt_block_quic),
+                        name = repository.getString(Res.string.route_opt_block_quic),
                         action = ACTION_REJECT,
                         protocol = setOf("quic"),
                         network = setOf(NetworkUDP),
@@ -157,7 +158,7 @@ object ProfileManager {
                 )
                 createRule(
                     RuleEntity(
-                        name = repo.getString(Res.string.route_opt_block_ads),
+                        name = repository.getString(Res.string.route_opt_block_ads),
                         action = ACTION_REJECT,
                         domains = "set+dns:geosite-category-ads-all",
                     ),
@@ -172,7 +173,7 @@ object ProfileManager {
                     val displayCountry = c.substringAfter(":")
                     if (country == "cn") createRule(
                         RuleEntity(
-                            name = repo.getString(Res.string.route_play_store, displayCountry),
+                            name = repository.getString(Res.string.route_play_store, displayCountry),
                             action = ACTION_ROUTE,
                             domains = "set+dns:geosite-google-play",
                             outbound = RuleEntity.OUTBOUND_PROXY,
@@ -181,7 +182,7 @@ object ProfileManager {
                     )
                     createRule(
                         RuleEntity(
-                            name = repo.getString(Res.string.route_bypass_domain, displayCountry),
+                            name = repository.getString(Res.string.route_bypass_domain, displayCountry),
                             action = ACTION_ROUTE,
                             domains = "set+dns:geosite-$country",
                             outbound = RuleEntity.OUTBOUND_DIRECT,
@@ -190,7 +191,7 @@ object ProfileManager {
                     )
                     createRule(
                         RuleEntity(
-                            name = repo.getString(Res.string.route_bypass_ip, displayCountry),
+                            name = repository.getString(Res.string.route_bypass_ip, displayCountry),
                             action = ACTION_ROUTE,
                             ip = "set-dns:geoip-$country",
                             outbound = RuleEntity.OUTBOUND_DIRECT,
@@ -200,7 +201,7 @@ object ProfileManager {
                 }
                 createRule(
                     RuleEntity(
-                        name = repo.getString(Res.string.route_opt_bypass_lan),
+                        name = repository.getString(Res.string.route_opt_bypass_lan),
                         action = ACTION_ROUTE,
                         ip = RuleItem.CONTENT_PRIVATE,
                         outbound = RuleEntity.OUTBOUND_DIRECT,

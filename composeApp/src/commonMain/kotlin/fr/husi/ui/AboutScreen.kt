@@ -58,8 +58,7 @@ import fr.husi.compose.theme.AppTheme
 import fr.husi.compose.withNavigation
 import fr.husi.database.DataStore
 import fr.husi.libcore.Libcore
-import fr.husi.repository.FakeRepository
-import fr.husi.repository.repo
+import fr.husi.repository.resolveRepository
 import fr.husi.resources.*
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.Font
@@ -67,6 +66,7 @@ import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
 import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun AboutScreen(
@@ -100,6 +100,7 @@ fun AboutScreen(
     val coreVersion = remember { Libcore.version() }
 
     val shouldRequestBattery = rememberShouldRequestBatteryOptimizations()
+    val requestIgnoreBatteryOptimizations = rememberRequestIgnoreBatteryOptimizations()
 
     val serviceStatus by BackendState.status.collectAsStateWithLifecycle()
 
@@ -128,7 +129,7 @@ fun AboutScreen(
                     scope.launch {
                         snackbarState.showSnackbar(
                             message = getStringOrRes(message),
-                            actionLabel = repo.getString(Res.string.ok),
+                            actionLabel = resolveRepository().getString(Res.string.ok),
                             duration = SnackbarDuration.Short,
                         )
                     }
@@ -229,7 +230,7 @@ fun AboutScreen(
                                 scope.launch {
                                     snackbarState.showSnackbar(
                                         message = "isExpert: $isExpert",
-                                        actionLabel = repo.getString(Res.string.ok),
+                                        actionLabel = resolveRepository().getString(Res.string.ok),
                                         duration = SnackbarDuration.Short,
                                     )
                                 }
@@ -307,7 +308,7 @@ fun AboutScreen(
                 is MainViewModelUiEvent.Snackbar -> scope.launch {
                     snackbarState.showSnackbar(
                         message = getStringOrRes(event.message),
-                        actionLabel = repo.getString(Res.string.ok),
+                        actionLabel = resolveRepository().getString(Res.string.ok),
                         duration = SnackbarDuration.Short,
                     )
                 }
@@ -383,8 +384,8 @@ private fun CardItem(
 @Preview
 @Composable
 private fun PreviewAboutScreen() {
-    repo = FakeRepository()
-    val mainViewModel = viewModel<MainViewModel>()
+    ensurePreviewRepository()
+    val mainViewModel = koinViewModel<MainViewModel>()
 
     AppTheme {
         AboutScreen(

@@ -1,6 +1,7 @@
 package fr.husi.ui
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import fr.husi.database.SagerDatabase
 import fr.husi.fmt.PluginEntry
 import fr.husi.ktx.Logs
@@ -35,12 +36,17 @@ internal actual fun platformPluginsFlow(): Flow<List<PluginDisplay>> {
     }
 }
 
-internal actual fun openPluginCard(plugin: PluginDisplay) {
-    val path = plugin.path?.trim().blankAsNull() ?: return
-    openFilePath(path)
+@Composable
+internal actual fun rememberOpenPluginCard(): (PluginDisplay) -> Unit {
+    return remember {
+        { plugin ->
+            plugin.path?.trim().blankAsNull()?.let(::openFilePath)
+        }
+    }
 }
 
 @Composable
 internal actual fun rememberShouldRequestBatteryOptimizations(): Boolean = false
 
-internal actual fun requestIgnoreBatteryOptimizations() {}
+@Composable
+internal actual fun rememberRequestIgnoreBatteryOptimizations(): () -> Unit = remember { {} }

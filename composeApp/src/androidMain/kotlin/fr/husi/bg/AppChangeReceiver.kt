@@ -6,8 +6,8 @@ import android.content.Intent
 import fr.husi.database.DataStore
 import fr.husi.ktx.Logs
 import fr.husi.ktx.runOnIoDispatcher
-import fr.husi.repository.androidRepo
 import fr.husi.utils.AppScanner
+import fr.husi.utils.PackageCache
 
 class AppChangeReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
@@ -35,7 +35,7 @@ class AppChangeReceiver : BroadcastReceiver() {
             Logs.d("missing package name in intent")
             return
         }
-        val isChinaApp = AppScanner.isChinaApp(packageName, androidRepo.packageManager)
+        val isChinaApp = AppScanner.isChinaApp(packageName, PackageCache.packageManager)
         Logs.d("scan china app result for $packageName: $isChinaApp")
         if (isChinaApp && DataStore.bypassMode) {
             DataStore.packages += packageName

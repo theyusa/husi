@@ -68,7 +68,7 @@ import fr.husi.database.DataStore
 import fr.husi.ktx.Logs
 import fr.husi.ktx.showAndDismissOld
 import fr.husi.libcore.Libcore
-import fr.husi.repository.repo
+import fr.husi.repository.resolveRepository
 import fr.husi.results.LocalResultEventBus
 import fr.husi.results.ResultEffect
 import fr.husi.resources.*
@@ -102,8 +102,8 @@ internal fun AssetsScreen(
     modifier: Modifier = Modifier,
     viewModel: AssetsScreenViewModel = viewModel { AssetsScreenViewModel() },
 ) {
-    val cacheDir = repo.cacheDir
-    val assetsDir = repo.externalAssetsDir
+    val cacheDir = resolveRepository().cacheDir
+    val assetsDir = resolveRepository().externalAssetsDir
     val geoDir = remember { geoDir(assetsDir) }
     val scope = rememberCoroutineScope()
     val resultBus = LocalResultEventBus.current
@@ -206,12 +206,12 @@ internal fun AssetsScreen(
     LaunchedEffect(uiState.pendingDeleteCount) {
         if (uiState.pendingDeleteCount > 0) {
             val result = snackbarHostState.showAndDismissOld(
-                message = repo.getPluralString(
+                message = resolveRepository().getPluralString(
                     Res.plurals.removed,
                     uiState.pendingDeleteCount,
                     uiState.pendingDeleteCount,
                 ),
-                actionLabel = repo.getString(Res.string.undo),
+                actionLabel = resolveRepository().getString(Res.string.undo),
                 duration = SnackbarDuration.Short,
             )
             if (result == SnackbarResult.ActionPerformed) {
@@ -226,7 +226,7 @@ internal fun AssetsScreen(
                 is AssetsScreenUiEvent.Snackbar -> scope.launch {
                     snackbarHostState.showSnackbar(
                         message = getStringOrRes(event.message),
-                        actionLabel = repo.getString(Res.string.ok),
+                        actionLabel = resolveRepository().getString(Res.string.ok),
                         duration = SnackbarDuration.Short,
                     )
                 }
@@ -267,7 +267,7 @@ internal fun AssetsScreen(
                                 icon = {
                                     Icon(vectorResource(Res.drawable.update), null)
                                 },
-                                label = runBlocking { repo.getString(Res.string.assets_update) },
+                                label = runBlocking { resolveRepository().getString(Res.string.assets_update) },
                                 enabled = canOperate,
                             )
                             clickableItem(
@@ -277,7 +277,7 @@ internal fun AssetsScreen(
                                 icon = {
                                     Icon(vectorResource(Res.drawable.replay), null)
                                 },
-                                label = runBlocking { repo.getString(Res.string.reset_rule_set) },
+                                label = runBlocking { resolveRepository().getString(Res.string.reset_rule_set) },
                                 enabled = canReset,
                             )
                             clickableItem(
@@ -287,14 +287,14 @@ internal fun AssetsScreen(
                                 icon = {
                                     Icon(vectorResource(Res.drawable.note_add), null)
                                 },
-                                label = runBlocking { repo.getString(Res.string.action_import_file) },
+                                label = runBlocking { resolveRepository().getString(Res.string.action_import_file) },
                             )
                             clickableItem(
                                 onClick = { openAssetEditor("") },
                                 icon = {
                                     Icon(vectorResource(Res.drawable.link), null)
                                 },
-                                label = runBlocking { repo.getString(Res.string.import_url) },
+                                label = runBlocking { resolveRepository().getString(Res.string.import_url) },
                             )
                         }
                     },

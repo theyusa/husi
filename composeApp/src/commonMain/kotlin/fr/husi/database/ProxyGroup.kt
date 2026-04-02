@@ -13,7 +13,7 @@ import fr.husi.GroupType
 import fr.husi.fmt.Serializable
 import fr.husi.ktx.applyDefaultValues
 import fr.husi.ktx.blankAsNull
-import fr.husi.repository.repo
+import fr.husi.repository.resolveRepository
 import kotlinx.coroutines.flow.Flow
 import fr.husi.resources.*
 import kotlinx.coroutines.runBlocking
@@ -93,7 +93,7 @@ data class ProxyGroup(
 
     fun displayName(): String {
         return name.blankAsNull() ?: runBlocking {
-            repo.getString(Res.string.group_default)
+            resolveRepository().getString(Res.string.group_default)
         }
     }
 

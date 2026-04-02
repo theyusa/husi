@@ -27,7 +27,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import fr.husi.ktx.readableMessage
 import fr.husi.libcore.Libcore
-import fr.husi.repository.repo
+import fr.husi.repository.resolveRepository
 import fr.husi.resources.*
 
 @Composable
@@ -93,7 +93,7 @@ fun LinkOrContentTextField(
             val url = Libcore.parseURL(link)
             when (url.scheme.lowercase()) {
                 "content" -> continue
-                "http" -> errors.add(repo.getString(Res.string.cleartext_http_warning))
+                "http" -> errors.add(resolveRepository().getString(Res.string.cleartext_http_warning))
             }
         } catch (e: Exception) {
             errors.add(e.readableMessage)

@@ -18,8 +18,8 @@ import fr.husi.fmt.SingBoxOptions
 import fr.husi.fmt.hysteria.HysteriaBean
 import fr.husi.ktx.Logs
 import fr.husi.ktx.blankAsNull
-import fr.husi.repository.androidRepo
-import fr.husi.repository.repo
+import fr.husi.repository.resolveAndroidRepository
+import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
 import fr.husi.resources.app_name
 import fr.husi.resources.reboot_required
@@ -61,7 +61,7 @@ class VpnService : BaseVpnService(),
 
     @SuppressLint("WakelockTimeout")
     override fun acquireWakeLock() {
-        wakeLock = androidRepo.power.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "husi:vpn")
+        wakeLock = resolveAndroidRepository().power.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "husi:vpn")
             .apply { acquire() }
     }
 
@@ -97,14 +97,14 @@ class VpnService : BaseVpnService(),
     inner class NullConnectionException : NullPointerException(),
         ExpectedException {
         override fun getLocalizedMessage() = runBlocking {
-            repo.getString(Res.string.reboot_required)
+            resolveRepository().getString(Res.string.reboot_required)
         }
     }
 
     fun startVpn(): Int {
         // address & route & MTU ...... use GUI config
-        val builder = Builder().setConfigureIntent(androidRepo.configureIntent(this))
-            .setSession(runBlocking { repo.getString(Res.string.app_name) })
+        val builder = Builder().setConfigureIntent(resolveAndroidRepository().configureIntent(this))
+            .setSession(runBlocking { resolveRepository().getString(Res.string.app_name) })
             .setMtu(DataStore.mtu)
         val networkStrategy = DataStore.networkStrategy
 

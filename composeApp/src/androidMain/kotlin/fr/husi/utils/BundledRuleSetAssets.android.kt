@@ -2,11 +2,11 @@ package fr.husi.utils
 
 import android.content.res.AssetManager
 import fr.husi.ktx.Logs
-import fr.husi.repository.androidRepo
+import fr.husi.repository.resolveAndroidRepository
 import java.io.File
 
 internal actual suspend fun copyBundledRuleSetAssetsIfNeeded() {
-    val context = androidRepo.context
+    val context = resolveAndroidRepository().context
     val assetManager = context.assets
     val targetDir = File(context.filesDir, "sing-box")
     syncBundledRuleSetAssets(

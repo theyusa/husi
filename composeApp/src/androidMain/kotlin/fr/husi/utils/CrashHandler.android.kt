@@ -4,7 +4,7 @@ import android.content.Intent
 import android.util.Log
 import com.jakewharton.processphoenix.ProcessPhoenix
 import fr.husi.ktx.Logs
-import fr.husi.repository.androidRepo
+import fr.husi.repository.resolveAndroidRepository
 
 actual object CrashHandler : Thread.UncaughtExceptionHandler {
 
@@ -21,8 +21,8 @@ actual object CrashHandler : Thread.UncaughtExceptionHandler {
         }
 
         ProcessPhoenix.triggerRebirth(
-            androidRepo.context,
-            Intent(androidRepo.context, Class.forName("fr.husi.ui.BlankActivity"))
+            resolveAndroidRepository().context,
+            Intent(resolveAndroidRepository().context, Class.forName("fr.husi.ui.BlankActivity"))
                 .putExtra("log_title", "husi_crash"),
         )
     }

@@ -7,15 +7,15 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import fr.husi.database.DataStore
-import fr.husi.repository.androidRepo
-import fr.husi.repository.repo
+import fr.husi.repository.resolveAndroidRepository
+import fr.husi.repository.resolveRepository
 
 class BootReceiver : BroadcastReceiver() {
     companion object {
-        private val componentName by lazy { ComponentName(androidRepo.context, BootReceiver::class.java) }
+        private val componentName by lazy { ComponentName(resolveAndroidRepository().context, BootReceiver::class.java) }
         var enabled: Boolean
-            get() = androidRepo.packageManager.getComponentEnabledSetting(componentName) == PackageManager.COMPONENT_ENABLED_STATE_ENABLED
-            set(value) = androidRepo.packageManager.setComponentEnabledSetting(
+            get() = resolveAndroidRepository().packageManager.getComponentEnabledSetting(componentName) == PackageManager.COMPONENT_ENABLED_STATE_ENABLED
+            set(value) = resolveAndroidRepository().packageManager.setComponentEnabledSetting(
                 componentName,
                 if (value) PackageManager.COMPONENT_ENABLED_STATE_ENABLED
                 else PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
@@ -31,9 +31,9 @@ class BootReceiver : BroadcastReceiver() {
 
         val doStart = when (intent.action) {
             Intent.ACTION_LOCKED_BOOT_COMPLETED -> false // DataStore.directBootAware
-            else -> Build.VERSION.SDK_INT < 24 || androidRepo.user.isUserUnlocked
+            else -> Build.VERSION.SDK_INT < 24 || resolveAndroidRepository().user.isUserUnlocked
         } && DataStore.selectedProxy > 0
 
-        if (doStart) repo.startService()
+        if (doStart) resolveRepository().startService()
     }
 }

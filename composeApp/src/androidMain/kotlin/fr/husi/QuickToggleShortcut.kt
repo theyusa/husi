@@ -34,7 +34,7 @@ import fr.husi.bg.SagerConnection
 import fr.husi.bg.ServiceState
 import fr.husi.database.DataStore
 import fr.husi.lib.R
-import fr.husi.repository.repo
+import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
 import fr.husi.resources.quick_toggle
 import kotlinx.coroutines.CoroutineScope
@@ -77,7 +77,7 @@ class QuickToggleShortcut : Activity() {
                                 R.drawable.ic_qu_shadowsocks_launcher,
                             ),
                         )
-                        .setShortLabel(runBlocking { repo.getString(Res.string.quick_toggle) })
+                        .setShortLabel(runBlocking { resolveRepository().getString(Res.string.quick_toggle) })
                         .build(),
                 ),
             )
@@ -94,16 +94,16 @@ class QuickToggleShortcut : Activity() {
                 when {
                     state.canStop -> {
                         if (profileId == DataStore.selectedProxy || profileId == -1L) {
-                            repo.stopService()
+                            resolveRepository().stopService()
                         } else {
                             DataStore.selectedProxy = profileId
-                            repo.reloadService()
+                            resolveRepository().reloadService()
                         }
                     }
 
                     state == ServiceState.Stopped -> {
                         if (profileId >= 0L) DataStore.selectedProxy = profileId
-                        repo.startService()
+                        resolveRepository().startService()
                     }
                 }
                 finish()

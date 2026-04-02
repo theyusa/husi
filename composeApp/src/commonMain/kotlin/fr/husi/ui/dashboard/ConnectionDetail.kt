@@ -53,7 +53,7 @@ import fr.husi.fmt.SingBoxOptions
 import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.emptyAsNull
 import fr.husi.libcore.Libcore
-import fr.husi.repository.repo
+import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
 import fr.husi.resources.add_road
 import fr.husi.resources.arrow_back
@@ -167,7 +167,7 @@ fun ConnectionDetailScreen(
                                         contentDescription = stringResource(Res.string.ok),
                                     )
                                 },
-                                label = runBlocking { repo.getString(Res.string.ok) },
+                                label = runBlocking { resolveRepository().getString(Res.string.ok) },
                             )
                         } else {
                             clickableItem(
@@ -178,7 +178,7 @@ fun ConnectionDetailScreen(
                                         contentDescription = stringResource(Res.string.create_rule),
                                     )
                                 },
-                                label = runBlocking { repo.getString(Res.string.create_rule) },
+                                label = runBlocking { resolveRepository().getString(Res.string.create_rule) },
                             )
                             clickableItem(
                                 onClick = {
@@ -191,7 +191,7 @@ fun ConnectionDetailScreen(
                                         contentDescription = stringResource(Res.string.close),
                                     )
                                 },
-                                label = runBlocking { repo.getString(Res.string.close) },
+                                label = runBlocking { resolveRepository().getString(Res.string.close) },
                             )
                         }
                     }

@@ -21,7 +21,7 @@ import fr.husi.database.ProxyEntity.Companion.TYPE_TUIC
 import fr.husi.database.ProxyEntity.Companion.TYPE_VLESS
 import fr.husi.database.ProxyEntity.Companion.TYPE_VMESS
 import fr.husi.database.ProxyEntity.Companion.TYPE_WG
-import fr.husi.repository.repo
+import fr.husi.repository.resolveRepository
 import fr.husi.resources.*
 import kotlinx.coroutines.runBlocking
 
@@ -46,7 +46,7 @@ fun ProxyEntity.displayType(): String = when (type) {
     TYPE_PROXY_SET -> proxySetBean!!.displayType()
     TYPE_TRUST_TUNNEL -> "Trust Tunnel"
     TYPE_CHAIN -> runBlocking {
-        repo.getString(Res.string.proxy_chain)
+        resolveRepository().getString(Res.string.proxy_chain)
     }
     TYPE_CONFIG -> configBean!!.displayType()
     else -> "Undefined type $type"

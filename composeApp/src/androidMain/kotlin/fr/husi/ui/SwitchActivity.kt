@@ -27,7 +27,7 @@ import fr.husi.compose.theme.AppTheme
 import fr.husi.database.DataStore
 import fr.husi.permission.LocalPermissionPlatform
 import fr.husi.permission.rememberAndroidPermissionPlatform
-import fr.husi.repository.repo
+import fr.husi.repository.resolveRepository
 import fr.husi.ui.configuration.ProfilePickerContent
 import fr.husi.ui.configuration.rememberProfilePickerState
 
@@ -88,7 +88,7 @@ class SwitchActivity : ComposeActivity() {
 
     private fun returnProfile(profileId: Long) {
         DataStore.selectedProxy = profileId
-        repo.reloadService()
+        resolveRepository().reloadService()
         finish()
     }
 }

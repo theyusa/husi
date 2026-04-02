@@ -1,7 +1,7 @@
 package fr.husi.bg
 
 import fr.husi.ktx.Logs
-import fr.husi.repository.repo
+import fr.husi.repository.resolveRepository
 import fr.husi.utils.Commandline
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -36,7 +36,7 @@ actual class GuardedProcessPool actual constructor(
         }
 
         fun start() {
-            process = ProcessBuilder(cmd).directory(repo.filesDir).apply {
+            process = ProcessBuilder(cmd).directory(resolveRepository().filesDir).apply {
                 environment().putAll(env)
             }.start()
         }

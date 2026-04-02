@@ -26,7 +26,7 @@ import org.jetbrains.compose.resources.vectorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.DpOffset
 import fr.husi.ktx.Logs
-import fr.husi.repository.repo
+import fr.husi.repository.resolveRepository
 import io.github.vinceglb.filekit.dialogs.compose.rememberFileSaverLauncher
 import io.github.vinceglb.filekit.write
 import kotlinx.coroutines.launch
@@ -65,10 +65,10 @@ fun QRCodeDialog(
             scope.launch {
                 try {
                     file.write(encodeImageBitmapToPng(qrBitmap))
-                    showSnackbar(repo.getString(Res.string.saved_to_download))
+                    showSnackbar(resolveRepository().getString(Res.string.saved_to_download))
                 } catch (e: Exception) {
                     Logs.e(e)
-                    showSnackbar(repo.getString(Res.string.error_title))
+                    showSnackbar(resolveRepository().getString(Res.string.error_title))
                 }
             }
         }

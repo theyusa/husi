@@ -32,7 +32,7 @@ import fr.husi.ktx.runOnDefaultDispatcher
 import fr.husi.ktx.runOnMainDispatcher
 import fr.husi.ktx.showToast
 import fr.husi.plugin.PluginNotFoundException
-import fr.husi.repository.repo
+import fr.husi.repository.resolveRepository
 import fr.husi.resources.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -88,7 +88,7 @@ class BaseService {
             val proxy = proxy
             if (proxy != null && proxy.isInitialized()) {
                 runCatching {
-                    repo.boxService?.resetNetwork()
+                    resolveRepository().boxService?.resetNetwork()
                 }
             }
         }
@@ -113,9 +113,9 @@ class BaseService {
                     val proxy = proxy
                     if (proxy != null && proxy.isInitialized()) {
                         if (powerManager.isDeviceIdleMode) {
-                            repo.boxService?.pause()
+                            resolveRepository().boxService?.pause()
                         } else {
-                            repo.boxService?.wake()
+                            resolveRepository().boxService?.wake()
                         }
                     }
                 }
@@ -125,7 +125,7 @@ class BaseService {
                         resetNetwork()
                         onMainDispatcher {
                             collapseStatusBar(ctx)
-                            showToast(repo.getString(Res.string.have_reset_network))
+                            showToast(resolveRepository().getString(Res.string.have_reset_network))
                         }
                     }
                 }
@@ -251,7 +251,7 @@ class BaseService {
 
         fun reload() {
             if (DataStore.selectedProxy == 0L) {
-                stopRunner(false, runBlocking { repo.getString(Res.string.profile_empty) })
+                stopRunner(false, runBlocking { resolveRepository().getString(Res.string.profile_empty) })
                 return
             }
 
@@ -262,7 +262,7 @@ class BaseService {
                     if (restartCurrentService) {
                         startRunner()
                     } else {
-                        repo.startService()
+                        resolveRepository().startService()
                     }
                 }
 
@@ -270,7 +270,7 @@ class BaseService {
                     if (restartCurrentService) {
                         stopRunner(true)
                     } else {
-                        stopRunner(afterStop = repo::startService)
+                        stopRunner(afterStop = resolveRepository()::startService)
                     }
                 }
 
@@ -282,7 +282,7 @@ class BaseService {
             data.backend.start { throwable ->
                 stopRunner(false, throwable.readableMessage)
             }
-            if (repo.boxService?.needWIFIState() == true) {
+            if (resolveRepository().boxService?.needWIFIState() == true) {
                 val wifiPermission = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
                     Manifest.permission.ACCESS_FINE_LOCATION
                 } else {
@@ -389,7 +389,7 @@ class BaseService {
             val profile = runBlocking { SagerDatabase.proxyDao.getById(DataStore.selectedProxy) }
             this as Context
             if (profile == null) { // gracefully shutdown: https://stackoverflow.com/q/47337857/2245107
-                stopRunner(false, runBlocking { repo.getString(Res.string.profile_empty) })
+                stopRunner(false, runBlocking { resolveRepository().getString(Res.string.profile_empty) })
                 return Service.START_NOT_STICKY
             }
 
@@ -439,7 +439,7 @@ class BaseService {
                 } catch (_: CancellationException) { // if the job was cancelled, it is canceller's responsibility to call stopRunner
                 } catch (e: UnknownHostException) {
                     Logs.e(e)
-                    stopRunner(false, repo.getString(Res.string.invalid_server))
+                    stopRunner(false, resolveRepository().getString(Res.string.invalid_server))
                 } catch (e: PluginNotFoundException) {
                     onMainDispatcher {
                         showToast(e.readableMessage)
@@ -456,7 +456,7 @@ class BaseService {
                     }
                     stopRunner(
                         false,
-                        "${repo.getString(Res.string.service_failed)}: ${exc.readableMessage}",
+                        "${resolveRepository().getString(Res.string.service_failed)}: ${exc.readableMessage}",
                     )
                 } finally {
                     data.connectingJob = null

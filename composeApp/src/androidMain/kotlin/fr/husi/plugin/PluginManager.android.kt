@@ -2,7 +2,7 @@ package fr.husi.plugin
 
 import android.content.pm.ProviderInfo
 import fr.husi.ktx.Logs
-import fr.husi.repository.androidRepo
+import fr.husi.repository.resolveAndroidRepository
 import java.io.File
 
 actual object PluginManager {
@@ -48,7 +48,7 @@ actual object PluginManager {
 
     private fun initNativeInternal(pluginId: String): String? {
         fun soIfExist(soName: String): String? {
-            val f = File(androidRepo.context.applicationInfo.nativeLibraryDir, soName)
+            val f = File(resolveAndroidRepository().context.applicationInfo.nativeLibraryDir, soName)
             if (f.canExecute()) {
                 return f.absolutePath
             }

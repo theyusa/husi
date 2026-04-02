@@ -47,7 +47,7 @@ internal class DesktopServiceRuntime(
         runExclusive {
             when {
                 DataStore.selectedProxy == 0L -> {
-                    stopLocked(repo.getString(Res.string.profile_empty))
+                    stopLocked(resolveRepository().getString(Res.string.profile_empty))
                 }
 
                 DataStore.serviceState == ServiceState.Stopped || DataStore.serviceState == ServiceState.Idle -> {
@@ -78,13 +78,13 @@ internal class DesktopServiceRuntime(
 
         val profile = ProfileManager.getProfile(DataStore.selectedProxy)
         if (profile == null) {
-            stopLocked(repo.getString(Res.string.profile_empty))
+            stopLocked(resolveRepository().getString(Res.string.profile_empty))
             return
         }
 
         val service = boxService
         if (service == null) {
-            stopLocked("${repo.getString(Res.string.service_failed)}: Service unavailable")
+            stopLocked("${resolveRepository().getString(Res.string.service_failed)}: Service unavailable")
             return
         }
 
@@ -126,12 +126,12 @@ internal class DesktopServiceRuntime(
             BackendState.setConnected(true)
         } catch (e: Throwable) {
             when (e) {
-                is UnknownHostException -> stopLocked(repo.getString(Res.string.invalid_server))
+                is UnknownHostException -> stopLocked(resolveRepository().getString(Res.string.invalid_server))
                 is PluginNotFoundException ->
                     stopLocked(e.readableMessage, AlertType.MISSING_PLUGIN, e.plugin)
 
                 else -> stopLocked(
-                    "${repo.getString(Res.string.service_failed)}: ${e.readableMessage}",
+                    "${resolveRepository().getString(Res.string.service_failed)}: ${e.readableMessage}",
                 )
             }
         }
@@ -188,7 +188,7 @@ internal class DesktopServiceRuntime(
     private suspend fun handleFatal(throwable: Throwable) {
         access.withLock {
             if (!DataStore.serviceState.canStop) return
-            stopLocked("${repo.getString(Res.string.service_failed)}: ${throwable.readableMessage}")
+            stopLocked("${resolveRepository().getString(Res.string.service_failed)}: ${throwable.readableMessage}")
         }
     }
 

@@ -10,7 +10,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import fr.husi.Key
 import fr.husi.ktx.Logs
-import fr.husi.repository.repo
+import fr.husi.repository.resolveRepository
 
 class RoomToDataStoreMigration(
     private val context: Context,
@@ -25,7 +25,7 @@ class RoomToDataStoreMigration(
         val prefs = currentData.toMutablePreferences()
 
         return try {
-            val dbFile = repo.resolveDatabaseFile(Key.DB_PUBLIC)
+            val dbFile = resolveRepository().resolveDatabaseFile(Key.DB_PUBLIC)
             if (!dbFile.exists()) {
                 Logs.i("no old database found, skipping migration")
                 prefs[booleanPreferencesKey(MIGRATION_KEY)] = true
@@ -145,7 +145,7 @@ class RoomToDataStoreMigration(
 
     override suspend fun cleanUp() {
         try {
-            val dbFile = repo.resolveDatabaseFile(Key.DB_PUBLIC)
+            val dbFile = resolveRepository().resolveDatabaseFile(Key.DB_PUBLIC)
             if (PublicDatabase.hasInstance()) {
                 try {
                     PublicDatabase.instance.close()

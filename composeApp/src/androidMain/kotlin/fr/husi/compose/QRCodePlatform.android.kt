@@ -15,8 +15,8 @@ import com.google.zxing.MultiFormatWriter
 import fr.husi.ktx.Logs
 import fr.husi.ktx.onIoDispatcher
 import fr.husi.ktx.onMainDispatcher
-import fr.husi.repository.androidRepo
-import fr.husi.repository.repo
+import fr.husi.repository.resolveAndroidRepository
+import fr.husi.repository.resolveRepository
 import fr.husi.resources.*
 import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.createDirectories
@@ -69,13 +69,13 @@ actual suspend fun shareQRCodeImage(
     name: String,
 ) = onIoDispatcher {
     try {
-        val context = androidRepo.context
-        val cacheDir = PlatformFile(PlatformFile(repo.cacheDir), "qrcodes")
+        val context = resolveAndroidRepository().context
+        val cacheDir = PlatformFile(PlatformFile(resolveRepository().cacheDir), "qrcodes")
         cacheDir.createDirectories()
         val platformFile = PlatformFile(cacheDir, "$name.png")
         platformFile.write(pngBytes)
 
-        val javaFile = File(repo.cacheDir, "qrcodes/$name.png")
+        val javaFile = File(resolveRepository().cacheDir, "qrcodes/$name.png")
         val uri = FileProvider.getUriForFile(context, "${context.packageName}.cache", javaFile)
 
         val shareIntent = Intent(Intent.ACTION_SEND)
@@ -87,7 +87,7 @@ actual suspend fun shareQRCodeImage(
             context.startActivity(
                 Intent.createChooser(
                     shareIntent,
-                    repo.getString(Res.string.share),
+                    resolveRepository().getString(Res.string.share),
                 ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
             )
         }

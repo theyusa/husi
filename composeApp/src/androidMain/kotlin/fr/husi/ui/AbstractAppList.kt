@@ -72,8 +72,7 @@ import fr.husi.compose.extraBottomPadding
 import fr.husi.compose.paddingExceptBottom
 import fr.husi.compose.setPlainText
 import fr.husi.ktx.blankAsNull
-import fr.husi.repository.androidRepo
-import fr.husi.repository.repo
+import fr.husi.repository.resolveRepository
 import fr.husi.resources.*
 import fr.husi.utils.PackageCache
 import org.jetbrains.compose.resources.stringResource
@@ -106,11 +105,12 @@ internal abstract class BaseAppListViewModel : ViewModel() {
     val textFieldState = TextFieldState()
 
     protected lateinit var packageManager: PackageManager
+    protected lateinit var appPackageName: String
     protected val proxiedUids = ArraySet<Int>()
     protected val singleThreadContext = Dispatchers.IO.limitedParallelism(1)
     protected val cachedApps by lazy {
         PackageCache.installedPackages.toMutableMap().apply {
-            remove(androidRepo.context.packageName)
+            remove(appPackageName)
         }
     }
 
@@ -334,7 +334,7 @@ internal fun AppListScaffold(
         snackbarMessage?.let { message ->
             snackbarHostState.showSnackbar(
                 message = getStringOrRes(message),
-                actionLabel = repo.getString(Res.string.ok),
+                actionLabel = resolveRepository().getString(Res.string.ok),
                 duration = SnackbarDuration.Short,
             )
         }
@@ -397,8 +397,8 @@ internal fun AppListScaffold(
                                     scope.launch {
                                         clipboard.setPlainText(toExport)
                                         snackbarHostState.showSnackbar(
-                                            message = repo.getString(Res.string.copy_success),
-                                            actionLabel = repo.getString(Res.string.ok),
+                                            message = resolveRepository().getString(Res.string.copy_success),
+                                            actionLabel = resolveRepository().getString(Res.string.ok),
                                             duration = SnackbarDuration.Short,
                                         )
                                     }

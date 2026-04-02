@@ -1,3 +1,6 @@
 package fr.husi.ui.dashboard
 
-expect suspend fun buildPlatformNetworkInfo(): Triple<List<NetworkInterfaceInfo>, String?, String?>
+import androidx.compose.runtime.Composable
+
+@Composable
+expect fun rememberLoadPlatformNetworkInfo(): suspend () -> Triple<List<NetworkInterfaceInfo>, String?, String?>

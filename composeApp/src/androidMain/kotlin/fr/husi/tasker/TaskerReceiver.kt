@@ -23,7 +23,7 @@ import android.content.Context
 import android.content.Intent
 import fr.husi.database.DataStore
 import fr.husi.database.ProfileManager
-import fr.husi.repository.repo
+import fr.husi.repository.resolveRepository
 
 class TaskerReceiver : BroadcastReceiver() {
 
@@ -38,11 +38,11 @@ class TaskerReceiver : BroadcastReceiver() {
                         reload = DataStore.currentProfile != 0L
                     }
                 }
-                if (reload) repo.reloadService() else repo.startService()
+                if (reload) resolveRepository().reloadService() else resolveRepository().startService()
             }
 
             TaskerBundle.ACTION_STOP -> {
-                repo.stopService()
+                resolveRepository().stopService()
             }
         }
     }

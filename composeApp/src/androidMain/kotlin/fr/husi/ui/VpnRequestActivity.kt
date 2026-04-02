@@ -16,7 +16,7 @@ import fr.husi.database.DataStore
 import fr.husi.ktx.Logs
 import fr.husi.ktx.broadcastReceiver
 import fr.husi.ktx.showToast
-import fr.husi.repository.repo
+import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
 import fr.husi.resources.vpn_permission_denied
 import kotlinx.coroutines.runBlocking
@@ -42,7 +42,7 @@ class VpnRequestActivity : AppCompatActivity() {
 
     private val connect = registerForActivityResult(StartService()) {
         if (it) {
-            val text = runBlocking { repo.getString(Res.string.vpn_permission_denied) }
+            val text = runBlocking { resolveRepository().getString(Res.string.vpn_permission_denied) }
             showToast(text, long = true)
         }
         finish()
@@ -64,7 +64,7 @@ class VpnRequestActivity : AppCompatActivity() {
                 cachedIntent = intent
                 return null
             }
-            repo.startService()
+            resolveRepository().startService()
             return SynchronousResult(false)
         }
 
@@ -73,7 +73,7 @@ class VpnRequestActivity : AppCompatActivity() {
 
         override fun parseResult(resultCode: Int, intent: Intent?) =
             if (resultCode == RESULT_OK) {
-                repo.startService()
+                resolveRepository().startService()
                 false
             } else {
                 Logs.e("Failed to start VpnService: $intent")

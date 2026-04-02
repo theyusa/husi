@@ -48,12 +48,13 @@ internal class AppManagerViewModel : BaseAppListViewModel() {
 
     private var scanJob: Job? = null
 
-    fun initialize(pm: PackageManager) {
+    fun initialize(pm: PackageManager, appPackageName: String) {
         if (!DataStore.proxyApps) {
             DataStore.proxyApps = true
         }
         uiState.update { it.copy(mode = currentProxyMode()) }
         packageManager = pm
+        this.appPackageName = appPackageName
         uiState.update {
             it.copy(isLoading = true, apps = emptyList())
         }

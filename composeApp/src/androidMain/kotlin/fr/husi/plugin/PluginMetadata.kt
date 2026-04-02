@@ -1,12 +1,12 @@
 package fr.husi.plugin
 
 import android.content.pm.ComponentInfo
-import fr.husi.repository.androidRepo
+import fr.husi.utils.PackageCache
 
 fun ComponentInfo.loadString(key: String) =
     when (@Suppress("DEPRECATION") val value = metaData.get(key)) {
         is String -> value
-        is Int -> androidRepo.packageManager
+        is Int -> PackageCache.packageManager
             .getResourcesForApplication(applicationInfo)
             .getString(value)
 

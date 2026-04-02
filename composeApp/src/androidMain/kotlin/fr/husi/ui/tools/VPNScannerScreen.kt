@@ -50,9 +50,8 @@ import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.paddingExceptBottom
 import fr.husi.ktx.blankAsNull
-import fr.husi.repository.FakeRepository
-import fr.husi.repository.repo
 import fr.husi.resources.*
+import fr.husi.ui.ensurePreviewRepository
 
 private const val TYPE_ITEM_CARD = 0
 private const val TYPE_SPACER = 1
@@ -64,6 +63,7 @@ internal actual fun VPNScannerScreen(
     onBackPress: () -> Unit,
 ) {
     val viewModel: VPNScannerScreenViewModel = viewModel { VPNScannerScreenViewModel() }
+    val context = LocalContext.current
     val listState = rememberLazyListState()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val isScanning = uiState.progress != null
@@ -72,7 +72,7 @@ internal actual fun VPNScannerScreen(
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
     LaunchedEffect(Unit) {
-        viewModel.scanVPN()
+        viewModel.scanVPN(context.packageManager)
     }
     LaunchedEffect(uiState.appInfos.size) {
         if (uiState.appInfos.isNotEmpty()) {
@@ -102,7 +102,7 @@ internal actual fun VPNScannerScreen(
                             imageVector = vectorResource(Res.drawable.cached),
                             contentDescription = stringResource(Res.string.refresh),
                             enabled = !isScanning,
-                            onClick = { viewModel.scanVPN() },
+                            onClick = { viewModel.scanVPN(context.packageManager) },
                         )
                     },
                     windowInsets = windowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
@@ -131,8 +131,6 @@ internal actual fun VPNScannerScreen(
                 key = { it.packageInfo.packageName },
                 contentType = { TYPE_ITEM_CARD },
             ) {
-                val context = LocalContext.current
-
                 ElevatedCard(
                     modifier = Modifier
                         .fillMaxSize()
@@ -239,9 +237,7 @@ private fun KeyValueLine(key: String, value: String) {
 @Preview
 @Composable
 private fun PreviewVPNScannerScreen() {
-    LaunchedEffect(Unit) {
-        repo = FakeRepository()
-    }
+    ensurePreviewRepository()
 
     VPNScannerScreen(
         onBackPress = {},

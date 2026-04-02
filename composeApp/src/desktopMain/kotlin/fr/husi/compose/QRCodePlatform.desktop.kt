@@ -7,7 +7,7 @@ import com.google.zxing.EncodeHintType
 import com.google.zxing.MultiFormatWriter
 import fr.husi.ktx.Logs
 import fr.husi.ktx.onIoDispatcher
-import fr.husi.repository.repo
+import fr.husi.repository.resolveRepository
 import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.createDirectories
 import io.github.vinceglb.filekit.write
@@ -74,13 +74,13 @@ actual suspend fun shareQRCodeImage(
     name: String,
 ) = onIoDispatcher {
     try {
-        val cacheDir = PlatformFile(PlatformFile(repo.cacheDir), "qrcodes")
+        val cacheDir = PlatformFile(PlatformFile(resolveRepository().cacheDir), "qrcodes")
         cacheDir.createDirectories()
         val platformFile = PlatformFile(cacheDir, "$name.png")
         platformFile.write(pngBytes)
 
         if (Desktop.isDesktopSupported()) {
-            Desktop.getDesktop().open(File(repo.cacheDir, "qrcodes/$name.png"))
+            Desktop.getDesktop().open(File(resolveRepository().cacheDir, "qrcodes/$name.png"))
         }
     } catch (e: Exception) {
         Logs.e(e)

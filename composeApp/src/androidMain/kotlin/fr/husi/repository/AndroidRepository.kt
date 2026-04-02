@@ -8,6 +8,7 @@ import android.net.wifi.WifiManager
 import android.os.PowerManager
 import android.os.UserManager
 import java.io.File
+import org.koin.core.context.GlobalContext
 
 interface AndroidRepository : Repository {
     val context: Context
@@ -23,4 +24,4 @@ interface AndroidRepository : Repository {
     suspend fun updateNotificationChannels()
 }
 
-val androidRepo: AndroidRepository get() = repo as AndroidRepository
+fun resolveAndroidRepository(): AndroidRepository = GlobalContext.get().get()

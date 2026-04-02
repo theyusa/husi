@@ -19,7 +19,7 @@ import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.dp
 import fr.husi.bg.ServiceState
-import fr.husi.repository.repo
+import fr.husi.repository.resolveRepository
 import fr.husi.resources.*
 import fr.husi.ui.StringOrRes
 import org.jetbrains.compose.resources.stringResource
@@ -46,7 +46,7 @@ fun SagerFab(
         FloatingActionButton(
             onClick = {
                 if (state.canStop) {
-                    repo.stopService()
+                    resolveRepository().stopService()
                 } else {
                     connector()
                 }

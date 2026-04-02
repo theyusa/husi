@@ -8,7 +8,7 @@ import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import androidx.annotation.RequiresApi
-import fr.husi.repository.androidRepo
+import fr.husi.repository.resolveAndroidRepository
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
@@ -97,7 +97,7 @@ internal object AndroidDefaultNetworkListener {
     )
 
     suspend fun get() = if (fallback) {
-        androidRepo.connectivity.activeNetwork
+        resolveAndroidRepository().connectivity.activeNetwork
             ?: error("missing default network") // failed to listen, return current if available
     } else NetworkMessage.Get().run {
         networkActor.send(this)
@@ -153,7 +153,7 @@ internal object AndroidDefaultNetworkListener {
     private fun register() {
         when (Build.VERSION.SDK_INT) {
             in 31..Int.MAX_VALUE -> @RequiresApi(31) {
-                androidRepo.connectivity.registerBestMatchingNetworkCallback(
+                resolveAndroidRepository().connectivity.registerBestMatchingNetworkCallback(
                     request,
                     Callback,
                     mainHandler,
@@ -161,20 +161,20 @@ internal object AndroidDefaultNetworkListener {
             }
 
             in 28 until 31 -> @RequiresApi(28) {  // we want REQUEST here instead of LISTEN
-                androidRepo.connectivity.requestNetwork(request, Callback, mainHandler)
+                resolveAndroidRepository().connectivity.requestNetwork(request, Callback, mainHandler)
             }
 
             in 26 until 28 -> @RequiresApi(26) {
-                androidRepo.connectivity.registerDefaultNetworkCallback(Callback, mainHandler)
+                resolveAndroidRepository().connectivity.registerDefaultNetworkCallback(Callback, mainHandler)
             }
 
             in 24 until 26 -> @RequiresApi(24) {
-                androidRepo.connectivity.registerDefaultNetworkCallback(Callback)
+                resolveAndroidRepository().connectivity.registerDefaultNetworkCallback(Callback)
             }
 
             else -> try {
                 fallback = false
-                androidRepo.connectivity.requestNetwork(request, Callback)
+                resolveAndroidRepository().connectivity.requestNetwork(request, Callback)
             } catch (_: RuntimeException) {
                 // known bug on API 23: https://stackoverflow.com/a/33509180/2245107
                 fallback = true
@@ -184,7 +184,7 @@ internal object AndroidDefaultNetworkListener {
 
     private fun unregister() {
         runCatching {
-            androidRepo.connectivity.unregisterNetworkCallback(Callback)
+            resolveAndroidRepository().connectivity.unregisterNetworkCallback(Callback)
         }
     }
 }

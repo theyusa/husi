@@ -2,12 +2,12 @@ package fr.husi.ktx
 
 import android.content.Intent
 import com.jakewharton.processphoenix.ProcessPhoenix
-import fr.husi.repository.androidRepo
+import fr.husi.repository.resolveAndroidRepository
 
 actual fun restartApplication() {
     ProcessPhoenix.triggerRebirth(
-        androidRepo.context,
-        Intent(androidRepo.context, Class.forName("fr.husi.ui.MainActivity")),
+        resolveAndroidRepository().context,
+        Intent(resolveAndroidRepository().context, Class.forName("fr.husi.ui.MainActivity")),
     )
 }
 

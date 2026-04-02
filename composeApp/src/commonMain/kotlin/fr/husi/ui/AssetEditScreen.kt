@@ -38,7 +38,7 @@ import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.TextButton
 import fr.husi.compose.withNavigation
 import fr.husi.ktx.contentOrUnset
-import fr.husi.repository.repo
+import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
 import fr.husi.resources.apply
 import fr.husi.resources.assets_settings
@@ -186,14 +186,14 @@ internal fun AssetEditScreen(
                                     null,
                                 )
                             },
-                            label = runBlocking { repo.getString(Res.string.delete) },
+                            label = runBlocking { resolveRepository().getString(Res.string.delete) },
                         )
                         clickableItem(
                             onClick = ::saveAndExit,
                             icon = {
                                 Icon(vectorResource(Res.drawable.done), null)
                             },
-                            label = runBlocking { repo.getString(Res.string.apply) },
+                            label = runBlocking { resolveRepository().getString(Res.string.apply) },
                         )
                     }
                 },

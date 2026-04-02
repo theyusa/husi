@@ -5,9 +5,11 @@ import kotlinx.coroutines.flow.Flow
 
 internal expect fun platformPluginsFlow(): Flow<List<PluginDisplay>>
 
-internal expect fun openPluginCard(plugin: PluginDisplay)
+@Composable
+internal expect fun rememberOpenPluginCard(): (PluginDisplay) -> Unit
 
 @Composable
 internal expect fun rememberShouldRequestBatteryOptimizations(): Boolean
 
-internal expect fun requestIgnoreBatteryOptimizations()
+@Composable
+internal expect fun rememberRequestIgnoreBatteryOptimizations(): () -> Unit

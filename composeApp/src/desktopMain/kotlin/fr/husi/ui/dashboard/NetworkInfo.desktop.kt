@@ -1,11 +1,20 @@
 package fr.husi.ui.dashboard
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import java.net.Inet4Address
 import java.net.Inet6Address
 import java.net.InetAddress
 import java.net.NetworkInterface
 
-actual suspend fun buildPlatformNetworkInfo(): Triple<List<NetworkInterfaceInfo>, String?, String?> {
+@Composable
+actual fun rememberLoadPlatformNetworkInfo(): suspend () -> Triple<List<NetworkInterfaceInfo>, String?, String?> {
+    return remember {
+        { buildPlatformNetworkInfo() }
+    }
+}
+
+private suspend fun buildPlatformNetworkInfo(): Triple<List<NetworkInterfaceInfo>, String?, String?> {
     val interfaces = mutableListOf<Pair<NetworkInterfaceInfo, List<InetAddress>>>()
     val networkInterfaces = runCatching { NetworkInterface.getNetworkInterfaces() }.getOrNull()
         ?: return Triple(emptyList(), null, null)

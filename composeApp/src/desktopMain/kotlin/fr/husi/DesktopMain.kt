@@ -28,8 +28,7 @@ import fr.husi.libcore.Libcore
 import fr.husi.libcore.loadCA
 import fr.husi.platform.PlatformInfo
 import fr.husi.repository.DesktopRepository
-import fr.husi.repository.desktopRepo
-import fr.husi.repository.repo
+import fr.husi.repository.resolveDesktopRepository
 import fr.husi.resources.Res
 import fr.husi.resources.app_name
 import fr.husi.resources.close
@@ -72,6 +71,7 @@ fun main(args: Array<String>) {
     }
 
     application {
+        val repository = resolveDesktopRepository()
         var windowVisible by remember { mutableStateOf(true) }
 
         val trayState = rememberTrayState()
@@ -85,7 +85,7 @@ fun main(args: Array<String>) {
         fun exitGracefully() {
             runCatching {
                 runBlocking {
-                    desktopRepo.stopService()
+                    repository.stopService()
                 }
             }
             exitApplication()
@@ -125,8 +125,8 @@ fun main(args: Array<String>) {
                                 || serviceStatus.state == ServiceState.Idle,
                     ) {
                         when (serviceStatus.state) {
-                            ServiceState.Stopped -> repo.startService()
-                            ServiceState.Idle, ServiceState.Connected -> repo.stopService()
+                            ServiceState.Stopped -> repository.startService()
+                            ServiceState.Idle, ServiceState.Connected -> repository.stopService()
                             else -> {}
                         }
                     }
@@ -142,7 +142,7 @@ fun main(args: Array<String>) {
                         ) {
                             if (serviceMode != Key.MODE_PROXY) {
                                 DataStore.serviceMode = Key.MODE_PROXY
-                                repo.reloadService()
+                                repository.reloadService()
                             }
                         }
                         CheckboxItem(
@@ -151,7 +151,7 @@ fun main(args: Array<String>) {
                         ) {
                             if (serviceMode != Key.MODE_VPN) {
                                 DataStore.serviceMode = Key.MODE_VPN
-                                repo.reloadService()
+                                repository.reloadService()
                             }
                         }
                     }
@@ -248,9 +248,9 @@ private fun initDesktopRuntime(startupArgs: DesktopStartupArgs) {
     val baseDir = startupArgs.baseDir
         ?: File(System.getProperty("user.home"), ".config").resolve("husi")
     baseDir.mkdirs()
-    desktopRepo = DesktopRepository(baseDir)
-    initHusiKoin()
-    val filesDir = repo.filesDir.absolutePath + "/"
+    val repository = DesktopRepository(baseDir)
+    initHusiKoin(repository)
+    val filesDir = repository.filesDir.absolutePath + "/"
 
     if (!startupArgs.many) {
         when (checkExistingInstance(filesDir, startupArgs.deepLinks)) {
@@ -265,8 +265,8 @@ private fun initDesktopRuntime(startupArgs: DesktopStartupArgs) {
 
     Thread.setDefaultUncaughtExceptionHandler(CrashHandler)
 
-    val cacheDir = repo.cacheDir.absolutePath + "/"
-    val externalAssetsDir = repo.externalAssetsDir.absolutePath + "/"
+    val cacheDir = repository.cacheDir.absolutePath + "/"
+    val externalAssetsDir = repository.externalAssetsDir.absolutePath + "/"
 
     val rulesProvider = DataStore.rulesProvider
     val isOfficialProvider = rulesProvider == RuleProvider.OFFICIAL
@@ -286,7 +286,7 @@ private fun initDesktopRuntime(startupArgs: DesktopStartupArgs) {
         DataStore.isExpert,
     )
     loadCA(DataStore.certProvider)
-    repo.boxService?.start()
+    repository.boxService?.start()
 }
 
 private enum class ExistingInstanceCheckResult {
@@ -325,9 +325,10 @@ private fun forwardDeepLinks(client: Client, deepLinks: List<String>): Boolean {
 }
 
 private fun warnForExistInstanceAndExit(socketBasePath: String) {
+    val repository = resolveDesktopRepository()
     val socketPath = socketBasePath + Libcore.Socket
-    val title = runBlocking { repo.getString(Res.string.instance_already_running_title) }
-    val message = runBlocking { repo.getString(Res.string.instance_already_running, socketPath) }
+    val title = runBlocking { repository.getString(Res.string.instance_already_running_title) }
+    val message = runBlocking { repository.getString(Res.string.instance_already_running, socketPath) }
     try {
         JOptionPane.showMessageDialog(
             null,

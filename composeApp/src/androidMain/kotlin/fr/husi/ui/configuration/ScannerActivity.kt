@@ -76,7 +76,7 @@ import fr.husi.ktx.forEachTry
 import fr.husi.permission.AppPermission
 import fr.husi.permission.LocalPermissionPlatform
 import fr.husi.permission.rememberAndroidPermissionPlatform
-import fr.husi.repository.repo
+import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
 import fr.husi.resources.action_flash_off
 import fr.husi.resources.action_flash_on
@@ -222,7 +222,7 @@ private fun ScannerScreen(
                 is ScannerUiEvent.Snakebar -> {
                     snackbarHostState.showSnackbar(
                         message = getStringOrRes(event.message),
-                        actionLabel = repo.getString(Res.string.ok),
+                        actionLabel = resolveRepository().getString(Res.string.ok),
                         duration = SnackbarDuration.Short,
                     )
                 }

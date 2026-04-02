@@ -2,7 +2,7 @@ package fr.husi.bg
 
 import android.net.Network
 import fr.husi.libcore.InterfaceUpdateListener
-import fr.husi.repository.androidRepo
+import fr.husi.repository.resolveAndroidRepository
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.net.NetworkInterface
@@ -20,7 +20,7 @@ object DefaultNetworkMonitor {
                 defaultNetwork = it
                 checkDefaultInterfaceUpdate(it)
             }
-            defaultNetwork = androidRepo.connectivity.activeNetwork
+            defaultNetwork = resolveAndroidRepository().connectivity.activeNetwork
         }
     }
 
@@ -58,7 +58,7 @@ object DefaultNetworkMonitor {
         val listener = listener ?: return
         if (newNetwork != null) {
             val interfaceName =
-                androidRepo.connectivity.getLinkProperties(newNetwork)?.interfaceName
+                resolveAndroidRepository().connectivity.getLinkProperties(newNetwork)?.interfaceName
             for (times in 0 until 10) {
                 var interfaceIndex: Int
                 try {

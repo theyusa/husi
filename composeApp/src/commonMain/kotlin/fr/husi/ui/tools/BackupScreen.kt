@@ -46,7 +46,7 @@ import fr.husi.ktx.Logs
 import fr.husi.ktx.currentBackupFileTimestamp
 import fr.husi.ktx.readableMessage
 import fr.husi.platform.PlatformInfo
-import fr.husi.repository.repo
+import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
 import fr.husi.resources.action_export
 import fr.husi.resources.action_export_msg
@@ -88,6 +88,7 @@ internal fun BackupScreen(
     val scrollState = rememberScrollState()
     val visible by rememberScrollHideState(scrollState)
     val lifecycleOwner = LocalLifecycleOwner.current
+    val shareBackupFile = rememberShareBackupFile()
 
     LaunchedEffect(visible) {
         onVisibleChange(visible)
@@ -106,7 +107,7 @@ internal fun BackupScreen(
         lifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
             try {
                 file.write(uiState.exported!!.encodeToByteArray())
-                showSnackbar(repo.getString(Res.string.action_export_msg))
+                showSnackbar(resolveRepository().getString(Res.string.action_export_msg))
             } catch (e: Exception) {
                 Logs.e(e)
                 showSnackbar(e.readableMessage)
@@ -196,7 +197,7 @@ internal fun BackupScreen(
                             onClick = {
                                 viewModel.share(
                                     createFile = { fileName ->
-                                        File(repo.cacheDir, fileName)
+                                        File(resolveRepository().cacheDir, fileName)
                                     },
                                     launch = { file ->
                                         shareBackupFile(file)

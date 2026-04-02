@@ -7,7 +7,7 @@ import fr.husi.bg.SpeedStats
 import fr.husi.database.ProxyEntity
 import fr.husi.ktx.Logs
 import fr.husi.ktx.runOnDefaultDispatcher
-import fr.husi.repository.repo
+import fr.husi.repository.resolveRepository
 import kotlinx.coroutines.runBlocking
 
 class ProxyInstance(profile: ProxyEntity, var service: BaseService.Interface? = null) :
@@ -36,7 +36,7 @@ class ProxyInstance(profile: ProxyEntity, var service: BaseService.Interface? = 
         runOnDefaultDispatcher {
             val data = service?.data ?: return@runOnDefaultDispatcher
             trafficLooper = TrafficLooper(
-                box = repo.boxService!!,
+                box = resolveRepository().boxService!!,
                 config = config,
                 scope = this,
                 onSpeedUpdate = { stats ->

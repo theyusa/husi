@@ -85,7 +85,7 @@ import fr.husi.database.RuleEntity.Companion.OUTBOUND_PROXY
 import fr.husi.fmt.SingBoxOptions
 import fr.husi.ktx.showAndDismissOld
 import fr.husi.platform.PlatformInfo
-import fr.husi.repository.repo
+import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
 import fr.husi.resources.add_road
 import fr.husi.resources.apply
@@ -152,24 +152,24 @@ fun RouteScreen(
     fun needReload() = scope.launch {
         if (!DataStore.serviceState.started) return@launch
         val result = snackbarState.showSnackbar(
-            message = repo.getString(Res.string.need_reload),
-            actionLabel = repo.getString(Res.string.apply),
+            message = resolveRepository().getString(Res.string.need_reload),
+            actionLabel = resolveRepository().getString(Res.string.apply),
             duration = SnackbarDuration.Short,
         )
         if (result == SnackbarResult.ActionPerformed) {
-            repo.reloadService()
+            resolveRepository().reloadService()
         }
     }
 
     LaunchedEffect(uiState.pendingDeleteCount) {
         if (uiState.pendingDeleteCount > 0) {
             val result = snackbarState.showAndDismissOld(
-                message = repo.getPluralString(
+                message = resolveRepository().getPluralString(
                     Res.plurals.removed,
                     uiState.pendingDeleteCount,
                     uiState.pendingDeleteCount,
                 ),
-                actionLabel = repo.getString(Res.string.undo),
+                actionLabel = resolveRepository().getString(Res.string.undo),
                 duration = SnackbarDuration.Short,
             )
             if (result == SnackbarResult.ActionPerformed) {
@@ -251,7 +251,7 @@ fun RouteScreen(
                     scope.launch {
                         snackbarState.showSnackbar(
                             message = getStringOrRes(message),
-                            actionLabel = repo.getString(Res.string.ok),
+                            actionLabel = resolveRepository().getString(Res.string.ok),
                             duration = SnackbarDuration.Short,
                         )
                     }
@@ -404,7 +404,7 @@ fun RouteScreen(
                 is MainViewModelUiEvent.Snackbar -> scope.launch {
                     snackbarState.showSnackbar(
                         message = getStringOrRes(event.message),
-                        actionLabel = repo.getString(Res.string.ok),
+                        actionLabel = resolveRepository().getString(Res.string.ok),
                         duration = SnackbarDuration.Short,
                     )
                 }

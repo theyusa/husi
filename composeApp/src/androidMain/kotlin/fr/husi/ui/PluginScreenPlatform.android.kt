@@ -16,7 +16,6 @@ import fr.husi.fmt.PluginEntry
 import fr.husi.ktx.Logs
 import fr.husi.plugin.Plugins
 import fr.husi.plugin.loadString
-import fr.husi.repository.androidRepo
 import fr.husi.utils.PackageCache
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -44,19 +43,25 @@ internal actual fun platformPluginsFlow(): Flow<List<PluginDisplay>> = flow {
     emit(list)
 }
 
-internal actual fun openPluginCard(plugin: PluginDisplay) {
-    androidRepo.context.startActivity(
-        Intent()
-            .setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-            .setData(
-                Uri.fromParts(
-                    "package",
-                    plugin.packageName,
-                    null,
-                ),
+@Composable
+internal actual fun rememberOpenPluginCard(): (PluginDisplay) -> Unit {
+    val context = LocalContext.current
+    return remember(context) {
+        { plugin ->
+            context.startActivity(
+                Intent()
+                    .setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                    .setData(
+                        Uri.fromParts(
+                            "package",
+                            plugin.packageName,
+                            null,
+                        ),
+                    )
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
             )
-            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
-    )
+        }
+    }
 }
 
 private fun PackageInfo.versionCodeCompat(): Long {
@@ -78,11 +83,17 @@ internal actual fun rememberShouldRequestBatteryOptimizations(): Boolean {
 }
 
 @SuppressLint("BatteryLife")
-internal actual fun requestIgnoreBatteryOptimizations() {
-    androidRepo.context.startActivity(
-        Intent()
-            .setAction(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
-            .setData("package:${androidRepo.context.packageName}".toUri())
-            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
-    )
+@Composable
+internal actual fun rememberRequestIgnoreBatteryOptimizations(): () -> Unit {
+    val context = LocalContext.current
+    return remember(context) {
+        {
+            context.startActivity(
+                Intent()
+                    .setAction(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
+                    .setData("package:${context.packageName}".toUri())
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+            )
+        }
+    }
 }

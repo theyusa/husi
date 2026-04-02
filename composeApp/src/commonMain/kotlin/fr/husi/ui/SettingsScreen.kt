@@ -96,7 +96,7 @@ import fr.husi.ktx.runOnDefaultDispatcher
 import fr.husi.ktx.showAndDismissOld
 import fr.husi.logLevelString
 import fr.husi.platform.PlatformInfo
-import fr.husi.repository.repo
+import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
 import fr.husi.resources.allow_access
 import fr.husi.resources.allow_access_sum
@@ -265,22 +265,22 @@ fun SettingsScreen(
     fun needReload() = scope.launch {
         if (!DataStore.serviceState.started) return@launch
         val result = snackbarState.showAndDismissOld(
-            message = repo.getString(Res.string.need_reload),
-            actionLabel = repo.getString(Res.string.apply),
+            message = resolveRepository().getString(Res.string.need_reload),
+            actionLabel = resolveRepository().getString(Res.string.apply),
             duration = SnackbarDuration.Short,
         )
         if (result == SnackbarResult.Dismissed) return@launch
-        repo.reloadService()
+        resolveRepository().reloadService()
     }
 
     fun needRestart() = scope.launch {
         val result = snackbarState.showAndDismissOld(
-            message = repo.getString(Res.string.need_restart),
-            actionLabel = repo.getString(Res.string.apply),
+            message = resolveRepository().getString(Res.string.need_restart),
+            actionLabel = resolveRepository().getString(Res.string.apply),
             duration = SnackbarDuration.Short,
         )
         if (result == SnackbarResult.Dismissed) return@launch
-        repo.stopService()
+        resolveRepository().stopService()
         runOnDefaultDispatcher {
             delay(500)
             SagerDatabase.instance.close()
@@ -341,7 +341,7 @@ fun SettingsScreen(
                     scope.launch {
                         snackbarState.showSnackbar(
                             message = getStringOrRes(message),
-                            actionLabel = repo.getString(Res.string.ok),
+                            actionLabel = resolveRepository().getString(Res.string.ok),
                             duration = SnackbarDuration.Short,
                         )
                     }
@@ -410,7 +410,7 @@ fun SettingsScreen(
                     item(Key.APP_LANGUAGE, PreferenceType.LIST) {
                         fun getLanguageDisplayName(tag: String): String =
                             AppLanguage.fromTag(tag)?.displayName ?: runBlocking {
-                                repo.getString(Res.string.language_system_default)
+                                resolveRepository().getString(Res.string.language_system_default)
                             }
 
                         val values = AppLanguage.entries.map { it.tag }
@@ -1637,7 +1637,7 @@ fun SettingsScreen(
                 is MainViewModelUiEvent.Snackbar -> scope.launch {
                     snackbarState.showSnackbar(
                         message = getStringOrRes(event.message),
-                        actionLabel = repo.getString(Res.string.ok),
+                        actionLabel = resolveRepository().getString(Res.string.ok),
                         duration = SnackbarDuration.Short,
                     )
                 }

@@ -26,8 +26,9 @@ internal class AppListViewModel : BaseAppListViewModel() {
         collectSearchText()
     }
 
-    fun initialize(pm: PackageManager, packages: Set<String>) {
+    fun initialize(pm: PackageManager, appPackageName: String, packages: Set<String>) {
         packageManager = pm
+        this.appPackageName = appPackageName
         viewModelScope.launch(singleThreadContext) {
             _uiState.update { it.copy(isLoading = true, apps = emptyList()) }
             proxiedUids.clear()

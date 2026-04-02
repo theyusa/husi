@@ -8,8 +8,8 @@ import fr.husi.libcore.NetworkInterfaceIterator
 import fr.husi.libcore.PlatformInterface
 import fr.husi.libcore.WIFIState
 import fr.husi.repository.DesktopRepository
-import fr.husi.repository.desktopRepo
-import fr.husi.repository.repo
+import fr.husi.repository.resolveDesktopRepository
+import fr.husi.repository.resolveRepository
 import java.net.InetAddress
 
 class DesktopPlatformInterface : PlatformInterface {
@@ -55,7 +55,7 @@ class DesktopPlatformInterface : PlatformInterface {
         old: String,
         now: String,
     ) {
-        desktopRepo.serviceRuntime.trafficLooper?.updateSelectedTag(group, old, now)
+        resolveDesktopRepository().serviceRuntime.trafficLooper?.updateSelectedTag(group, old, now)
     }
 
     override fun onDeepLink(deepLink: String) {

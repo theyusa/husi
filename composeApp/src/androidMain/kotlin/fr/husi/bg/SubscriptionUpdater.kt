@@ -13,8 +13,8 @@ import fr.husi.database.DataStore
 import fr.husi.database.SagerDatabase
 import fr.husi.group.GroupUpdater
 import fr.husi.ktx.Logs
-import fr.husi.repository.androidRepo
-import fr.husi.repository.repo
+import fr.husi.repository.resolveAndroidRepository
+import fr.husi.repository.resolveRepository
 import fr.husi.resources.*
 import kotlinx.coroutines.runBlocking
 import java.util.concurrent.TimeUnit
@@ -24,7 +24,7 @@ actual object SubscriptionUpdater {
     private const val WORK_NAME = "SubscriptionUpdater"
 
     actual suspend fun reconfigureUpdater() {
-        RemoteWorkManager.getInstance(androidRepo.context).cancelUniqueWork(WORK_NAME)
+        RemoteWorkManager.getInstance(resolveAndroidRepository().context).cancelUniqueWork(WORK_NAME)
 
         val subscriptions = SagerDatabase.groupDao.subscriptions()
             .filter { it.subscription!!.autoUpdate }
@@ -40,7 +40,7 @@ actual object SubscriptionUpdater {
         if (minInitDelay > 60) minInitDelay = 60
 
         // main process
-        RemoteWorkManager.getInstance(androidRepo.context).enqueueUniquePeriodicWork(
+        RemoteWorkManager.getInstance(resolveAndroidRepository().context).enqueueUniquePeriodicWork(
             WORK_NAME,
             UPDATE,
             PeriodicWorkRequest.Builder(UpdateTask::class.java, minDelay, TimeUnit.MINUTES)
@@ -60,8 +60,8 @@ actual object SubscriptionUpdater {
         val notification = runBlocking {
             NotificationCompat.Builder(applicationContext, "service-subscription")
                 .setWhen(0)
-                .setTicker(repo.getString(Res.string.forward_success))
-                .setContentTitle(repo.getString(Res.string.subscription_update))
+                .setTicker(resolveRepository().getString(Res.string.forward_success))
+                .setContentTitle(resolveRepository().getString(Res.string.subscription_update))
                 .setSmallIcon(R.drawable.ic_service_active)
                 .setCategory(NotificationCompat.CATEGORY_SERVICE)
         }
@@ -84,7 +84,7 @@ actual object SubscriptionUpdater {
                 Logs.d("work: updating " + profile.displayName())
 
                 notification.setContentText(
-                    repo.getString(
+                    resolveRepository().getString(
                         Res.string.subscription_update_message,
                         profile.displayName(),
                     ),

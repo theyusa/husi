@@ -17,9 +17,8 @@ import fr.husi.ktx.isExpert
 import fr.husi.ktx.runOnDefaultDispatcher
 import fr.husi.libcore.Libcore
 import fr.husi.libcore.loadCA
+import fr.husi.repository.AndroidRepository
 import fr.husi.repository.SagerRepository
-import fr.husi.repository.androidRepo
-import fr.husi.repository.repo
 import fr.husi.utils.CrashHandler
 import fr.husi.utils.PackageCache
 import fr.husi.utils.copyBundledRuleSetAssetsIfNeeded
@@ -33,10 +32,12 @@ import androidx.work.Configuration as WorkConfiguration
 class Application : Application(),
     WorkConfiguration.Provider {
 
+    private lateinit var repository: AndroidRepository
+
     override fun attachBaseContext(base: Context) {
         super.attachBaseContext(base)
 
-        repo = SagerRepository(this, isMainProcess, isBgProcess)
+        repository = SagerRepository(this, isMainProcess, isBgProcess)
     }
 
     val externalAssets: File by lazy { getExternalFilesDir(null) ?: filesDir }
@@ -47,20 +48,20 @@ class Application : Application(),
 
     override fun onCreate() {
         super.onCreate()
-        initHusiKoin()
+        initHusiKoin(repository)
 
         System.setProperty(DEBUG_PROPERTY_NAME, DEBUG_PROPERTY_VALUE_ON)
         Thread.setDefaultUncaughtExceptionHandler(CrashHandler)
 
         if (isMainProcess || isBgProcess) {
             runOnDefaultDispatcher {
-                PackageCache.register()
+                PackageCache.register(this@Application)
             }
         }
 
         Seq.setContext(this)
         runOnDefaultDispatcher {
-            androidRepo.updateNotificationChannels()
+            repository.updateNotificationChannels()
         }
 
         // init core
@@ -100,7 +101,7 @@ class Application : Application(),
         }
 
         if (isBgProcess) {
-            repo.boxService?.start()
+            repository.boxService?.start()
         }
 
         if (BuildConfig.DEBUG) StrictMode.setVmPolicy(
@@ -116,7 +117,7 @@ class Application : Application(),
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
         runOnDefaultDispatcher {
-            androidRepo.updateNotificationChannels()
+            repository.updateNotificationChannels()
         }
     }
 

@@ -20,7 +20,7 @@ import fr.husi.ktx.isIpAddress
 import fr.husi.ktx.onIoDispatcher
 import fr.husi.ktx.readableMessage
 import fr.husi.ktx.runOnDefaultDispatcher
-import fr.husi.repository.repo
+import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
 import fr.husi.resources.update_subscription_warning
 import kotlinx.coroutines.CancellationException
@@ -268,7 +268,10 @@ abstract class GroupUpdater {
             }
         }
 
-        suspend fun executeUpdate(proxyGroup: ProxyGroup, byUser: Boolean): Boolean {
+        suspend fun executeUpdate(
+            proxyGroup: ProxyGroup,
+            byUser: Boolean,
+        ): Boolean {
             return coroutineScope {
                 var added = false
                 _updatingGroups.update { current ->
@@ -286,7 +289,7 @@ abstract class GroupUpdater {
                 val userInterface = GroupManager.userInterface
 
                 if (byUser && (subscription.link.startsWith("http://") || subscription.updateWhenConnectedOnly) && !connected) {
-                    if (userInterface == null || !userInterface.confirm(repo.getString(Res.string.update_subscription_warning))) {
+                    if (userInterface == null || !userInterface.confirm(resolveRepository().getString(Res.string.update_subscription_warning))) {
                         finishUpdate(proxyGroup)
                         cancel()
                         return@coroutineScope true

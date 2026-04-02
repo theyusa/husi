@@ -57,7 +57,7 @@ import fr.husi.database.ProfileManager
 import fr.husi.ktx.intListN
 import fr.husi.permission.LocalPermissionPlatform
 import fr.husi.permission.rememberAndroidPermissionPlatform
-import fr.husi.repository.repo
+import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
 import fr.husi.resources.apply
 import fr.husi.resources.close
@@ -220,19 +220,19 @@ class TaskerActivity : ComposeActivity() {
                     val entity = ProfileManager.getProfile(profileId)
                     if (entity != null) {
                         blurb = runBlocking {
-                            repo.getString(
+                            resolveRepository().getString(
                                 Res.string.tasker_blurb_start_profile, entity.displayName(),
                             )
                         }
                     }
                 }
                 if (blurb.isBlank()) runBlocking {
-                    blurb = repo.getString(Res.string.tasker_action_start_service)
+                    blurb = resolveRepository().getString(Res.string.tasker_action_start_service)
                 }
             }
 
             TaskerBundle.ACTION_STOP -> runBlocking {
-                blurb = repo.getString(Res.string.tasker_action_stop_service)
+                blurb = resolveRepository().getString(Res.string.tasker_action_stop_service)
             }
         }
         return Intent().apply {
@@ -262,7 +262,7 @@ class TaskerActivity : ComposeActivity() {
                 summary = { Text(stringResource(actionText(uiState.action))) },
                 type = ListPreferenceType.DROPDOWN_MENU,
                 valueToText = {
-                    val text = runBlocking { repo.getString(actionText(it)) }
+                    val text = runBlocking { resolveRepository().getString(actionText(it)) }
                     AnnotatedString(text)
                 },
             )
@@ -294,7 +294,7 @@ class TaskerActivity : ComposeActivity() {
                     } else {
                         Res.string.route_profile
                     }
-                    val text = runBlocking { repo.getString(id) }
+                    val text = runBlocking { resolveRepository().getString(id) }
                     AnnotatedString(text)
                 },
             )

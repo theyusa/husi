@@ -44,8 +44,9 @@ import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.SimpleTopAppBar
 import fr.husi.compose.paddingExceptBottom
 import fr.husi.repository.FakeRepository
-import fr.husi.repository.repo
+import fr.husi.repository.resolveRepository
 import fr.husi.resources.*
+import fr.husi.ui.ensurePreviewRepository
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -173,7 +174,7 @@ internal fun StunScreen(
 @Preview
 @Composable
 private fun PreviewStunScreen() {
-    repo = FakeRepository()
+    ensurePreviewRepository()
 
     StunScreen(
         viewModel = StunScreenViewModel(),

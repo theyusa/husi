@@ -1,5 +1,7 @@
 package fr.husi.ui.tools
 
+import androidx.compose.runtime.Composable
 import java.io.File
 
-internal expect fun shareBackupFile(file: File)
+@Composable
+internal expect fun rememberShareBackupFile(): (File) -> Unit

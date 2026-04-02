@@ -31,7 +31,7 @@ import fr.husi.ktx.applyDefaultValues
 import fr.husi.ktx.generateUserAgent
 import fr.husi.ktx.kxs
 import fr.husi.libcore.Libcore
-import fr.husi.repository.repo
+import fr.husi.repository.resolveRepository
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import fr.husi.resources.*
@@ -81,6 +81,7 @@ object SIP008Updater : GroupUpdater() {
         userInterface: GroupManager.Interface?,
         byUser: Boolean,
     ) {
+        val repository = resolveRepository()
         if (subscription.link.startsWith("http://")) Logs.w("Use SIP008 with HTTP!")
 
         val sip008Response: SIP008Response
@@ -88,7 +89,7 @@ object SIP008Updater : GroupUpdater() {
             val contentText = readContentUri(subscription.link)
 
             sip008Response = contentText?.let { kxs.decodeFromString<SIP008Response>(it) }
-                ?: error(repo.getString(Res.string.no_proxies_found_in_subscription))
+                ?: error(repository.getString(Res.string.no_proxies_found_in_subscription))
         } else {
 
             val response = Libcore.newHttpClient().apply {

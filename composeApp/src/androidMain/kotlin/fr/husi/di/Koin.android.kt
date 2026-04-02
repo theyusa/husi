@@ -6,11 +6,14 @@ import fr.husi.compose.material3.standardPlatformMaterialApi
 import fr.husi.compose.theme.PlatformThemeApi
 import fr.husi.compose.theme.TvPlatformThemeApi
 import fr.husi.compose.theme.standardPlatformThemeApi
-import fr.husi.repository.repo
+import fr.husi.repository.AndroidRepository
+import fr.husi.repository.Repository
+import fr.husi.repository.resolveRepository
 import org.koin.core.module.Module
+import org.koin.dsl.module
 
 internal actual fun platformMaterialApi(): PlatformMaterialApi {
-    return if (repo.isTv) {
+    return if (resolveRepository().isTv) {
         TvPlatformMaterialApi
     } else {
         standardPlatformMaterialApi()
@@ -18,11 +21,18 @@ internal actual fun platformMaterialApi(): PlatformMaterialApi {
 }
 
 internal actual fun platformThemeApi(): PlatformThemeApi {
-    return if (repo.isTv) {
+    return if (resolveRepository().isTv) {
         TvPlatformThemeApi
     } else {
         standardPlatformThemeApi()
     }
+}
+
+internal actual fun platformRepositoryModule(repository: Repository): Module = module {
+    val androidRepository = repository as? AndroidRepository
+        ?: error("Android platform requires AndroidRepository, got ${repository::class.qualifiedName}")
+    single<AndroidRepository> { androidRepository }
+    single<Repository> { get<AndroidRepository>() }
 }
 
 internal actual fun platformKoinModules(): List<Module> = listOf(androidNavigationModule)

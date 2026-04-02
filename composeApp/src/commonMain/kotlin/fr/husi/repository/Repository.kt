@@ -4,8 +4,6 @@ import org.jetbrains.compose.resources.PluralStringResource
 import org.jetbrains.compose.resources.StringResource
 import java.io.File
 
-lateinit var repo: Repository
-
 interface Repository {
     val isMainProcess: Boolean
     val isBgProcess: Boolean

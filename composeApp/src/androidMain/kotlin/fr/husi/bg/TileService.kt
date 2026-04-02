@@ -9,7 +9,7 @@ import fr.husi.lib.R
 import fr.husi.database.DataStore
 import fr.husi.database.SagerDatabase
 import fr.husi.ktx.onIoDispatcher
-import fr.husi.repository.repo
+import fr.husi.repository.resolveRepository
 import fr.husi.resources.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -67,7 +67,7 @@ class TileService : BaseTileService() {
                 }
             }
             label = label ?: runBlocking {
-                repo.getString(Res.string.app_name)
+                resolveRepository().getString(Res.string.app_name)
             }
             updateTile()
         }
@@ -79,12 +79,12 @@ class TileService : BaseTileService() {
             when {
                 state.canStop -> {
                     updateTile(ServiceState.Stopping, null)
-                    repo.stopService()
+                    resolveRepository().stopService()
                 }
 
                 state == ServiceState.Stopped || state == ServiceState.Idle -> {
                     updateTile(ServiceState.Connecting, null)
-                    repo.startService()
+                    resolveRepository().startService()
                 }
             }
         }

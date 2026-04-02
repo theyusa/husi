@@ -78,7 +78,7 @@ import fr.husi.ktx.formatTime
 import fr.husi.ktx.onIoDispatcher
 import fr.husi.ktx.showAndDismissOld
 import fr.husi.libcore.Libcore
-import fr.husi.repository.repo
+import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
 import fr.husi.resources.action_export
 import fr.husi.resources.action_export_clipboard
@@ -171,12 +171,12 @@ fun GroupScreen(
     LaunchedEffect(uiState.hiddenGroups) {
         if (uiState.hiddenGroups > 0) {
             val result = snackbarState.showAndDismissOld(
-                message = repo.getPluralString(
+                message = resolveRepository().getPluralString(
                     Res.plurals.removed,
                     uiState.hiddenGroups,
                     uiState.hiddenGroups,
                 ),
-                actionLabel = repo.getString(Res.string.undo),
+                actionLabel = resolveRepository().getString(Res.string.undo),
                 duration = SnackbarDuration.Short,
             )
             if (result == SnackbarResult.ActionPerformed) {
@@ -199,7 +199,7 @@ fun GroupScreen(
                     scope.launch {
                         snackbarState.showSnackbar(
                             message = getStringOrRes(str),
-                            actionLabel = repo.getString(Res.string.ok),
+                            actionLabel = resolveRepository().getString(Res.string.ok),
                             duration = SnackbarDuration.Short,
                         )
                     }
@@ -256,7 +256,7 @@ fun GroupScreen(
                     scope.launch {
                         snackbarState.showSnackbar(
                             message = getStringOrRes(message),
-                            actionLabel = repo.getString(Res.string.ok),
+                            actionLabel = resolveRepository().getString(Res.string.ok),
                             duration = SnackbarDuration.Short,
                         )
                     }
@@ -327,7 +327,7 @@ fun GroupScreen(
                                 scope.launch {
                                     snackbarState.showSnackbar(
                                         message = message,
-                                        actionLabel = repo.getString(Res.string.ok),
+                                        actionLabel = resolveRepository().getString(Res.string.ok),
                                         duration = SnackbarDuration.Short,
                                     )
                                 }
@@ -389,7 +389,7 @@ fun GroupScreen(
                 scope.launch {
                     snackbarState.showSnackbar(
                         message = message,
-                        actionLabel = repo.getString(Res.string.ok),
+                        actionLabel = resolveRepository().getString(Res.string.ok),
                         duration = SnackbarDuration.Short,
                     )
                 }
@@ -423,7 +423,7 @@ fun GroupScreen(
                 is MainViewModelUiEvent.Snackbar -> scope.launch {
                     snackbarState.showSnackbar(
                         message = getStringOrRes(event.message),
-                        actionLabel = repo.getString(Res.string.ok),
+                        actionLabel = resolveRepository().getString(Res.string.ok),
                         duration = SnackbarDuration.Short,
                     )
                 }
@@ -595,7 +595,7 @@ private fun DraggableSwipeableItemScope<GroupItemUiState>.GroupCard(
                                                     onClick = {
                                                         scope.launch {
                                                             clipboard.setPlainText(link)
-                                                            snackbar(repo.getString(Res.string.copy_success))
+                                                            snackbar(resolveRepository().getString(Res.string.copy_success))
                                                         }
                                                         showOptionsSheet = false
                                                     },
@@ -643,7 +643,7 @@ private fun DraggableSwipeableItemScope<GroupItemUiState>.GroupCard(
                                                     onClick = {
                                                         scope.launch {
                                                             clipboard.setPlainText(group.toUniversalLink())
-                                                            snackbar(repo.getString(Res.string.copy_success))
+                                                            snackbar(resolveRepository().getString(Res.string.copy_success))
                                                         }
                                                         showOptionsSheet = false
                                                     },
@@ -696,7 +696,7 @@ private fun DraggableSwipeableItemScope<GroupItemUiState>.GroupCard(
                                                             it.toStdLink()
                                                         }
                                                         clipboard.setPlainText(links)
-                                                        snackbar(repo.getString(Res.string.copy_success))
+                                                        snackbar(resolveRepository().getString(Res.string.copy_success))
                                                     }
                                                     showOptionsSheet = false
                                                 },

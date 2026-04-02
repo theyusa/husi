@@ -82,7 +82,7 @@ import fr.husi.ktx.toJsonElementKxs
 import fr.husi.ktx.toJsonMapKxs
 import fr.husi.libcore.Libcore
 import fr.husi.logLevelString
-import fr.husi.repository.repo
+import fr.husi.repository.resolveRepository
 import fr.husi.resources.*
 import fr.husi.utils.PackageResolver
 import kotlinx.coroutines.flow.first
@@ -121,6 +121,7 @@ class ConfigBuildResult(
 fun buildConfig(
     proxy: ProxyEntity, forTest: Boolean = false, forExport: Boolean = false,
 ): ConfigBuildResult {
+    val repository = resolveRepository()
 
     if (proxy.type == TYPE_CONFIG) {
         val bean = proxy.configBean!!
@@ -698,7 +699,7 @@ fun buildConfig(
             val uidList = packageNames.mapNotNullTo(LinkedHashSet()) {
                 if (!isVPN) {
                     val text = runBlocking {
-                        repo.getString(Res.string.route_need_vpn, rule.displayName())
+                        repository.getString(Res.string.route_need_vpn, rule.displayName())
                     }
                     showToast(text)
                 }
@@ -1267,7 +1268,7 @@ fun buildConfig(
             }
         }
         if (geositeLink == null) {
-            ruleSetResource = repo.externalAssetsDir.absolutePath + "/geo"
+            ruleSetResource = repository.externalAssetsDir.absolutePath + "/geo"
         }
         buildRuleSets(geoipLink, geositeLink, ruleSetResource)
         partitionEndpoints()

@@ -8,11 +8,7 @@ import java.io.File
 import org.jetbrains.compose.resources.getPluralString as getComposePluralString
 import org.jetbrains.compose.resources.getString as getComposeString
 
-var desktopRepo
-    get() = repo as DesktopRepository
-    set(value) {
-        repo = value
-    }
+fun resolveDesktopRepository(): DesktopRepository = resolveRepository() as DesktopRepository
 
 class DesktopRepository(
     val dataDir: File,

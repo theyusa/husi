@@ -9,12 +9,12 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.lifecycle.lifecycleScope
 import fr.husi.Key
 import fr.husi.bg.DeepLinkDispatcher
+import fr.husi.bg.SagerConnection
 import fr.husi.compose.theme.AppTheme
 import fr.husi.database.DataStore
 import fr.husi.permission.LocalPermissionPlatform
 import fr.husi.permission.rememberAndroidPermissionPlatform
-import fr.husi.repository.repo
-import fr.husi.service.ServiceConnector
+import fr.husi.repository.resolveRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
@@ -27,19 +27,21 @@ import org.koin.core.annotation.KoinExperimentalAPI
 class MainActivity : ComposeActivity(), AndroidScopeComponent {
 
     override val scope by activityRetainedScope()
+    private val serviceConnection =
+        SagerConnection(SagerConnection.CONNECTION_ID_MAIN_ACTIVITY_FOREGROUND, true)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        ServiceConnector.connect()
+        serviceConnection.connect(applicationContext)
         lifecycleScope.launch(Dispatchers.IO) {
             DataStore.configurationStore
                 .stringFlow(Key.SERVICE_MODE, Key.MODE_VPN)
                 .drop(1)
                 .collect {
                     if (DataStore.serviceState.started) {
-                        repo.reloadService()
-                        ServiceConnector.reconnect()
+                        resolveRepository().reloadService()
+                        serviceConnection.reconnect(applicationContext)
                     }
                 }
         }
@@ -76,18 +78,18 @@ class MainActivity : ComposeActivity(), AndroidScopeComponent {
     }
 
     override fun onStart() {
-        ServiceConnector.updateConnectionId(ServiceConnector.connectionIdMainActivityForeground)
+        serviceConnection.updateConnectionId(SagerConnection.CONNECTION_ID_MAIN_ACTIVITY_FOREGROUND)
         super.onStart()
     }
 
     override fun onStop() {
-        ServiceConnector.updateConnectionId(ServiceConnector.connectionIdMainActivityBackground)
+        serviceConnection.updateConnectionId(SagerConnection.CONNECTION_ID_MAIN_ACTIVITY_BACKGROUND)
         super.onStop()
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        ServiceConnector.disconnect()
+        serviceConnection.disconnect(applicationContext)
     }
 
 }

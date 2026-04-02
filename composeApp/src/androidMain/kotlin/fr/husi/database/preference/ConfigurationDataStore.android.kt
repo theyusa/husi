@@ -9,7 +9,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.PreferencesSerializer
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.preferencesDataStoreFile
-import fr.husi.repository.androidRepo
+import fr.husi.repository.resolveAndroidRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -56,5 +56,5 @@ private object MultiProcessPreferencesSerializer : Serializer<Preferences> {
 }
 
 internal actual fun createConfigurationDataStore(): DataStore<Preferences> {
-    return MultiProcessPreferenceDataStoreHolder.get(androidRepo.context)
+    return MultiProcessPreferenceDataStoreHolder.get(resolveAndroidRepository().context)
 }

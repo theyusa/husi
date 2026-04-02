@@ -18,7 +18,7 @@ import fr.husi.libcore.LocalDNSTransport
 import fr.husi.libcore.NetworkInterfaceIterator
 import fr.husi.libcore.PlatformInterface
 import fr.husi.libcore.WIFIState
-import fr.husi.repository.androidRepo
+import fr.husi.repository.resolveAndroidRepository
 import fr.husi.utils.PackageCache
 import java.net.InetSocketAddress
 import java.net.NetworkInterface
@@ -60,7 +60,7 @@ class AndroidPlatformInterface : PlatformInterface {
         destinationPort: Int,
     ): ConnectionOwner {
         try {
-            val uid = androidRepo.connectivity.getConnectionOwnerUid(
+            val uid = resolveAndroidRepository().connectivity.getConnectionOwnerUid(
                 ipProtocol,
                 InetSocketAddress(sourceAddress, sourcePort),
                 InetSocketAddress(destinationAddress, destinationPort),
@@ -76,9 +76,9 @@ class AndroidPlatformInterface : PlatformInterface {
     }
 
     override fun readWIFIState(): WIFIState? {
-        if (!androidRepo.packageManager.hasSystemFeature(PackageManager.FEATURE_WIFI)) return null
+        if (!resolveAndroidRepository().packageManager.hasSystemFeature(PackageManager.FEATURE_WIFI)) return null
         // TODO API 34
-        @Suppress("DEPRECATION") val wifiInfo = androidRepo.wifi.connectionInfo ?: return null
+        @Suppress("DEPRECATION") val wifiInfo = resolveAndroidRepository().wifi.connectionInfo ?: return null
         var ssid = wifiInfo.ssid
         if (ssid == "<unknown ssid>") return WifiState("", "")
         if (ssid.startsWith("\"") && ssid.endsWith("\"")) {
@@ -88,13 +88,13 @@ class AndroidPlatformInterface : PlatformInterface {
     }
 
     override fun getInterfaces(): NetworkInterfaceIterator {
-        @Suppress("DEPRECATION") val networks = androidRepo.connectivity.allNetworks
+        @Suppress("DEPRECATION") val networks = resolveAndroidRepository().connectivity.allNetworks
         val networkInterfaces = NetworkInterface.getNetworkInterfaces().toList()
         val interfaces = mutableListOf<LibcoreNetworkInterface>()
         for (network in networks) {
             val boxInterface = LibcoreNetworkInterface()
-            val linkProperties = androidRepo.connectivity.getLinkProperties(network) ?: continue
-            val networkCapabilities = androidRepo.connectivity.getNetworkCapabilities(network) ?: continue
+            val linkProperties = resolveAndroidRepository().connectivity.getLinkProperties(network) ?: continue
+            val networkCapabilities = resolveAndroidRepository().connectivity.getNetworkCapabilities(network) ?: continue
             boxInterface.name = linkProperties.interfaceName
             val networkInterface =
                 networkInterfaces.find { it.name == boxInterface.name } ?: continue

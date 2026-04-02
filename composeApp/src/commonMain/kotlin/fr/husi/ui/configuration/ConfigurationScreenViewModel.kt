@@ -34,7 +34,7 @@ import fr.husi.ktx.runOnIoDispatcher
 import fr.husi.libcore.Client
 import fr.husi.libcore.Libcore
 import fr.husi.plugin.PluginNotFoundException
-import fr.husi.repository.repo
+import fr.husi.repository.resolveRepository
 import fr.husi.utils.closeQuietly
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -405,14 +405,14 @@ class ConfigurationScreenViewModel : ViewModel() {
         }
         if (updated) {
             if (DataStore.serviceState.canStop && reloadAccess.tryLock()) {
-                repo.reloadService()
+                resolveRepository().reloadService()
                 reloadAccess.unlock()
             }
-        } else if (repo.isTv) {
+        } else if (resolveRepository().isTv) {
             if (DataStore.serviceState.started) {
-                repo.stopService()
+                resolveRepository().stopService()
             } else {
-                repo.startService()
+                resolveRepository().startService()
             }
         }
         val groupId = DataStore.selectedGroup

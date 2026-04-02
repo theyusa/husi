@@ -54,7 +54,8 @@ import fr.husi.compose.SimpleTopAppBar
 import fr.husi.compose.TextButton
 import fr.husi.compose.paddingExceptBottom
 import fr.husi.repository.FakeRepository
-import fr.husi.repository.repo
+import fr.husi.repository.resolveRepository
+import fr.husi.ui.ensurePreviewRepository
 import fr.husi.ui.getStringOrRes
 import kotlinx.coroutines.launch
 import fr.husi.resources.*
@@ -85,7 +86,7 @@ internal fun SpeedtestScreen(
                 is SpeedTestScreenUiEvent.Snackbar -> scope.launch {
                     snackbarHostState.showSnackbar(
                         message = getStringOrRes(event.message),
-                        actionLabel = repo.getString(Res.string.ok),
+                        actionLabel = resolveRepository().getString(Res.string.ok),
                         duration = SnackbarDuration.Short,
                     )
                 }
@@ -294,7 +295,7 @@ internal fun SpeedtestScreen(
 @Preview
 @Composable
 private fun PreviewSpeedtest() {
-    repo = FakeRepository()
+    ensurePreviewRepository()
 
     SpeedtestScreen(
         viewModel = SpeedTestScreenViewModel(),

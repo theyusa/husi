@@ -5,7 +5,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import fr.husi.Key
 import fr.husi.ktx.runOnDefaultDispatcher
-import fr.husi.repository.androidRepo
+import fr.husi.repository.resolveAndroidRepository
 
 @Database(entities = [KeyValuePair::class], version = 1)
 abstract class PublicDatabase : RoomDatabase() {
@@ -29,10 +29,10 @@ abstract class PublicDatabase : RoomDatabase() {
         }
 
         private fun buildDatabase(): PublicDatabase {
-            val dbFile = androidRepo.resolveDatabaseFile(Key.DB_PUBLIC)
+            val dbFile = resolveAndroidRepository().resolveDatabaseFile(Key.DB_PUBLIC)
             dbFile.parentFile?.mkdirs()
             return Room.databaseBuilder(
-                androidRepo.context,
+                resolveAndroidRepository().context,
                 PublicDatabase::class.java,
                 dbFile.absolutePath,
             )

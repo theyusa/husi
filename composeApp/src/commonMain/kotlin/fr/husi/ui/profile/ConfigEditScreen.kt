@@ -97,7 +97,7 @@ import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.TextButton
 import fr.husi.compose.paddingExceptBottom
 import fr.husi.keyevent.isTypeControlPressed
-import fr.husi.repository.repo
+import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
 import fr.husi.resources.action_format
 import fr.husi.resources.action_test_config
@@ -225,8 +225,8 @@ private fun ConfigEditScreenContent(
                 is ConfigEditUiEvent.Alert -> alert = uiEvent.message
 
                 is ConfigEditUiEvent.SnackBar -> snackbarHostState.showSnackbar(
-                    message = repo.getString(uiEvent.id),
-                    actionLabel = repo.getString(Res.string.ok),
+                    message = resolveRepository().getString(uiEvent.id),
+                    actionLabel = resolveRepository().getString(Res.string.ok),
                     duration = SnackbarDuration.Short,
                 )
             }
@@ -313,7 +313,7 @@ private fun ConfigEditScreenContent(
                             icon = {
                                 Icon(vectorResource(Res.drawable.done), null)
                             },
-                            label = runBlocking { repo.getString(Res.string.apply) },
+                            label = runBlocking { resolveRepository().getString(Res.string.apply) },
                         )
                     }
                 },

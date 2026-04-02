@@ -8,7 +8,7 @@ import fr.husi.database.AssetEntity
 import fr.husi.database.SagerDatabase
 import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.runOnIoDispatcher
-import fr.husi.repository.repo
+import fr.husi.repository.resolveRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
@@ -104,7 +104,7 @@ internal class AssetEditViewModel : ViewModel() {
             return Res.string.invalid_filename
         }
         if (
-            repo.externalAssetsDir.resolve("geo").resolve(text)
+            resolveRepository().externalAssetsDir.resolve("geo").resolve(text)
                 .canonicalPath.substringAfterLast('/') != text
         ) {
             return Res.string.invalid_filename

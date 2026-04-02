@@ -18,7 +18,8 @@ import fr.husi.ktx.Logs
 import fr.husi.ktx.SubscriptionFoundException
 import fr.husi.ktx.readableMessage
 import fr.husi.ktx.runOnIoDispatcher
-import fr.husi.repository.repo
+import fr.husi.repository.Repository
+import fr.husi.repository.resolveRepository
 import fr.husi.utils.LibcoreClientManager
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
@@ -66,6 +67,7 @@ sealed interface MainViewModelUiEvent {
 
 @Stable
 class MainViewModel(
+    private val repository: Repository = resolveRepository(),
     private val importLinkInteractor: ImportLinkInteractor = ImportLinkInteractor(),
 ) : ViewModel(), GroupManager.Interface {
 
@@ -106,7 +108,7 @@ class MainViewModel(
                             actionLabel = StringOrRes.Res(Res.string.apply),
                             callback = { result ->
                                 if (result == SnackbarResult.ActionPerformed) {
-                                    repo.reloadService()
+                                    repository.reloadService()
                                 }
                             },
                         ),

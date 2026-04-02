@@ -8,7 +8,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.FileProvider
 import fr.husi.compose.SheetActionRow
 import fr.husi.ktx.Logs
-import fr.husi.repository.repo
+import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
 import fr.husi.resources.send
 import fr.husi.resources.share
@@ -44,9 +44,9 @@ private suspend fun shareLogFile(context: Context) {
     val logFile = File.createTempFile(
         context.packageName,
         ".log",
-        File(repo.cacheDir, "log").also { it.mkdirs() },
+        File(resolveRepository().cacheDir, "log").also { it.mkdirs() },
     ).apply {
-        writeText(SendLog.buildLog(repo.externalAssetsDir))
+        writeText(SendLog.buildLog(resolveRepository().externalAssetsDir))
     }
     context.startActivity(
         Intent.createChooser(
@@ -60,7 +60,7 @@ private suspend fun shareLogFile(context: Context) {
                         logFile,
                     ),
                 ),
-            repo.getString(Res.string.share),
+            resolveRepository().getString(Res.string.share),
         ).setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION),
     )
 }

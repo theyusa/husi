@@ -56,7 +56,7 @@ import fr.husi.ktx.runOnDefaultDispatcher
 import fr.husi.permission.AppPermission
 import fr.husi.permission.LocalPermissionPlatform
 import fr.husi.platform.PlatformInfo
-import fr.husi.repository.repo
+import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
 import fr.husi.resources.action_download
 import fr.husi.resources.bug_report
@@ -187,7 +187,7 @@ private fun MainScreenContent(
         ) {
             permission.requestPermission(AppPermission.QueryInstalledApps) { granted ->
                 if (granted) runOnDefaultDispatcher {
-                    repo.stopService()
+                    resolveRepository().stopService()
                     delay(500)
                     SagerDatabase.instance.close()
                     Executable.killAll(true)

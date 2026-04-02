@@ -65,7 +65,7 @@ import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.contentOrUnset
 import fr.husi.ktx.onIoDispatcher
 import fr.husi.platform.PlatformInfo
-import fr.husi.repository.repo
+import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
 import fr.husi.resources.add_road
 import fr.husi.resources.apply
@@ -417,8 +417,8 @@ private fun RouteSettings(
     onSelectApps: (Set<String>) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val geoDir = remember(repo, repo.externalAssetsDir) {
-        repo.externalAssetsDir.resolve("geo").takeIf { it.isDirectory }
+    val geoDir = remember(resolveRepository().externalAssetsDir) {
+        resolveRepository().externalAssetsDir.resolve("geo").takeIf { it.isDirectory }
     }
 
     val listState = rememberLazyListState()
