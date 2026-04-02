@@ -17,6 +17,7 @@ import androidx.compose.material3.CardDefaults as MaterialCardDefaults
 import androidx.compose.material3.Button as MaterialButton
 import androidx.compose.material3.ButtonDefaults as MaterialButtonDefaults
 import androidx.compose.material3.Checkbox as MaterialCheckbox
+import androidx.compose.material3.contentColorFor
 import androidx.compose.material3.Icon as MaterialIcon
 import androidx.compose.material3.IconButtonColors as MaterialIconButtonColors
 import androidx.compose.material3.LocalTextStyle as MaterialLocalTextStyle
@@ -27,6 +28,7 @@ import androidx.compose.material3.RadioButton as MaterialRadioButton
 import androidx.compose.material3.Surface as MaterialSurface
 import androidx.compose.material3.Switch as MaterialSwitch
 import androidx.compose.material3.Tab as MaterialTab
+import androidx.compose.material3.TabRowDefaults as MaterialTabRowDefaults
 import androidx.compose.material3.Text as MaterialText
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
@@ -240,8 +242,8 @@ internal interface PlatformMaterialApi {
     fun Surface(
         modifier: Modifier = Modifier,
         shape: Shape = RectangleShape,
-        color: Color = Color.Unspecified,
-        contentColor: Color = Color.Unspecified,
+        color: Color = MaterialTheme.colorScheme.surface,
+        contentColor: Color = contentColorFor(color),
         tonalElevation: Dp = Dp.Unspecified,
         shadowElevation: Dp = Dp.Unspecified,
         border: BorderStroke? = null,
@@ -254,8 +256,8 @@ internal interface PlatformMaterialApi {
         modifier: Modifier = Modifier,
         enabled: Boolean = true,
         shape: Shape = RectangleShape,
-        color: Color = Color.Unspecified,
-        contentColor: Color = Color.Unspecified,
+        color: Color = MaterialTheme.colorScheme.surface,
+        contentColor: Color = contentColorFor(color),
         tonalElevation: Dp = Dp.Unspecified,
         shadowElevation: Dp = Dp.Unspecified,
         border: BorderStroke? = null,
@@ -266,7 +268,7 @@ internal interface PlatformMaterialApi {
     fun PrimaryTabRow(
         selectedTabIndex: Int,
         modifier: Modifier = Modifier,
-        containerColor: Color = Color.Unspecified,
+        containerColor: Color = MaterialTabRowDefaults.primaryContainerColor,
         content: @Composable () -> Unit,
     )
 
@@ -274,8 +276,8 @@ internal interface PlatformMaterialApi {
     fun PrimaryScrollableTabRow(
         selectedTabIndex: Int,
         modifier: Modifier = Modifier,
-        containerColor: Color = Color.Unspecified,
-        edgePadding: Dp = Dp.Unspecified,
+        containerColor: Color = MaterialTabRowDefaults.primaryContainerColor,
+        edgePadding: Dp = MaterialTabRowDefaults.ScrollableTabRowEdgeStartPadding,
         content: @Composable () -> Unit,
     )
 }
@@ -708,7 +710,7 @@ private object MaterialPlatformMaterialApi : PlatformMaterialApi {
             selectedTabIndex = selectedTabIndex,
             modifier = modifier,
             containerColor = containerColor,
-            edgePadding = edgePadding.takeIf { it != Dp.Unspecified } ?: 0.dp,
+            edgePadding = edgePadding,
         ) {
             content()
         }
@@ -742,38 +744,21 @@ private object MaterialPlatformMaterialApi : PlatformMaterialApi {
         color: Color,
         contentColor: Color,
         elevated: Boolean,
-    ) = if (color == Color.Unspecified && contentColor == Color.Unspecified) {
-        if (elevated) {
-            MaterialCardDefaults.elevatedCardColors()
+    ): androidx.compose.material3.CardColors {
+        val resolvedContentColor = if (color != Color.Unspecified && contentColor == Color.Unspecified) {
+            contentColorFor(color)
         } else {
-            MaterialCardDefaults.cardColors()
+            contentColor
         }
-    } else {
-        if (elevated) {
+        return if (elevated) {
             MaterialCardDefaults.elevatedCardColors(
-                containerColor = if (color == Color.Unspecified) {
-                    MaterialTheme.colorScheme.surfaceContainerLow
-                } else {
-                    color
-                },
-                contentColor = if (contentColor == Color.Unspecified) {
-                    MaterialTheme.colorScheme.onSurface
-                } else {
-                    contentColor
-                },
+                containerColor = color,
+                contentColor = resolvedContentColor,
             )
         } else {
             MaterialCardDefaults.cardColors(
-                containerColor = if (color == Color.Unspecified) {
-                    MaterialTheme.colorScheme.surfaceContainerLow
-                } else {
-                    color
-                },
-                contentColor = if (contentColor == Color.Unspecified) {
-                    MaterialTheme.colorScheme.onSurface
-                } else {
-                    contentColor
-                },
+                containerColor = color,
+                contentColor = resolvedContentColor,
             )
         }
     }
@@ -850,18 +835,34 @@ object CardDefaults {
     val elevatedShape: Shape
         get() = MaterialCardDefaults.elevatedShape
 
+    @Composable
+    fun cardColors() = CardColors(
+        containerColor = Color.Unspecified,
+        contentColor = Color.Unspecified,
+        elevated = false,
+    )
+
+    @Composable
     fun cardColors(
         containerColor: Color = Color.Unspecified,
-        contentColor: Color = Color.Unspecified,
+        contentColor: Color = contentColorFor(containerColor),
     ) = CardColors(
         containerColor = containerColor,
         contentColor = contentColor,
         elevated = false,
     )
 
+    @Composable
+    fun elevatedCardColors() = CardColors(
+        containerColor = Color.Unspecified,
+        contentColor = Color.Unspecified,
+        elevated = true,
+    )
+
+    @Composable
     fun elevatedCardColors(
         containerColor: Color = Color.Unspecified,
-        contentColor: Color = Color.Unspecified,
+        contentColor: Color = contentColorFor(containerColor),
     ) = CardColors(
         containerColor = containerColor,
         contentColor = contentColor,
@@ -1157,15 +1158,23 @@ fun Card(
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val resolvedColors = colors ?: if (elevated) {
-        CardDefaults.elevatedCardColors(
-            containerColor = color,
-            contentColor = contentColor,
-        )
+        if (color == Color.Unspecified && contentColor == Color.Unspecified) {
+            CardDefaults.elevatedCardColors()
+        } else {
+            CardDefaults.elevatedCardColors(
+                containerColor = color,
+                contentColor = contentColor,
+            )
+        }
     } else {
-        CardDefaults.cardColors(
-            containerColor = color,
-            contentColor = contentColor,
-        )
+        if (color == Color.Unspecified && contentColor == Color.Unspecified) {
+            CardDefaults.cardColors()
+        } else {
+            CardDefaults.cardColors(
+                containerColor = color,
+                contentColor = contentColor,
+            )
+        }
     }
     val resolvedElevation = elevation ?: if (elevated) {
         CardDefaults.elevatedCardElevation(defaultElevation = tonalElevation)
@@ -1201,15 +1210,23 @@ fun Card(
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val resolvedColors = colors ?: if (elevated) {
-        CardDefaults.elevatedCardColors(
-            containerColor = color,
-            contentColor = contentColor,
-        )
+        if (color == Color.Unspecified && contentColor == Color.Unspecified) {
+            CardDefaults.elevatedCardColors()
+        } else {
+            CardDefaults.elevatedCardColors(
+                containerColor = color,
+                contentColor = contentColor,
+            )
+        }
     } else {
-        CardDefaults.cardColors(
-            containerColor = color,
-            contentColor = contentColor,
-        )
+        if (color == Color.Unspecified && contentColor == Color.Unspecified) {
+            CardDefaults.cardColors()
+        } else {
+            CardDefaults.cardColors(
+                containerColor = color,
+                contentColor = contentColor,
+            )
+        }
     }
     val resolvedElevation = elevation ?: if (elevated) {
         CardDefaults.elevatedCardElevation(defaultElevation = tonalElevation)
@@ -1235,8 +1252,8 @@ fun Card(
 fun Surface(
     modifier: Modifier = Modifier,
     shape: Shape = RectangleShape,
-    color: Color = Color.Unspecified,
-    contentColor: Color = Color.Unspecified,
+    color: Color = MaterialTheme.colorScheme.surface,
+    contentColor: Color = contentColorFor(color),
     tonalElevation: Dp = Dp.Unspecified,
     shadowElevation: Dp = Dp.Unspecified,
     border: BorderStroke? = null,
@@ -1260,8 +1277,8 @@ fun Surface(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     shape: Shape = RectangleShape,
-    color: Color = Color.Unspecified,
-    contentColor: Color = Color.Unspecified,
+    color: Color = MaterialTheme.colorScheme.surface,
+    contentColor: Color = contentColorFor(color),
     tonalElevation: Dp = Dp.Unspecified,
     shadowElevation: Dp = Dp.Unspecified,
     border: BorderStroke? = null,
@@ -1285,7 +1302,7 @@ fun Surface(
 fun PrimaryTabRow(
     selectedTabIndex: Int,
     modifier: Modifier = Modifier,
-    containerColor: Color = Color.Unspecified,
+    containerColor: Color = MaterialTabRowDefaults.primaryContainerColor,
     content: @Composable () -> Unit,
 ) {
     currentPlatformMaterialApi().PrimaryTabRow(
@@ -1300,8 +1317,8 @@ fun PrimaryTabRow(
 fun PrimaryScrollableTabRow(
     selectedTabIndex: Int,
     modifier: Modifier = Modifier,
-    containerColor: Color = Color.Unspecified,
-    edgePadding: Dp = Dp.Unspecified,
+    containerColor: Color = MaterialTabRowDefaults.primaryContainerColor,
+    edgePadding: Dp = MaterialTabRowDefaults.ScrollableTabRowEdgeStartPadding,
     content: @Composable () -> Unit,
 ) {
     currentPlatformMaterialApi().PrimaryScrollableTabRow(

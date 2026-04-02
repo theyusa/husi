@@ -41,6 +41,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.NavigationDrawerItemDefaults
+import androidx.tv.material3.LocalContentColor as TvLocalContentColor
+import androidx.tv.material3.LocalTextStyle as TvLocalTextStyle
 import androidx.tv.material3.DrawerState as TvDrawerState
 import androidx.tv.material3.DrawerValue as TvDrawerValue
 import androidx.tv.material3.Border
@@ -50,6 +52,8 @@ import androidx.tv.material3.CardDefaults as TvCardDefaults
 import androidx.tv.material3.Button as TvButton
 import androidx.tv.material3.ButtonDefaults as TvButtonDefaults
 import androidx.tv.material3.Checkbox as TvCheckbox
+import androidx.tv.material3.contentColorFor as tvContentColorFor
+import androidx.tv.material3.Icon as TvIcon
 import androidx.tv.material3.IconButton as TvIconButton
 import androidx.tv.material3.IconButtonDefaults as TvIconButtonDefaults
 import androidx.tv.material3.MaterialTheme as TvMaterialTheme
@@ -60,6 +64,7 @@ import androidx.tv.material3.NavigationDrawerScope
 import androidx.tv.material3.Surface as TvSurface
 import androidx.tv.material3.SurfaceDefaults as TvSurfaceDefaults
 import androidx.tv.material3.Switch as TvSwitch
+import androidx.tv.material3.Text as TvText
 import androidx.tv.material3.rememberDrawerState as rememberTvDrawerState
 
 internal val LocalTvNavigationDrawerScope =
@@ -82,6 +87,64 @@ private class TVDrawerStateHolder(
 }
 
 internal object TvPlatformMaterialApi : PlatformMaterialApi {
+    @Composable
+    private fun tvButtonContainerColor(color: Color): Color =
+        if (color == Color.Unspecified) {
+            TvMaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f)
+        } else {
+            color
+        }
+
+    @Composable
+    private fun tvButtonContentColor(color: Color): Color =
+        if (color == Color.Unspecified) {
+            TvMaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+        } else {
+            color
+        }
+
+    @Composable
+    private fun tvIconButtonContainerColor(color: Color): Color =
+        if (color == Color.Unspecified) {
+            TvMaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f)
+        } else {
+            color
+        }
+
+    @Composable
+    private fun tvIconButtonContentColor(color: Color): Color =
+        if (color == Color.Unspecified) {
+            TvMaterialTheme.colorScheme.onSurface
+        } else {
+            color
+        }
+
+    @Composable
+    private fun tvCardContainerColor(color: Color): Color =
+        if (color == Color.Unspecified) {
+            TvMaterialTheme.colorScheme.surfaceVariant
+        } else {
+            color
+        }
+
+    @Composable
+    private fun tvSurfaceContainerColor(color: Color): Color =
+        if (color == Color.Unspecified) {
+            TvMaterialTheme.colorScheme.surface
+        } else {
+            color
+        }
+
+    @Composable
+    private fun tvResolvedContentColor(
+        containerColor: Color,
+        contentColor: Color,
+    ): Color = if (contentColor == Color.Unspecified) {
+        tvContentColorFor(containerColor)
+    } else {
+        contentColor
+    }
+
     @Composable
     override fun rememberDrawerStateHolder(): DrawerStateHolder {
         val drawerState = rememberTvDrawerState(TvDrawerValue.Open)
@@ -140,19 +203,11 @@ internal object TvPlatformMaterialApi : PlatformMaterialApi {
                 selected = selected,
                 onClick = onClick,
                 leadingContent = {
-                    CompositionLocalProvider(
-                        MaterialLocalContentColor provides androidx.tv.material3.LocalContentColor.current,
-                    ) {
-                        icon?.invoke()
-                    }
+                    ProvideTvMaterialBridge { icon?.invoke() }
                 },
                 modifier = modifier.focusRequester(focusRequester),
             ) {
-                CompositionLocalProvider(
-                    MaterialLocalContentColor provides androidx.tv.material3.LocalContentColor.current,
-                ) {
-                    label()
-                }
+                ProvideTvMaterialBridge { label() }
             }
         } else {
             standardPlatformMaterialApi().DrawerItem(
@@ -305,6 +360,8 @@ internal object TvPlatformMaterialApi : PlatformMaterialApi {
         content: @Composable RowScope.() -> Unit,
     ) {
         val buttonShape = shape ?: TvMaterialTheme.shapes.medium
+        val resolvedContainerColor = tvButtonContainerColor(containerColor)
+        val resolvedContentColor = tvButtonContentColor(contentColor)
         TvButton(
             onClick = onClick,
             modifier = modifier,
@@ -314,29 +371,21 @@ internal object TvPlatformMaterialApi : PlatformMaterialApi {
             } else {
                 TvButtonDefaults.shape(shape = buttonShape)
             },
-            colors = if (containerColor == Color.Unspecified && contentColor == Color.Unspecified) {
-                TvButtonDefaults.colors()
-            } else {
-                TvButtonDefaults.colors(
-                    containerColor = if (containerColor == Color.Unspecified) {
-                        TvMaterialTheme.colorScheme.primary
-                    } else {
-                        containerColor
-                    },
-                    contentColor = if (contentColor == Color.Unspecified) {
-                        TvMaterialTheme.colorScheme.onPrimary
-                    } else {
-                        contentColor
-                    },
-                )
-            },
+            colors = TvButtonDefaults.colors(
+                containerColor = resolvedContainerColor,
+                contentColor = resolvedContentColor,
+            ),
             border = if (border == null) {
                 TvButtonDefaults.border()
             } else {
                 TvButtonDefaults.border(border = border.toTvBorder(buttonShape))
             },
             contentPadding = contentPadding ?: TvButtonDefaults.ContentPadding,
-            content = content,
+            content = {
+                ProvideTvMaterialBridge {
+                    content()
+                }
+            },
         )
     }
 
@@ -396,23 +445,19 @@ internal object TvPlatformMaterialApi : PlatformMaterialApi {
         contentColor: Color,
         content: @Composable () -> Unit,
     ) {
+        val resolvedContainerColor = tvIconButtonContainerColor(containerColor)
+        val resolvedContentColor = tvIconButtonContentColor(contentColor)
         TvIconButton(
             onClick = onClick,
             modifier = modifier,
             enabled = enabled,
             colors = TvIconButtonDefaults.colors(
-                containerColor = if (containerColor == Color.Unspecified) {
-                    TvMaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f)
-                } else {
-                    containerColor
-                },
-                contentColor = if (contentColor == Color.Unspecified) {
-                    TvMaterialTheme.colorScheme.onSurface
-                } else {
-                    contentColor
-                },
+                containerColor = resolvedContainerColor,
+                contentColor = resolvedContentColor,
             ),
-            content = { content() },
+            content = {
+                ProvideTvMaterialBridge(content)
+            },
         )
     }
 
@@ -428,25 +473,21 @@ internal object TvPlatformMaterialApi : PlatformMaterialApi {
         content: @Composable ColumnScope.() -> Unit,
     ) {
         val cardShape = shape ?: TvMaterialTheme.shapes.medium
+        val resolvedContainerColor = tvCardContainerColor(color)
+        val resolvedContentColor = tvResolvedContentColor(resolvedContainerColor, contentColor)
         TvSurface(
             modifier = modifier,
-            tonalElevation = tonalElevation.takeIf { it != Dp.Unspecified } ?: if (elevated) 1.dp else 0.dp,
+            tonalElevation = tonalElevation.takeIf { it != Dp.Unspecified } ?: 0.dp,
             shape = cardShape,
             colors = TvSurfaceDefaults.colors(
-                containerColor = if (color == Color.Unspecified) {
-                    if (elevated) TvMaterialTheme.colorScheme.surfaceVariant else TvMaterialTheme.colorScheme.surface
-                } else {
-                    color
-                },
-                contentColor = if (contentColor == Color.Unspecified) {
-                    TvMaterialTheme.colorScheme.onSurface
-                } else {
-                    contentColor
-                },
+                containerColor = resolvedContainerColor,
+                contentColor = resolvedContentColor,
             ),
             border = border.toTvBorder(cardShape),
         ) {
-            Column(content = content)
+            ProvideTvMaterialBridge {
+                Column(content = content)
+            }
         }
     }
 
@@ -464,6 +505,8 @@ internal object TvPlatformMaterialApi : PlatformMaterialApi {
         content: @Composable ColumnScope.() -> Unit,
     ) {
         val cardShape = shape ?: TvMaterialTheme.shapes.medium
+        val resolvedContainerColor = tvCardContainerColor(color)
+        val resolvedContentColor = tvResolvedContentColor(resolvedContainerColor, contentColor)
         TvCard(
             onClick = onClick,
             modifier = modifier,
@@ -473,22 +516,10 @@ internal object TvPlatformMaterialApi : PlatformMaterialApi {
             } else {
                 TvCardDefaults.shape(shape = cardShape)
             },
-            colors = if (color == Color.Unspecified && contentColor == Color.Unspecified) {
-                TvCardDefaults.colors()
-            } else {
-                TvCardDefaults.colors(
-                    containerColor = if (color == Color.Unspecified) {
-                        TvMaterialTheme.colorScheme.surface
-                    } else {
-                        color
-                    },
-                    contentColor = if (contentColor == Color.Unspecified) {
-                        TvMaterialTheme.colorScheme.onSurface
-                    } else {
-                        contentColor
-                    },
-                )
-            },
+            colors = TvCardDefaults.colors(
+                containerColor = resolvedContainerColor,
+                contentColor = resolvedContentColor,
+            ),
             scale = TvCardDefaults.scale(),
             border = if (border == null) {
                 TvCardDefaults.border()
@@ -497,7 +528,11 @@ internal object TvPlatformMaterialApi : PlatformMaterialApi {
             },
             glow = TvCardDefaults.glow(),
             interactionSource = null,
-            content = content,
+            content = {
+                ProvideTvMaterialBridge {
+                    content()
+                }
+            },
         )
     }
 
@@ -512,25 +547,19 @@ internal object TvPlatformMaterialApi : PlatformMaterialApi {
         border: BorderStroke?,
         content: @Composable () -> Unit,
     ) {
+        val resolvedContainerColor = tvSurfaceContainerColor(color)
+        val resolvedContentColor = tvResolvedContentColor(resolvedContainerColor, contentColor)
         TvSurface(
             modifier = modifier,
             tonalElevation = tonalElevation.takeIf { it != Dp.Unspecified } ?: 0.dp,
             shape = shape,
             colors = TvSurfaceDefaults.colors(
-                containerColor = if (color == Color.Unspecified) {
-                    TvMaterialTheme.colorScheme.surface
-                } else {
-                    color
-                },
-                contentColor = if (contentColor == Color.Unspecified) {
-                    TvMaterialTheme.colorScheme.onSurface
-                } else {
-                    contentColor
-                },
+                containerColor = resolvedContainerColor,
+                contentColor = resolvedContentColor,
             ),
             border = border.toTvBorder(shape),
         ) {
-            content()
+            ProvideTvMaterialBridge(content)
         }
     }
 
@@ -547,6 +576,8 @@ internal object TvPlatformMaterialApi : PlatformMaterialApi {
         border: BorderStroke?,
         content: @Composable () -> Unit,
     ) {
+        val resolvedContainerColor = tvSurfaceContainerColor(color)
+        val resolvedContentColor = tvResolvedContentColor(resolvedContainerColor, contentColor)
         TvSurface(
             onClick = onClick,
             modifier = modifier,
@@ -554,22 +585,14 @@ internal object TvPlatformMaterialApi : PlatformMaterialApi {
             tonalElevation = tonalElevation.takeIf { it != Dp.Unspecified } ?: 0.dp,
             shape = ClickableSurfaceDefaults.shape(shape = shape),
             colors = ClickableSurfaceDefaults.colors(
-                containerColor = if (color == Color.Unspecified) {
-                    TvMaterialTheme.colorScheme.surface
-                } else {
-                    color
-                },
-                contentColor = if (contentColor == Color.Unspecified) {
-                    TvMaterialTheme.colorScheme.onSurface
-                } else {
-                    contentColor
-                },
+                containerColor = resolvedContainerColor,
+                contentColor = resolvedContentColor,
             ),
             border = ClickableSurfaceDefaults.border(
                 border = border.toTvBorder(shape),
             ),
         ) {
-            content()
+            ProvideTvMaterialBridge(content)
         }
     }
 
@@ -583,11 +606,7 @@ internal object TvPlatformMaterialApi : PlatformMaterialApi {
         MaterialPrimaryTabRow(
             selectedTabIndex = selectedTabIndex,
             modifier = modifier,
-            containerColor = if (containerColor == Color.Unspecified) {
-                Color.Transparent
-            } else {
-                containerColor
-            },
+            containerColor = containerColor,
         ) {
             CompositionLocalProvider(
                 LocalPlatformTabRowScope provides TvPlatformTabRowScope,
@@ -608,12 +627,8 @@ internal object TvPlatformMaterialApi : PlatformMaterialApi {
         MaterialPrimaryScrollableTabRow(
             selectedTabIndex = selectedTabIndex,
             modifier = modifier,
-            containerColor = if (containerColor == Color.Unspecified) {
-                Color.Transparent
-            } else {
-                containerColor
-            },
-            edgePadding = edgePadding.takeIf { it != Dp.Unspecified } ?: 0.dp,
+            containerColor = containerColor,
+            edgePadding = edgePadding,
         ) {
             CompositionLocalProvider(
                 LocalPlatformTabRowScope provides TvPlatformTabRowScope,

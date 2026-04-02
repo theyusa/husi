@@ -10,6 +10,7 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import fr.husi.compose.material3.ProvideTvMaterialBridge
 import fr.husi.repository.resolveRepository
 import androidx.tv.material3.ColorScheme as TvColorScheme
 import androidx.tv.material3.MaterialTheme as TvMaterialTheme
@@ -45,7 +46,9 @@ internal object TvPlatformThemeApi : PlatformThemeApi {
         ) {
             TvMaterialTheme(
                 colorScheme = tvColorScheme,
-                content = content,
+                content = {
+                    ProvideTvMaterialBridge(content)
+                },
             )
         }
     }
