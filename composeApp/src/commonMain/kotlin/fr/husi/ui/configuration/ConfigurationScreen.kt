@@ -89,6 +89,7 @@ import fr.husi.compose.ExpandableDropdownMenuItem
 import fr.husi.compose.PlatformMenuIcon
 import fr.husi.compose.QRCodeDialog
 import fr.husi.compose.SagerFab
+import fr.husi.compose.ScrollableDialog
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.StatsBar
 import fr.husi.compose.TextButton
@@ -912,7 +913,7 @@ private fun ConfigurationDialogs(
     }
 
     uiState.alertForDelete?.let { alert ->
-        AlertDialog(
+        ScrollableDialog(
             onDismissRequest = { vm.dismissAlert() },
             title = {
                 Text(
@@ -922,25 +923,7 @@ private fun ConfigurationDialogs(
                     ),
                 )
             },
-            text = {
-                val scrollState = rememberScrollState()
-                Row {
-                    Text(
-                        text = alert.summary,
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxHeight()
-                            .verticalScroll(scrollState),
-                    )
-                    BoxedVerticalScrollbar(
-                        modifier = Modifier.fillMaxHeight(),
-                        adapter = rememberScrollbarAdapter(scrollState = scrollState),
-                        style = defaultMaterialScrollbarStyle().copy(
-                            thickness = 12.dp,
-                        ),
-                    )
-                }
-            },
+            text = { Text(text = alert.summary) },
             confirmButton = {
                 TextButton(stringResource(Res.string.ok)) {
                     alert.confirm()

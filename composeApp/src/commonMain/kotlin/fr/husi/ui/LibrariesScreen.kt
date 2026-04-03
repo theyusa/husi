@@ -9,10 +9,7 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.SelectionContainer
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
 import fr.husi.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -33,6 +30,7 @@ import com.mikepenz.aboutlibraries.ui.compose.m3.LibrariesContainer
 import com.mikepenz.aboutlibraries.ui.compose.produceLibraries
 import com.mikepenz.aboutlibraries.ui.compose.util.strippedLicenseContent
 import fr.husi.compose.BoxedVerticalScrollbar
+import fr.husi.compose.ScrollableDialog
 import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.SimpleTopAppBar
 import fr.husi.compose.TextButton
@@ -132,7 +130,7 @@ private fun LibrariesLicenseDialog(
         library.strippedLicenseContent.emptyAsNull()
     } ?: return
 
-    AlertDialog(
+    ScrollableDialog(
         onDismissRequest = onDismiss,
         confirmButton = {
             TextButton(stringResource(Res.string.ok)) { onDismiss() }
@@ -144,27 +142,12 @@ private fun LibrariesLicenseDialog(
             }
         },
         text = {
-            val scrollState = rememberScrollState()
-            Row {
-                SelectionContainer(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxHeight()
-                        .verticalScroll(scrollState),
-                ) {
-                    Text(
-                        text = license,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontFamily = FontFamily.Monospace,
-                    )
-                }
-                BoxedVerticalScrollbar(
-                    modifier = Modifier.fillMaxHeight(),
-                    adapter = rememberScrollbarAdapter(scrollState = scrollState),
-                    style = defaultMaterialScrollbarStyle().copy(
-                        thickness = 12.dp,
-                    ),
+            SelectionContainer {
+                Text(
+                    text = license,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontFamily = FontFamily.Monospace,
                 )
             }
         },

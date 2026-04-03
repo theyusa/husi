@@ -5,12 +5,9 @@ package fr.husi.ui
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -41,7 +38,7 @@ import fr.husi.bg.BackendState
 import fr.husi.bg.Executable
 import fr.husi.bg.ServiceState
 import fr.husi.compose.BackHandler
-import fr.husi.compose.BoxedVerticalScrollbar
+import fr.husi.compose.ScrollableDialog
 import fr.husi.compose.TextButton
 import fr.husi.compose.material3.DrawerItem
 import fr.husi.compose.material3.Icon
@@ -96,8 +93,6 @@ import fr.husi.resources.warning_amber
 import fr.husi.results.LocalResultEventBus
 import fr.husi.results.ResultEventBus
 import fr.husi.ui.configuration.ProfileSelectSheet
-import io.github.oikvpqya.compose.fastscroller.material3.defaultMaterialScrollbarStyle
-import io.github.oikvpqya.compose.fastscroller.rememberScrollbarAdapter
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -495,7 +490,7 @@ private fun MainScreenContent(
     }
     if (showAlertDialog != null) {
         val dialog = showAlertDialog!!
-        AlertDialog(
+        ScrollableDialog(
             onDismissRequest = { showAlertDialog = null },
             confirmButton = {
                 TextButton(stringOrRes(dialog.confirmButton.label)) {
@@ -524,26 +519,7 @@ private fun MainScreenContent(
                 )
             },
             title = { Text(stringOrRes(dialog.title)) },
-            text = {
-                val scrollState = rememberScrollState()
-                Row {
-                    Column(
-                        modifier = Modifier
-                            .weight(1f)
-                            .verticalScroll(scrollState),
-                    ) {
-                        Text(stringOrRes(dialog.message))
-                    }
-
-                    BoxedVerticalScrollbar(
-                        modifier = Modifier.fillMaxHeight(),
-                        adapter = rememberScrollbarAdapter(scrollState = scrollState),
-                        style = defaultMaterialScrollbarStyle().copy(
-                            thickness = 12.dp,
-                        ),
-                    )
-                }
-            },
+            text = { Text(stringOrRes(dialog.message)) },
         )
     }
 }
