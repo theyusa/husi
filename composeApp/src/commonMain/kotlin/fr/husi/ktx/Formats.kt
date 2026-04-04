@@ -45,14 +45,15 @@ val URLSafeTolerate = Base64.UrlSafe.withPadding(Base64.PaddingOption.ABSENT_OPT
 fun String.b64Decode(): ByteArray {
     val errors = mutableListOf<String>()
     // If someone make url safe with mime, go away!
-    for (decoder in listOf(DefaultTolerate, MimeTolerate, URLSafeTolerate)) {
+    // Mime ignores invalid chars(`-`/`_`), so put it at last.
+    for (decoder in listOf(DefaultTolerate, URLSafeTolerate, MimeTolerate)) {
         try {
             return decoder.decode(this)
         } catch (e: Exception) {
             errors += e.readableMessage
         }
     }
-    throw IllegalStateException("decode base64: ${errors.joinToString(", ")}")
+    throw IllegalStateException(errors.joinToString(separator = ", ", prefix = "decode base64"))
 }
 
 fun String.b64DecodeToString(): String {
