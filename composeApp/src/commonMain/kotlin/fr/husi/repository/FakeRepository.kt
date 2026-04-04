@@ -2,9 +2,10 @@ package fr.husi.repository
 
 import org.jetbrains.compose.resources.PluralStringResource
 import org.jetbrains.compose.resources.StringResource
+import java.io.File
+import kotlin.io.path.createTempDirectory
 import org.jetbrains.compose.resources.getPluralString as getComposePluralString
 import org.jetbrains.compose.resources.getString as getComposeString
-import java.io.File
 
 class FakeRepository : Repository {
     override val isMainProcess = true
@@ -13,7 +14,8 @@ class FakeRepository : Repository {
 
     override val boxService: fr.husi.libcore.Service? = null
 
-    private val tempRoot = File(System.getProperty("java.io.tmpdir"), "husi-fake-repo")
+    @Suppress("NewApi")
+    private val tempRoot = createTempDirectory("husi-fake-repo").toFile()
     override val cacheDir = tempRoot.resolve("cache").apply { mkdirs() }
     override val filesDir = tempRoot.resolve("files").apply { mkdirs() }
     override val externalAssetsDir = tempRoot.resolve("external").apply { mkdirs() }
