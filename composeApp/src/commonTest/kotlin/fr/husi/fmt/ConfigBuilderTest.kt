@@ -10,13 +10,15 @@ import fr.husi.fmt.internal.ProxySetBean
 import fr.husi.fmt.socks.SOCKSBean
 import fr.husi.ktx.applyDefaultValues
 import fr.husi.platform.PlatformInfo
+import fr.husi.di.initHusiKoin
 import fr.husi.repository.FakeRepository
-import fr.husi.repository.repo
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import org.koin.core.context.stopKoin
+import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -25,9 +27,14 @@ import kotlin.test.assertTrue
 
 class ConfigBuilderTest {
 
+    @AfterTest
+    fun tearDown() {
+        stopKoin()
+    }
+
     @BeforeTest
     fun setup() = runBlocking {
-        repo = FakeRepository()
+        initHusiKoin(FakeRepository())
 
         DataStore.configurationStore.reset()
         SagerDatabase.proxyDao.reset()
