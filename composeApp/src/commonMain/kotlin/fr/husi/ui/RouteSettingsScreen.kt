@@ -238,7 +238,7 @@ internal fun RouteSettingsScreen(
                         imageVector = vectorResource(Res.drawable.done),
                         contentDescription = stringResource(Res.string.apply),
                     ) {
-                        if (uiState.isEmpty()) {
+                        if (uiState.needsRules()) {
                             showEmptyRouteAlert = true
                         } else if (isDirty) {
                             saveAndExit()

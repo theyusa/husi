@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import fr.husi.database.ProfileManager
 import fr.husi.database.RuleEntity
 import fr.husi.database.SagerDatabase
+import fr.husi.fmt.SingBoxOptions
 import fr.husi.ktx.runOnIoDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -60,7 +61,7 @@ data class RouteSettingsUiState(
     val customConfig: String = "",
     val customDnsConfig: String = "",
 ) {
-    fun isEmpty(): Boolean =
+    private fun isEmpty(): Boolean =
         domains.isBlank() &&
             ip.isBlank() &&
             port.isBlank() &&
@@ -78,6 +79,11 @@ data class RouteSettingsUiState(
             packages.isEmpty() &&
             customConfig.isBlank() &&
             customDnsConfig.isBlank()
+
+    fun needsRules(): Boolean =
+        isEmpty()
+                && (action == "" || action == SingBoxOptions.ACTION_ROUTE)
+                && (outbound != RuleEntity.OUTBOUND_PROXY)
 }
 
 @Stable
