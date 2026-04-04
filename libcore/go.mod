@@ -3,7 +3,7 @@ module libcore
 go 1.26
 
 require (
-	github.com/dyhkwong/sing-juicity v0.1.0-beta.6
+	github.com/dyhkwong/sing-juicity v0.1.2
 	github.com/gofrs/uuid/v5 v5.4.0
 	github.com/klauspost/compress v1.18.2
 	github.com/miekg/dns v1.1.72
@@ -18,8 +18,8 @@ require (
 	github.com/xchacha20-poly1305/anja v0.22.12
 	github.com/xchacha20-poly1305/libping v0.10.1
 	github.com/xchacha20-poly1305/sing-trusttunnel v0.2.1-0.20260314153016-08d91e19d8c2
-	golang.org/x/sync v0.19.0
-	golang.org/x/sys v0.41.0
+	golang.org/x/sync v0.20.0
+	golang.org/x/sys v0.42.0
 	google.golang.org/protobuf v1.36.11
 )
 
@@ -36,7 +36,7 @@ replace github.com/sagernet/sing-vmess => github.com/xchacha20-poly1305/sing-vme
 require (
 	github.com/oschwald/geoip2-golang v1.11.0
 	github.com/oschwald/maxminddb-golang v1.13.1
-	github.com/v2fly/v2ray-core/v5 v5.47.0
+	github.com/v2fly/v2ray-core/v5 v5.48.0
 )
 
 require (
@@ -126,16 +126,16 @@ require (
 	go.uber.org/zap v1.27.1 // indirect
 	go.uber.org/zap/exp v0.3.0 // indirect
 	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba // indirect
-	golang.org/x/crypto v0.48.0 // indirect
+	golang.org/x/crypto v0.49.0 // indirect
 	golang.org/x/exp v0.0.0-20251219203646-944ab1f22d93 // indirect
 	golang.org/x/mod v0.33.0 // indirect
-	golang.org/x/net v0.51.0 // indirect
-	golang.org/x/text v0.34.0 // indirect
+	golang.org/x/net v0.52.0 // indirect
+	golang.org/x/text v0.35.0 // indirect
 	golang.org/x/time v0.12.0 // indirect
 	golang.org/x/tools v0.42.0 // indirect
 	golang.zx2c4.com/wintun v0.0.0-20230126152724-0fa3db229ce2 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20251202230838-ff82c1b0f217 // indirect
-	google.golang.org/grpc v1.79.2 // indirect
+	google.golang.org/grpc v1.79.3 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	lukechampine.com/blake3 v1.4.1 // indirect
 )
