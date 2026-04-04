@@ -11,7 +11,7 @@ import fr.husi.ktx.runOnIoDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -88,11 +88,10 @@ internal class RouteSettingsViewModel : ViewModel() {
 
     private var editingId = -1L
     val isNew get() = editingId < 0L
-    private var initializedFor: Pair<Long, RouteSettingsUiState?>? = null
 
     private val initialState = MutableStateFlow<RouteSettingsUiState?>(null)
-    val isDirty = uiState.map { currentState ->
-        initialState.value?.let {
+    val isDirty = combine(uiState, initialState) { currentState, initialState ->
+        initialState?.let {
             it != currentState
         } ?: false
     }.stateIn(
@@ -105,9 +104,7 @@ internal class RouteSettingsViewModel : ViewModel() {
         routeId: Long,
         state: RouteSettingsUiState?,
     ) {
-        val args = routeId to state
-        if (initializedFor == args) return
-        initializedFor = args
+        initialState.value = null
         if (state != null) {
             editingId = -1L
             initialState.value = RouteSettingsUiState()

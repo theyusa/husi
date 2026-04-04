@@ -19,7 +19,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -54,8 +54,8 @@ internal class GroupSettingsViewModel : ViewModel() {
     val isNew get() = editingID == 0L
 
     private val initialState = MutableStateFlow<GroupSettingsUiState?>(null)
-    val isDirty = uiState.map { currentState ->
-        initialState.value?.let {
+    val isDirty = combine(uiState, initialState) { currentState, initialState ->
+        initialState?.let {
             it != currentState
         } ?: false
     }.stateIn(
@@ -66,6 +66,7 @@ internal class GroupSettingsViewModel : ViewModel() {
 
     fun initialize(id: Long) = viewModelScope.launch {
         editingID = id
+        initialState.value = null
         val group = if (isNew) {
             ProxyGroup()
         } else {

@@ -12,7 +12,7 @@ import fr.husi.repository.resolveRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -33,8 +33,8 @@ internal class AssetEditViewModel : ViewModel() {
     val uiState = _uiState.asStateFlow()
 
     private val initialState = MutableStateFlow<AssetEditUiState?>(null)
-    val isDirty = uiState.map { currentState ->
-        initialState.value?.let {
+    val isDirty = combine(uiState, initialState) { currentState, initialState ->
+        initialState?.let {
             it != currentState
         } ?: false
     }.stateIn(
@@ -49,6 +49,7 @@ internal class AssetEditViewModel : ViewModel() {
     suspend fun initialize(name: String) {
         isNew = false
         shouldUpdateFromInternet = false
+        initialState.value = null
         val asset = SagerDatabase.assetDao.get(name) ?: AssetEntity().also {
             isNew = true
         }
