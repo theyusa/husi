@@ -58,11 +58,15 @@ internal class AppListViewModel(
     override suspend fun afterMutation() = reload()
 
     override suspend fun afterItemClick(app: ProxiedApp, newIsProxied: Boolean) {
+        fun List<ProxiedApp>.updateProxiedState(): List<ProxiedApp> {
+            return map {
+                if (it.uid == app.uid) it.copy(isProxied = newIsProxied) else it
+            }
+        }
         _uiState.update { state ->
             state.copy(
-                apps = state.apps.map {
-                    if (it.uid == app.uid) it.copy(isProxied = newIsProxied) else it
-                },
+                apps = state.apps.updateProxiedState(),
+                filteredApps = state.filteredApps.updateProxiedState(),
             )
         }
     }
