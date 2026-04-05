@@ -31,6 +31,10 @@ internal class StunScreenViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(StunScreenUiState())
     val uiState = _uiState.asStateFlow()
 
+    init {
+        initialize()
+    }
+
     fun initialize() {
         _uiState.update {
             it.copy(proxy = currentSocks5()?.string.orEmpty())

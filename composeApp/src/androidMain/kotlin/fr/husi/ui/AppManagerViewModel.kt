@@ -40,7 +40,10 @@ internal sealed interface AppManagerUiEvent {
 }
 
 @Stable
-internal class AppManagerViewModel : BaseAppListViewModel() {
+internal class AppManagerViewModel(
+    pm: PackageManager,
+    appPackageName: String,
+) : BaseAppListViewModel() {
     val uiState: StateFlow<AppManagerUiState>
         field = MutableStateFlow(AppManagerUiState())
     val uiEvent: SharedFlow<AppManagerUiEvent>
@@ -48,7 +51,7 @@ internal class AppManagerViewModel : BaseAppListViewModel() {
 
     private var scanJob: Job? = null
 
-    fun initialize(pm: PackageManager, appPackageName: String) {
+    init {
         if (!DataStore.proxyApps) {
             DataStore.proxyApps = true
         }

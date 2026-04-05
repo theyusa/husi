@@ -17,6 +17,7 @@ import fr.husi.ktx.onIoDispatcher
 import fr.husi.ktx.runOnDefaultDispatcher
 import fr.husi.repository.resolveRepository
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -62,36 +63,47 @@ class GroupProfilesHolderViewModel(
     val selectedProxy = DataStore.configurationStore.longFlow(Key.PROFILE_ID)
 
     private var isFirstLoad = true
+    private var observeJob: Job? = null
     private var loadJob: Job? = null
     private var deleteTimer: Job? = null
     private val hiddenProfileAccess = Mutex()
     private val hiddenProfileIds = mutableSetOf<Long>()
 
-    init {
-        viewModelScope.launch {
-            SagerDatabase.proxyDao.getByGroup(group.id).collect { profiles ->
-                val shouldScroll = isFirstLoad
-                isFirstLoad = false
-                reloadProfiles(profiles, shouldScroll)
-            }
-        }
+    fun startObserving() {
+        if (observeJob != null) return
+        observeJob = viewModelScope.launch {
+            coroutineScope {
+                launch {
+                    SagerDatabase.proxyDao.getByGroup(group.id).collect { profiles ->
+                        val shouldScroll = isFirstLoad
+                        isFirstLoad = false
+                        reloadProfiles(profiles, shouldScroll)
+                    }
+                }
 
-        if (preSelected == null) {
-            viewModelScope.launch {
-                selectedProxy.collect {
-                    reloadProfiles(null, false)
+                if (preSelected == null) {
+                    launch {
+                        selectedProxy.collect {
+                            reloadProfiles(null, false)
+                        }
+                    }
+                }
+
+                launch {
+                    SagerDatabase.groupDao.getById(group.id).collectLatest { updated ->
+                        if (updated != null && updated != group) {
+                            group = updated
+                            reloadProfiles(null, false)
+                        }
+                    }
                 }
             }
         }
+    }
 
-        viewModelScope.launch {
-            SagerDatabase.groupDao.getById(group.id).collectLatest { updated ->
-                if (updated != null && updated != group) {
-                    group = updated
-                    reloadProfiles(null, false)
-                }
-            }
-        }
+    fun stopObserving() {
+        observeJob?.cancel()
+        observeJob = null
     }
 
     fun submitReordered(changes: List<OrderedItem<ProfileItem>>) = runOnDefaultDispatcher {

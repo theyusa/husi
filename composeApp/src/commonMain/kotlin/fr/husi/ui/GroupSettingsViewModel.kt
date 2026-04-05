@@ -45,7 +45,9 @@ internal data class GroupSettingsUiState(
 )
 
 @Stable
-internal class GroupSettingsViewModel : ViewModel() {
+internal class GroupSettingsViewModel(
+    groupId: Long,
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(GroupSettingsUiState())
     val uiState = _uiState.asStateFlow()
@@ -63,6 +65,10 @@ internal class GroupSettingsViewModel : ViewModel() {
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = false,
     )
+
+    init {
+        initialize(groupId)
+    }
 
     fun initialize(id: Long) = viewModelScope.launch {
         editingID = id

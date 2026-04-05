@@ -39,7 +39,9 @@ data class ConfigEditUiState(
 )
 
 @Stable
-class ConfigEditViewModel : ViewModel() {
+class ConfigEditViewModel(
+    initialText: String,
+) : ViewModel() {
 
     private val _uiEvent = MutableSharedFlow<ConfigEditUiEvent>()
     val uiEvent = _uiEvent.asSharedFlow()
@@ -57,6 +59,10 @@ class ConfigEditViewModel : ViewModel() {
     private val debounceDelay = 500L
 
     private var lastText: String = ""
+
+    init {
+        initialize(initialText)
+    }
 
     fun initialize(initialText: String) {
         debounceJob?.cancel()

@@ -69,9 +69,6 @@ internal fun SpeedtestScreen(
     viewModel: SpeedTestScreenViewModel = viewModel { SpeedTestScreenViewModel() },
     onBackPress: () -> Unit,
 ) {
-    LaunchedEffect(Unit) {
-        viewModel.initialize()
-    }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val windowInsets = WindowInsets.safeDrawing

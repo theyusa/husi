@@ -82,9 +82,6 @@ internal fun GetCertScreen(
     viewModel: GetCertScreenViewModel = viewModel { GetCertScreenViewModel() },
     onBack: () -> Unit,
 ) {
-    LaunchedEffect(Unit) {
-        viewModel.initialize()
-    }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val windowInsets = WindowInsets.safeDrawing

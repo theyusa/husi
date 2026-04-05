@@ -18,17 +18,22 @@ internal data class AppListUiState(
 )
 
 @Stable
-internal class AppListViewModel : BaseAppListViewModel() {
+internal class AppListViewModel(
+    pm: PackageManager,
+    appPackageName: String,
+    packages: Set<String>,
+) : BaseAppListViewModel() {
     private val _uiState = MutableStateFlow(AppListUiState())
     val uiState = _uiState.asStateFlow()
 
     init {
-        collectSearchText()
-    }
-
-    fun initialize(pm: PackageManager, appPackageName: String, packages: Set<String>) {
         packageManager = pm
         this.appPackageName = appPackageName
+        collectSearchText()
+        initialize(packages)
+    }
+
+    private fun initialize(packages: Set<String>) {
         viewModelScope.launch(singleThreadContext) {
             _uiState.update { it.copy(isLoading = true, apps = emptyList()) }
             proxiedUids.clear()

@@ -31,7 +31,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,7 +40,6 @@ import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ernestoyaquello.dragdropswipelazycolumn.DragDropSwipeLazyColumn
 import com.ernestoyaquello.dragdropswipelazycolumn.DraggableSwipeableItem
 import com.ernestoyaquello.dragdropswipelazycolumn.config.DraggableSwipeableItemColors
@@ -63,7 +61,6 @@ import kotlinx.coroutines.delay
 import me.zhanghai.compose.preference.TextFieldPreference
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
-import kotlin.random.Random
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -74,13 +71,11 @@ fun ChainSettingsScreen(
     onResult: (updated: Boolean) -> Unit,
     onOpenConfigEditor: (NavRoutes.ConfigEditor) -> Unit,
 ) {
-    val sessionKey = rememberSaveable { Random.nextLong().toString() }
-    val viewModel: ChainSettingsViewModel = viewModel(
-        key = if (profileId >= 0L) "chain-settings-$profileId" else "chain-settings-new-$sessionKey",
-    ) { ChainSettingsViewModel() }
-
-    LaunchedEffect(profileId, isSubscription) {
-        viewModel.initialize(profileId, isSubscription)
+    val viewModel: ChainSettingsViewModel = profileEditorViewModel(
+        profileId = profileId,
+        isSubscription = isSubscription,
+    ) {
+        ChainSettingsViewModel()
     }
 
     ProfileSettingsScreenScaffold(

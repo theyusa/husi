@@ -18,13 +18,21 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 @Stable
-class ConnectionDetailViewModel : ViewModel() {
+class ConnectionDetailViewModel(
+    uuid: String,
+) : ViewModel() {
 
     private val clientManager = LibcoreClientManager()
     private val connectionState = MutableStateFlow(ConnectionDetailState())
     val connection = connectionState.asStateFlow()
 
     private var job: Job? = null
+
+    init {
+        viewModelScope.launch {
+            initialize(uuid)
+        }
+    }
 
     override fun onCleared() {
         job?.cancel()

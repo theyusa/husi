@@ -163,10 +163,6 @@ fun LogcatScreen(
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     val windowInsets = WindowInsets.safeDrawing
 
-    LaunchedEffect(Unit) {
-        viewModel.initialize()
-    }
-
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {

@@ -101,13 +101,9 @@ internal fun AssetEditScreen(
     resultKey: String,
     onBack: () -> Unit = {},
     modifier: Modifier = Modifier,
-    viewModel: AssetEditViewModel = viewModel { AssetEditViewModel() },
+    viewModel: AssetEditViewModel = viewModel { AssetEditViewModel(assetName) },
 ) {
     val resultBus = LocalResultEventBus.current
-
-    LaunchedEffect(viewModel, assetName) {
-        viewModel.initialize(assetName)
-    }
 
     val isDirty by viewModel.isDirty.collectAsState()
     var showBackAlert by remember { mutableStateOf(false) }

@@ -5,15 +5,12 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.util.fastCoerceAtLeast
-import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.husi.compose.MultilineTextField
 import fr.husi.compose.PasswordPreference
 import fr.husi.compose.PreferenceCategory
@@ -69,7 +66,6 @@ import me.zhanghai.compose.preference.TextFieldPreference
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 import kotlin.math.roundToInt
-import kotlin.random.Random
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -79,13 +75,11 @@ fun ShadowQUICSettingsScreen(
     onResult: (updated: Boolean) -> Unit,
     onOpenConfigEditor: (NavRoutes.ConfigEditor) -> Unit,
 ) {
-    val sessionKey = rememberSaveable { Random.nextLong().toString() }
-    val viewModel: ShadowQUICSettingsViewModel = viewModel(
-        key = if (profileId >= 0L) "shadowquic-settings-$profileId" else "shadowquic-settings-new-$sessionKey",
-    ) { ShadowQUICSettingsViewModel() }
-
-    LaunchedEffect(profileId, isSubscription) {
-        viewModel.initialize(profileId, isSubscription)
+    val viewModel: ShadowQUICSettingsViewModel = profileEditorViewModel(
+        profileId = profileId,
+        isSubscription = isSubscription,
+    ) {
+        ShadowQUICSettingsViewModel()
     }
 
     ProfileSettingsScreenScaffold(

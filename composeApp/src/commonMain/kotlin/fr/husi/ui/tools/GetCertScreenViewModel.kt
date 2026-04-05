@@ -44,6 +44,10 @@ internal class GetCertScreenViewModel() : ViewModel() {
     private val _uiState = MutableStateFlow(GetCertUiState())
     val uiState = _uiState.asStateFlow()
 
+    init {
+        initialize()
+    }
+
     fun initialize() {
         _uiState.update { it.copy(proxy = currentSocks5()?.string ?: "") }
     }

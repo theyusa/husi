@@ -167,12 +167,10 @@ internal fun RouteSettingsScreen(
     onOpenAppList: (NavRoutes.AppList) -> Unit,
     onOpenConfigEditor: (NavRoutes.ConfigEditor) -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: RouteSettingsViewModel = viewModel { RouteSettingsViewModel() },
+    viewModel: RouteSettingsViewModel = viewModel {
+        RouteSettingsViewModel(routeId, initialState)
+    },
 ) {
-    LaunchedEffect(viewModel, routeId, initialState) {
-        viewModel.initialize(routeId, initialState)
-    }
-
     val isDirty by viewModel.isDirty.collectAsState()
     var showBackAlert by remember { mutableStateOf(false) }
     BackHandler(enabled = isDirty) { showBackAlert = true }

@@ -55,6 +55,10 @@ internal class SpeedTestScreenViewModel : ViewModel() {
     private val _uiEvent = MutableSharedFlow<SpeedTestScreenUiEvent>()
     val uiEvent = _uiEvent.asSharedFlow()
 
+    init {
+        initialize()
+    }
+
     fun initialize() {
         _uiState.update {
             it.copy(

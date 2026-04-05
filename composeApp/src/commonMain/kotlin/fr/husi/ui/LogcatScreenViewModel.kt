@@ -73,6 +73,9 @@ class LogcatScreenViewModel : ViewModel() {
 
     init {
         viewModelScope.launch {
+            initialize()
+        }
+        viewModelScope.launch {
             snapshotFlow { searchTextFieldState.text.toString() }
                 .drop(1)
                 .distinctUntilChanged()

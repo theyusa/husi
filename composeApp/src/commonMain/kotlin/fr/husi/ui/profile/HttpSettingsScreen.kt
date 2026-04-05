@@ -5,9 +5,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.husi.compose.MultilineTextField
 import fr.husi.compose.PasswordPreference
 import fr.husi.compose.PreferenceCategory
@@ -28,7 +25,6 @@ import fr.husi.resources.route
 import fr.husi.resources.udp_over_tcp
 import fr.husi.resources.username_opt
 import fr.husi.ui.NavRoutes
-import kotlin.random.Random
 import me.zhanghai.compose.preference.SwitchPreference
 import me.zhanghai.compose.preference.TextFieldPreference
 import org.jetbrains.compose.resources.stringResource
@@ -42,13 +38,11 @@ fun HttpSettingsScreen(
     onResult: (updated: Boolean) -> Unit,
     onOpenConfigEditor: (NavRoutes.ConfigEditor) -> Unit,
 ) {
-    val sessionKey = rememberSaveable { Random.nextLong().toString() }
-    val viewModel: HttpSettingsViewModel = viewModel(
-        key = if (profileId >= 0L) "http-settings-$profileId" else "http-settings-new-$sessionKey",
-    ) { HttpSettingsViewModel() }
-
-    LaunchedEffect(profileId, isSubscription) {
-        viewModel.initialize(profileId, isSubscription)
+    val viewModel: HttpSettingsViewModel = profileEditorViewModel(
+        profileId = profileId,
+        isSubscription = isSubscription,
+    ) {
+        HttpSettingsViewModel()
     }
 
     ProfileSettingsScreenScaffold(
@@ -138,4 +132,3 @@ private fun LazyListScope.httpSettings(
         )
     }
 }
-

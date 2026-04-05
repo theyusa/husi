@@ -55,9 +55,6 @@ internal fun StunScreen(
     viewModel: StunScreenViewModel = viewModel { StunScreenViewModel() },
     onBackPress: () -> Unit,
 ) {
-    LaunchedEffect(Unit) {
-        viewModel.initialize()
-    }
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     val keyboardController = LocalSoftwareKeyboardController.current

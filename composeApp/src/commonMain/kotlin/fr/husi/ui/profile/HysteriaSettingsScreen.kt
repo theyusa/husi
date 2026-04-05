@@ -6,13 +6,10 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.husi.compose.DurationTextField
 import fr.husi.compose.MultilineTextField
 import fr.husi.compose.PasswordPreference
@@ -93,7 +90,6 @@ import me.zhanghai.compose.preference.TextFieldPreference
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
-import kotlin.random.Random
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -103,13 +99,11 @@ fun HysteriaSettingsScreen(
     onResult: (updated: Boolean) -> Unit,
     onOpenConfigEditor: (NavRoutes.ConfigEditor) -> Unit,
 ) {
-    val sessionKey = rememberSaveable { Random.nextLong().toString() }
-    val viewModel: HysteriaSettingsViewModel = viewModel(
-        key = if (profileId >= 0L) "hysteria-settings-$profileId" else "hysteria-settings-new-$sessionKey",
-    ) { HysteriaSettingsViewModel() }
-
-    LaunchedEffect(profileId, isSubscription) {
-        viewModel.initialize(profileId, isSubscription)
+    val viewModel: HysteriaSettingsViewModel = profileEditorViewModel(
+        profileId = profileId,
+        isSubscription = isSubscription,
+    ) {
+        HysteriaSettingsViewModel()
     }
 
     ProfileSettingsScreenScaffold(

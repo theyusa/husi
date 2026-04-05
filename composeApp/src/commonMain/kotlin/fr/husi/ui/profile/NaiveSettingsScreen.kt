@@ -9,12 +9,9 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.husi.compose.HostTextField
 import fr.husi.compose.MultilineTextField
 import fr.husi.compose.PasswordPreference
@@ -59,7 +56,6 @@ import fr.husi.resources.tuic_congestion_controller
 import fr.husi.resources.udp_over_tcp
 import fr.husi.resources.username_opt
 import fr.husi.ui.NavRoutes
-import kotlin.random.Random
 import me.zhanghai.compose.preference.ListPreference
 import me.zhanghai.compose.preference.ListPreferenceType
 import me.zhanghai.compose.preference.SwitchPreference
@@ -75,13 +71,11 @@ fun NaiveSettingsScreen(
     onResult: (updated: Boolean) -> Unit,
     onOpenConfigEditor: (NavRoutes.ConfigEditor) -> Unit,
 ) {
-    val sessionKey = rememberSaveable { Random.nextLong().toString() }
-    val viewModel: NaiveSettingsViewModel = viewModel(
-        key = if (profileId >= 0L) "naive-settings-$profileId" else "naive-settings-new-$sessionKey",
-    ) { NaiveSettingsViewModel() }
-
-    LaunchedEffect(profileId, isSubscription) {
-        viewModel.initialize(profileId, isSubscription)
+    val viewModel: NaiveSettingsViewModel = profileEditorViewModel(
+        profileId = profileId,
+        isSubscription = isSubscription,
+    ) {
+        NaiveSettingsViewModel()
     }
 
     ProfileSettingsScreenScaffold(
@@ -306,4 +300,3 @@ private fun LazyListScope.naiveSettings(
         )
     }
 }
-

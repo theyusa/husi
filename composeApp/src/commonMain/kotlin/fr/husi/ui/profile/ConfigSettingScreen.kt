@@ -20,7 +20,6 @@ import androidx.compose.material3.Scaffold
 import fr.husi.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -29,7 +28,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.husi.compose.BackHandler
 import fr.husi.compose.BoxedVerticalScrollbar
 import fr.husi.compose.SimpleIconButton
@@ -77,33 +75,26 @@ fun ConfigSettingScreen(
     onResult: (updated: Boolean) -> Unit,
     onOpenConfigEditor: (NavRoutes.ConfigEditor) -> Unit,
 ) {
-    val sessionKey = rememberSaveable { Random.nextInt().toString() }
-    val viewModel: ConfigSettingsViewModel = viewModel(
-        key = if (profileId >= 0L) {
-            "config-settings-$profileId"
-        } else {
-            "config-settings-new-$sessionKey"
-        },
-    ) { ConfigSettingsViewModel() }
+    val viewModel: ConfigSettingsViewModel = profileEditorViewModel(
+        profileId = profileId,
+        isSubscription = isSubscription,
+    ) {
+        ConfigSettingsViewModel()
+    }
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val isDirty by viewModel.isDirty.collectAsStateWithLifecycle()
 
     var showBackAlert by remember { mutableStateOf(false) }
     var showDeleteAlert by remember { mutableStateOf(false) }
 
-    LaunchedEffect(profileId, isSubscription) {
-        viewModel.initialize(profileId, isSubscription)
-    }
-
     BackHandler(enabled = isDirty) {
         showBackAlert = true
     }
 
-    val resultKey = if (profileId >= 0L) {
-        "config-settings-result-$profileId"
-    } else {
-        "config-settings-result-new-$sessionKey"
+    val resultKeyNumber = rememberSaveable {
+        viewModel.editingId.takeIf { it >= 0L } ?: Random.nextLong()
     }
+    val resultKey = "config-settings-result-$resultKeyNumber"
     ResultEffect<String?>(resultKey = resultKey) { result ->
         if (result == null) return@ResultEffect
         viewModel.setConfigForResult(result)

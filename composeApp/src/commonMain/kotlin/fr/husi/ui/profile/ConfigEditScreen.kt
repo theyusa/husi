@@ -186,9 +186,8 @@ fun ConfigEditScreen(
     resultKey: String,
     onBack: () -> Unit,
 ) {
-    val viewModel: ConfigEditViewModel = viewModel { ConfigEditViewModel() }
-    LaunchedEffect(initialText) {
-        viewModel.initialize(initialText)
+    val viewModel: ConfigEditViewModel = viewModel {
+        ConfigEditViewModel(initialText)
     }
     // Force LTR ( this is json editor + make AutoMirrored arrow correct  )
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {

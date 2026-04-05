@@ -2,10 +2,14 @@
 
 package fr.husi.ui.profile
 
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.CreationExtras
+import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.husi.GroupType
 import fr.husi.database.DataStore
 import fr.husi.database.ProfileManager
@@ -17,17 +21,18 @@ import fr.husi.fmt.SingBoxOptions
 import fr.husi.ktx.applyDefaultValues
 import fr.husi.ktx.onIoDispatcher
 import fr.husi.ktx.runOnIoDispatcher
+import fr.husi.resources.*
 import fr.husi.ui.StringOrRes
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import fr.husi.resources.*
+import kotlin.reflect.KClass
 
 @Immutable
 internal sealed interface ProfileEditorUiEvent {
@@ -129,6 +134,25 @@ internal abstract class ProfileEditorViewModel<T : AbstractBean> : ViewModel() {
     abstract fun setCustomOutbound(outbound: String)
 
 }
+
+@Composable
+internal inline fun <reified VM : ProfileEditorViewModel<*>> profileEditorViewModel(
+    profileId: Long,
+    isSubscription: Boolean,
+    noinline create: () -> VM,
+): VM = viewModel(
+    factory = object : ViewModelProvider.Factory {
+        @Suppress("UNCHECKED_CAST")
+        override fun <T : ViewModel> create(
+            modelClass: KClass<T>,
+            extras: CreationExtras,
+        ): T {
+            return create().also {
+                it.initialize(profileId, isSubscription)
+            } as T
+        }
+    },
+)
 
 internal val fingerprints
     get() = listOf(

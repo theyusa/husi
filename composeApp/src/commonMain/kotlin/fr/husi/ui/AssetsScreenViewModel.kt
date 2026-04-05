@@ -152,7 +152,10 @@ internal fun buildGithubAssetSources(provider: Int, versionFiles: List<File>): L
 }
 
 @Stable
-internal class AssetsScreenViewModel : ViewModel() {
+internal class AssetsScreenViewModel(
+    assetsDir: File,
+    geoDir: File,
+) : ViewModel() {
 
     companion object {
         fun isBuiltIn(index: Int): Boolean = index < 2
@@ -174,6 +177,10 @@ internal class AssetsScreenViewModel : ViewModel() {
     private var deleteTimer: Job? = null
     private val hiddenAssetsAccess = Mutex()
     private val hiddenAssets = mutableSetOf<String>()
+
+    init {
+        initialize(assetsDir, geoDir)
+    }
 
     fun initialize(assetsDir: File, geoDir: File) {
         val args = assetsDir.absolutePath to geoDir.absolutePath

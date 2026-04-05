@@ -100,24 +100,17 @@ internal fun AssetsScreen(
     onBackPress: () -> Unit,
     onOpenAssetEditor: (NavRoutes.AssetEdit) -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: AssetsScreenViewModel = viewModel { AssetsScreenViewModel() },
 ) {
     val cacheDir = resolveRepository().cacheDir
     val assetsDir = resolveRepository().externalAssetsDir
     val geoDir = remember { geoDir(assetsDir) }
+    val viewModel: AssetsScreenViewModel = viewModel { AssetsScreenViewModel(assetsDir, geoDir) }
     val scope = rememberCoroutineScope()
     val resultBus = LocalResultEventBus.current
     val activeResultKeys = remember { mutableStateListOf<String>() }
     val rulesProvider by DataStore.configurationStore
         .intFlow(Key.RULES_PROVIDER, RuleProvider.OFFICIAL)
         .collectAsStateWithLifecycle(RuleProvider.OFFICIAL)
-
-    LaunchedEffect(viewModel, assetsDir, geoDir) {
-        viewModel.initialize(
-            assetsDir = assetsDir,
-            geoDir = geoDir,
-        )
-    }
 
     fun handleAssetEditResult(result: AssetEditResult) {
         when (result) {

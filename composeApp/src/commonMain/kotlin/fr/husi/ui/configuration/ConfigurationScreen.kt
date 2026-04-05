@@ -49,6 +49,7 @@ import fr.husi.compose.material3.Tab
 import fr.husi.compose.material3.Text
 import androidx.compose.material3.rememberSearchBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -75,10 +76,13 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.compose.rememberLifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -783,12 +787,21 @@ fun ConfigurationContent(
 
     Column(modifier = modifier) {
         if (hasGroups) {
+            val parentLifecycleOwner = LocalLifecycleOwner.current
             HorizontalPager(
                 state = pagerState,
                 modifier = Modifier.fillMaxSize(),
                 beyondViewportPageCount = 1,
             ) { page ->
                 val group = uiState.groups[page]
+                val pageLifecycleOwner = rememberLifecycleOwner(
+                    maxLifecycle = if (pagerState.currentPage == page) {
+                        Lifecycle.State.RESUMED
+                    } else {
+                        Lifecycle.State.CREATED
+                    },
+                    parent = parentLifecycleOwner,
+                )
                 val pageViewModel = viewModel<GroupProfilesHolderViewModel>(
                     key = "group-holder-${group.id}",
                     factory = object : ViewModelProvider.Factory {
@@ -809,68 +822,71 @@ fun ConfigurationContent(
                     }
                 }
 
-                GroupHolderScreen(
-                    viewModel = pageViewModel,
-                    showActions = showActions,
-                    bottomPadding = bottomPadding,
-                    onProfileSelect = onProfileSelect,
-                    onOpenProfileEditor = onOpenProfileEditor,
-                    needReload = {
-                        scope.launch {
-                            if (!DataStore.serviceState.started) return@launch
-                            val result = snackbarState.showSnackbar(
-                                message = resolveRepository().getString(Res.string.need_reload),
-                                actionLabel = resolveRepository().getString(Res.string.apply),
-                                duration = SnackbarDuration.Short,
-                            )
-                            if (result == SnackbarResult.ActionPerformed) {
-                                resolveRepository().reloadService()
+                CompositionLocalProvider(LocalLifecycleOwner provides pageLifecycleOwner) {
+                    GroupProfilesHolderLifecycle(pageViewModel, pageLifecycleOwner)
+                    GroupHolderScreen(
+                        viewModel = pageViewModel,
+                        showActions = showActions,
+                        bottomPadding = bottomPadding,
+                        onProfileSelect = onProfileSelect,
+                        onOpenProfileEditor = onOpenProfileEditor,
+                        needReload = {
+                            scope.launch {
+                                if (!DataStore.serviceState.started) return@launch
+                                val result = snackbarState.showSnackbar(
+                                    message = resolveRepository().getString(Res.string.need_reload),
+                                    actionLabel = resolveRepository().getString(Res.string.apply),
+                                    duration = SnackbarDuration.Short,
+                                )
+                                if (result == SnackbarResult.ActionPerformed) {
+                                    resolveRepository().reloadService()
+                                }
                             }
-                        }
-                    },
-                    showQR = { name, url ->
-                        qrCodeInfo = name to url
-                    },
-                    onCopySuccess = {
-                        scope.launch {
-                            snackbarState.showSnackbar(
-                                message = resolveRepository().getString(Res.string.copy_success),
-                                actionLabel = resolveRepository().getString(Res.string.ok),
-                                duration = SnackbarDuration.Short,
-                            )
-                        }
-                    },
-                    showSnackbar = { message ->
-                        scope.launch {
-                            snackbarState.showSnackbar(
-                                message = getStringOrRes(message),
-                                actionLabel = resolveRepository().getString(Res.string.ok),
-                                duration = SnackbarDuration.Short,
-                            )
-                        }
-                    },
-                    showUndoSnackbar = { count, onUndo ->
-                        scope.launch {
-                            val result = snackbarState.showAndDismissOld(
-                                message = resolveRepository().getPluralString(
-                                    Res.plurals.removed,
-                                    count,
-                                    count,
-                                ),
-                                actionLabel = resolveRepository().getString(Res.string.undo),
-                                duration = SnackbarDuration.Short,
-                            )
-                            if (result == SnackbarResult.ActionPerformed) {
-                                onUndo()
+                        },
+                        showQR = { name, url ->
+                            qrCodeInfo = name to url
+                        },
+                        onCopySuccess = {
+                            scope.launch {
+                                snackbarState.showSnackbar(
+                                    message = resolveRepository().getString(Res.string.copy_success),
+                                    actionLabel = resolveRepository().getString(Res.string.ok),
+                                    duration = SnackbarDuration.Short,
+                                )
                             }
-                        }
-                    },
-                    onScrollHideChange = { visible ->
-                        if (pagerState.currentPage == page) {
-                            onScrollHideChange(visible)
-                        }
-                    },
-                )
+                        },
+                        showSnackbar = { message ->
+                            scope.launch {
+                                snackbarState.showSnackbar(
+                                    message = getStringOrRes(message),
+                                    actionLabel = resolveRepository().getString(Res.string.ok),
+                                    duration = SnackbarDuration.Short,
+                                )
+                            }
+                        },
+                        showUndoSnackbar = { count, onUndo ->
+                            scope.launch {
+                                val result = snackbarState.showAndDismissOld(
+                                    message = resolveRepository().getPluralString(
+                                        Res.plurals.removed,
+                                        count,
+                                        count,
+                                    ),
+                                    actionLabel = resolveRepository().getString(Res.string.undo),
+                                    duration = SnackbarDuration.Short,
+                                )
+                                if (result == SnackbarResult.ActionPerformed) {
+                                    onUndo()
+                                }
+                            }
+                        },
+                        onScrollHideChange = { visible ->
+                            if (pagerState.currentPage == page) {
+                                onScrollHideChange(visible)
+                            }
+                        },
+                    )
+                }
             }
         }
 
@@ -890,6 +906,19 @@ fun ConfigurationContent(
                 )
             },
         )
+    }
+}
+
+@Composable
+private fun GroupProfilesHolderLifecycle(
+    viewModel: GroupProfilesHolderViewModel,
+    lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current,
+) {
+    LifecycleStartEffect(viewModel, lifecycleOwner = lifecycleOwner) {
+        viewModel.startObserving()
+        onStopOrDispose {
+            viewModel.stopObserving()
+        }
     }
 }
 

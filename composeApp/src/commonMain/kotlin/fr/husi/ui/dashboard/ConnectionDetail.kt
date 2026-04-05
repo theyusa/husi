@@ -113,14 +113,11 @@ private enum class ConnectionFields {
 @Composable
 fun ConnectionDetailScreen(
     modifier: Modifier = Modifier,
-    viewModel: ConnectionDetailViewModel = viewModel { ConnectionDetailViewModel() },
     uuid: String,
+    viewModel: ConnectionDetailViewModel = viewModel { ConnectionDetailViewModel(uuid) },
     popup: () -> Unit,
     openRouteSettings: (RouteSettingsUiState) -> Unit,
 ) {
-    LaunchedEffect(uuid) {
-        viewModel.initialize(uuid)
-    }
     var isSelecting by remember { mutableStateOf(false) }
     var selectedField by remember { mutableStateOf(emptySet<ConnectionFields>()) }
     val connection by viewModel.connection.collectAsStateWithLifecycle()

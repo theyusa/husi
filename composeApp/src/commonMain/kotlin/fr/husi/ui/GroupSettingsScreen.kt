@@ -124,12 +124,8 @@ internal fun GroupSettingsScreen(
     onBackPress: () -> Unit,
     onOpenProfileSelect: OpenProfilePicker,
     modifier: Modifier = Modifier,
-    viewModel: GroupSettingsViewModel = viewModel { GroupSettingsViewModel() },
+    viewModel: GroupSettingsViewModel = viewModel { GroupSettingsViewModel(groupId) },
 ) {
-    LaunchedEffect(viewModel, groupId) {
-        viewModel.initialize(groupId)
-    }
-
     val isDirty by viewModel.isDirty.collectAsStateWithLifecycle()
     var showBackAlert by remember { mutableStateOf(false) }
     BackHandler(enabled = isDirty) {

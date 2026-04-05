@@ -44,10 +44,9 @@ internal actual fun AppManagerScreen(
     onBackPress: () -> Unit,
     modifier: Modifier,
 ) {
-    val viewModel: AppManagerViewModel = viewModel { AppManagerViewModel() }
     val context = LocalContext.current
-    LaunchedEffect(viewModel) {
-        viewModel.initialize(context.packageManager, context.packageName)
+    val viewModel: AppManagerViewModel = viewModel {
+        AppManagerViewModel(context.packageManager, context.packageName)
     }
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()

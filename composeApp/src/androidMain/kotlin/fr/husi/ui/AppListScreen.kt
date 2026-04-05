@@ -5,7 +5,6 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -34,10 +33,13 @@ internal actual fun AppListScreen(
     modifier: Modifier,
 ) {
     val resultBus = LocalResultEventBus.current
-    val viewModel: AppListViewModel = viewModel(key = resultKey) { AppListViewModel() }
     val context = LocalContext.current
-    LaunchedEffect(viewModel, initialPackages) {
-        viewModel.initialize(context.packageManager, context.packageName, initialPackages)
+    val viewModel: AppListViewModel = viewModel {
+        AppListViewModel(
+            pm = context.packageManager,
+            appPackageName = context.packageName,
+            packages = initialPackages,
+        )
     }
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()

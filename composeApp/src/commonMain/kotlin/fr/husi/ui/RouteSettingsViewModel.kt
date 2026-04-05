@@ -87,7 +87,10 @@ data class RouteSettingsUiState(
 }
 
 @Stable
-internal class RouteSettingsViewModel : ViewModel() {
+internal class RouteSettingsViewModel(
+    routeId: Long,
+    state: RouteSettingsUiState?,
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(RouteSettingsUiState())
     val uiState = _uiState.asStateFlow()
@@ -105,6 +108,10 @@ internal class RouteSettingsViewModel : ViewModel() {
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = false,
     )
+
+    init {
+        initialize(routeId, state)
+    }
 
     fun initialize(
         routeId: Long,

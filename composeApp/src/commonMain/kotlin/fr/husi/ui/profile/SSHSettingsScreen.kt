@@ -7,10 +7,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.text.AnnotatedString
-import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.husi.compose.MultilineTextField
 import fr.husi.compose.PasswordPreference
 import fr.husi.compose.PreferenceCategory
@@ -38,7 +35,6 @@ import fr.husi.resources.ssh_public_key
 import fr.husi.resources.username
 import fr.husi.resources.vpn_key
 import fr.husi.ui.NavRoutes
-import kotlin.random.Random
 import me.zhanghai.compose.preference.ListPreference
 import me.zhanghai.compose.preference.ListPreferenceType
 import me.zhanghai.compose.preference.TextFieldPreference
@@ -53,13 +49,11 @@ fun SSHSettingsScreen(
     onResult: (updated: Boolean) -> Unit,
     onOpenConfigEditor: (NavRoutes.ConfigEditor) -> Unit,
 ) {
-    val sessionKey = rememberSaveable { Random.nextLong().toString() }
-    val viewModel: SSHSettingsViewModel = viewModel(
-        key = if (profileId >= 0L) "ssh-settings-$profileId" else "ssh-settings-new-$sessionKey",
-    ) { SSHSettingsViewModel() }
-
-    LaunchedEffect(profileId, isSubscription) {
-        viewModel.initialize(profileId, isSubscription)
+    val viewModel: SSHSettingsViewModel = profileEditorViewModel(
+        profileId = profileId,
+        isSubscription = isSubscription,
+    ) {
+        SSHSettingsViewModel()
     }
 
     ProfileSettingsScreenScaffold(

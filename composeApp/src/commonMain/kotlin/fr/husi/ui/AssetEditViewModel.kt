@@ -27,7 +27,9 @@ internal data class AssetEditUiState(
 )
 
 @Stable
-internal class AssetEditViewModel : ViewModel() {
+internal class AssetEditViewModel(
+    assetName: String,
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AssetEditUiState())
     val uiState = _uiState.asStateFlow()
@@ -45,6 +47,12 @@ internal class AssetEditViewModel : ViewModel() {
 
     lateinit var editingName: String
     var isNew = false
+
+    init {
+        viewModelScope.launch {
+            initialize(assetName)
+        }
+    }
 
     suspend fun initialize(name: String) {
         isNew = false

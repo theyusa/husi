@@ -5,10 +5,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.text.AnnotatedString
-import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.husi.compose.MultilineTextField
 import fr.husi.ktx.contentOrUnset
 import fr.husi.ktx.intListN
@@ -26,7 +23,6 @@ import fr.husi.resources.xtls_flow
 import fr.husi.ui.NavRoutes
 import fr.husi.ui.StringOrRes
 import fr.husi.ui.stringOrRes
-import kotlin.random.Random
 import me.zhanghai.compose.preference.ListPreference
 import me.zhanghai.compose.preference.ListPreferenceType
 import me.zhanghai.compose.preference.TextFieldPreference
@@ -41,13 +37,11 @@ fun VLESSSettingsScreen(
     onResult: (updated: Boolean) -> Unit,
     onOpenConfigEditor: (NavRoutes.ConfigEditor) -> Unit,
 ) {
-    val sessionKey = rememberSaveable { Random.nextLong().toString() }
-    val viewModel: VLESSSettingsViewModel = viewModel(
-        key = if (profileId >= 0L) "vless-settings-$profileId" else "vless-settings-new-$sessionKey",
-    ) { VLESSSettingsViewModel() }
-
-    LaunchedEffect(profileId, isSubscription) {
-        viewModel.initialize(profileId, isSubscription)
+    val viewModel: VLESSSettingsViewModel = profileEditorViewModel(
+        profileId = profileId,
+        isSubscription = isSubscription,
+    ) {
+        VLESSSettingsViewModel()
     }
 
     ProfileSettingsScreenScaffold(

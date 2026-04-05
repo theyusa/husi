@@ -5,9 +5,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.husi.compose.PasswordPreference
 import fr.husi.compose.PreferenceCategory
 import fr.husi.compose.UIntegerTextField
@@ -31,7 +28,6 @@ import fr.husi.resources.server_port
 import fr.husi.resources.sni
 import fr.husi.resources.uuid
 import fr.husi.ui.NavRoutes
-import kotlin.random.Random
 import me.zhanghai.compose.preference.SwitchPreference
 import me.zhanghai.compose.preference.TextFieldPreference
 import org.jetbrains.compose.resources.stringResource
@@ -45,13 +41,11 @@ fun JuicitySettingsScreen(
     onResult: (updated: Boolean) -> Unit,
     onOpenConfigEditor: (NavRoutes.ConfigEditor) -> Unit,
 ) {
-    val sessionKey = rememberSaveable { Random.nextLong().toString() }
-    val viewModel: JuicitySettingsViewModel = viewModel(
-        key = if (profileId >= 0L) "juicity-settings-$profileId" else "juicity-settings-new-$sessionKey",
-    ) { JuicitySettingsViewModel() }
-
-    LaunchedEffect(profileId, isSubscription) {
-        viewModel.initialize(profileId, isSubscription)
+    val viewModel: JuicitySettingsViewModel = profileEditorViewModel(
+        profileId = profileId,
+        isSubscription = isSubscription,
+    ) {
+        JuicitySettingsViewModel()
     }
 
     ProfileSettingsScreenScaffold(
