@@ -94,7 +94,8 @@ fun main(args: Array<String>) {
         DesktopResourceEnvironmentFix {
             val supportTray = remember { isTraySupported }
             if (supportTray) {
-                val supportAdvancedTray = PlatformInfo.isMacOs
+                // In fact, whether on macOS, Windows, or Linux, the advanced tray consistently throws "java.lang.UnsupportedOperationException: java.awt.Menu doesn't support mnemonic."
+                val supportAdvancedTray = false
                 Tray(
                     icon = painterResource(Res.drawable.ic_service_rest),
                     state = trayState,
