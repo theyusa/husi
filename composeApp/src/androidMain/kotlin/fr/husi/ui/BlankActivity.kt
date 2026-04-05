@@ -5,12 +5,11 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import fr.husi.utils.SendLog
 import java.io.File
 
-class BlankActivity : AppCompatActivity() {
+class BlankActivity : PrivacyModeActivity() {
 
     companion object {
         const val EXTRA_LOG_TITLE = "log_title"

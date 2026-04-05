@@ -28,6 +28,9 @@ internal actual fun rememberApplyNightMode(): (Int) -> Unit = {}
 internal actual fun LazyListScope.platformGeneralOptions(needReload: () -> Unit) {
 }
 
+internal actual fun LazyListScope.platformSecurityOptions() {
+}
+
 internal actual fun LazyListScope.meteredNetworkSetting(needReload: () -> Unit) {
 }
 

@@ -39,6 +39,9 @@ import fr.husi.resources.legend_toggle
 import fr.husi.resources.metered
 import fr.husi.resources.metered_summary
 import fr.husi.resources.phonelink_ring
+import fr.husi.resources.privacy
+import fr.husi.resources.privacy_mode
+import fr.husi.resources.privacy_mode_summary
 import fr.husi.resources.route_opt_bypass_lan
 import fr.husi.resources.show_group_in_notification
 import fr.husi.resources.transform
@@ -118,6 +121,21 @@ internal actual fun LazyListScope.platformGeneralOptions(needReload: () -> Unit)
             },
             title = { Text(stringResource(Res.string.show_group_in_notification)) },
             icon = { Icon(vectorResource(Res.drawable.label), null) },
+        )
+    }
+}
+
+internal actual fun LazyListScope.platformSecurityOptions() {
+    item(Key.PRIVACY_MODE, PreferenceType.SWITCH) {
+        val value by DataStore.configurationStore
+            .booleanFlow(Key.PRIVACY_MODE, false)
+            .collectAsStateWithLifecycle(false)
+        SwitchPreference(
+            value = value,
+            onValueChange = { DataStore.privacyMode = it },
+            title = { Text(stringResource(Res.string.privacy_mode)) },
+            icon = { Icon(vectorResource(Res.drawable.privacy), null) },
+            summary = { Text(stringResource(Res.string.privacy_mode_summary)) },
         )
     }
 }

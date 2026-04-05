@@ -9,7 +9,6 @@ import android.net.VpnService
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.result.contract.ActivityResultContract
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.getSystemService
 import fr.husi.Key
 import fr.husi.database.DataStore
@@ -21,7 +20,7 @@ import fr.husi.resources.Res
 import fr.husi.resources.vpn_permission_denied
 import kotlinx.coroutines.runBlocking
 
-class VpnRequestActivity : AppCompatActivity() {
+class VpnRequestActivity : PrivacyModeActivity() {
     private var receiver: BroadcastReceiver? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {

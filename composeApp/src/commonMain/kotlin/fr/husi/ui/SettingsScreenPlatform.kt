@@ -37,6 +37,8 @@ internal expect fun rememberApplyNightMode(): (Int) -> Unit
 
 internal expect fun LazyListScope.platformGeneralOptions(needReload: () -> Unit)
 
+internal expect fun LazyListScope.platformSecurityOptions()
+
 internal expect fun LazyListScope.meteredNetworkSetting(needReload: () -> Unit)
 
 internal expect fun LazyListScope.platformRouteOptions(

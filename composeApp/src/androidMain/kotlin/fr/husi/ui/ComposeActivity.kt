@@ -5,12 +5,11 @@ import android.os.Build
 import android.os.Bundle
 import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowCompat
 import fr.husi.compose.theme.isDarkMode
 import fr.husi.database.DataStore
 
-open class ComposeActivity : AppCompatActivity() {
+open class ComposeActivity : PrivacyModeActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val usingNightMode = resources.isDarkMode(DataStore.nightTheme)

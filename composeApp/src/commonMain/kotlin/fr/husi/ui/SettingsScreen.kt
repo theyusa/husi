@@ -642,6 +642,7 @@ fun SettingsScreen(
                             },
                         )
                     }
+                    platformSecurityOptions()
                     meteredNetworkSetting { needReload() }
                     item(Key.LOG_LEVEL, PreferenceType.LIST) {
                         val value by DataStore.configurationStore

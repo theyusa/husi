@@ -82,6 +82,7 @@ object Key {
     const val ALLOW_APPS_BYPASS_VPN = "allowAppsBypassVpn"
     const val ALWAYS_SHOW_ADDRESS = "alwaysShowAddress"
     const val BLURRED_ADDRESS = "blurredAddress"
+    const val PRIVACY_MODE = "privacyMode"
 
     // NTP Settings
     const val ENABLE_NTP = "ntpEnable"

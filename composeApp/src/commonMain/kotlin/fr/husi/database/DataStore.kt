@@ -183,6 +183,7 @@ object DataStore {
     var connectionTestTimeout by configurationStore.int(Key.CONNECTION_TEST_TIMEOUT) { 3000 }
     var alwaysShowAddress by configurationStore.boolean(Key.ALWAYS_SHOW_ADDRESS)
     var blurredAddress by configurationStore.boolean(Key.BLURRED_ADDRESS)
+    var privacyMode by configurationStore.boolean(Key.PRIVACY_MODE) { false }
 
     var providerHysteria2 by configurationStore.int(Key.PROVIDER_HYSTERIA2) { ProtocolProvider.CORE }
     var providerJuicity by configurationStore.int(Key.PROVIDER_JUICITY) { ProtocolProvider.PLUGIN }
