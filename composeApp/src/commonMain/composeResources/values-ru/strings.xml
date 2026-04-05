@@ -696,4 +696,11 @@
     <string name="instance_already_running_title">Уже запущено</string>
     <string name="subscription_updated">Обновлено: %1$s</string>
     <string name="subscription_last_updated">Последнее обновление: %1$s</string>
+    <string name="traffic_pattern">Паттерн Трафика</string>
+    <string name="tun_auto_redirect">Автоперенаправление перед TUN</string>
+    <string name="hysteria_hop_interval_range_hint">Используйте дефис-минус для установки диапазона, например 10s-20s.</string>
+    <string name="hysteria_bbr_profile">BBR Профиль</string>
+    <string name="hysteria_bbr_profile_conservative">Консервативный</string>
+    <string name="hysteria_bbr_profile_standard">Стандартный</string>
+    <string name="hysteria_bbr_profile_aggressive">Агрессивный</string>
 </resources>
