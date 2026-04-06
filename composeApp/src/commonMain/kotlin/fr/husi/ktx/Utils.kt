@@ -5,8 +5,6 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
-import fr.husi.BuildConfig
-import fr.husi.database.DataStore
 import fr.husi.resources.Res
 import fr.husi.resources.connection_test_mux
 import fr.husi.resources.connection_test_refused
@@ -170,9 +168,6 @@ suspend fun SnackbarHostState.showAndDismissOld(
     currentSnackbarData?.dismiss()
     return showSnackbar(message, actionLabel, withDismissAction, duration)
 }
-
-val isExpert: Boolean
-    get() = BuildConfig.DEBUG || DataStore.isExpert
 
 /** Generate friendly and easy-understand message for failed URL test */
 fun readableUrlTestError(error: String?): StringResource? {

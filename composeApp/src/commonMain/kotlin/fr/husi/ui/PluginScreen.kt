@@ -21,7 +21,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.selection.SelectionContainer
-import fr.husi.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
@@ -29,12 +28,10 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
-import fr.husi.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -44,7 +41,6 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import fr.husi.BuildConfig
 import fr.husi.Key
 import fr.husi.bg.BackendState
 import fr.husi.bg.ServiceState
@@ -53,6 +49,8 @@ import fr.husi.compose.PlatformMenuIcon
 import fr.husi.compose.SagerFab
 import fr.husi.compose.SimpleTopAppBar
 import fr.husi.compose.StatsBar
+import fr.husi.compose.material3.Icon
+import fr.husi.compose.material3.Text
 import fr.husi.compose.rememberScrollHideState
 import fr.husi.compose.withNavigation
 import fr.husi.database.DataStore
@@ -92,13 +90,9 @@ fun PluginScreen(
     val uriHandler = LocalUriHandler.current
     val openPluginCard = rememberOpenPluginCard()
 
-    val isExpert by if (BuildConfig.DEBUG) {
-        remember { mutableStateOf(true) }
-    } else {
-        DataStore.configurationStore
-            .booleanFlow(Key.APP_EXPERT, false)
-            .collectAsStateWithLifecycle(false)
-    }
+    val isExpert by DataStore.configurationStore
+        .booleanFlow(Key.APP_EXPERT, false)
+        .collectAsStateWithLifecycle(false)
 
     fun needRestart() {
         scope.launch {

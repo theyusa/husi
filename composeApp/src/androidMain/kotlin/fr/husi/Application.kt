@@ -13,7 +13,6 @@ import fr.husi.bg.DefaultNetworkMonitor
 import fr.husi.bg.SubscriptionUpdater
 import fr.husi.database.DataStore
 import fr.husi.di.initHusiKoin
-import fr.husi.ktx.isExpert
 import fr.husi.ktx.runOnDefaultDispatcher
 import fr.husi.libcore.Libcore
 import fr.husi.libcore.loadCA
@@ -77,7 +76,7 @@ class Application : Application(),
             DataStore.logMaxLine,
             DataStore.logLevel,
             DataStore.rulesProvider == 0,
-            isExpert,
+            DataStore.isExpert,
         )
         loadCA(DataStore.certProvider)
 
@@ -104,7 +103,7 @@ class Application : Application(),
             repository.boxService?.start()
         }
 
-        if (BuildConfig.DEBUG) StrictMode.setVmPolicy(
+        if (DataStore.isExpert) StrictMode.setVmPolicy(
             StrictMode.VmPolicy.Builder()
                 .detectLeakedSqlLiteObjects()
                 .detectLeakedClosableObjects()

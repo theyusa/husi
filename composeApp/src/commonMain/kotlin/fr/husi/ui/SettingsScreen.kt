@@ -89,7 +89,6 @@ import fr.husi.database.DataStore
 import fr.husi.database.SagerDatabase
 import fr.husi.ktx.contentOrUnset
 import fr.husi.ktx.intListN
-import fr.husi.ktx.isExpert
 import fr.husi.ktx.onIoDispatcher
 import fr.husi.ktx.restartApplication
 import fr.husi.ktx.runOnDefaultDispatcher
@@ -290,6 +289,9 @@ fun SettingsScreen(
     }
 
     // Dependency states for enable/visibility linking
+    val isExpertState by DataStore.configurationStore
+        .booleanFlow(Key.APP_EXPERT, false)
+        .collectAsStateWithLifecycle(false)
     val speedIntervalState by DataStore.configurationStore
         .intFlow(Key.SPEED_INTERVAL, 1000)
         .collectAsStateWithLifecycle(1000)
@@ -1387,7 +1389,7 @@ fun SettingsScreen(
                             title = { Text(stringResource(Res.string.inbound_password)) },
                         )
                     }
-                    if (isExpert) item(
+                    if (isExpertState) item(
                         Key.ANCHOR_SSID,
                         PreferenceType.TEXT_FIELD,
                     ) {

@@ -37,14 +37,14 @@ import androidx.compose.ui.util.fastCoerceIn
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import fr.husi.Key
 import fr.husi.bg.BackendState
 import fr.husi.bg.ServiceState
 import fr.husi.compose.PlatformMenuIcon
 import fr.husi.compose.SagerFab
-import fr.husi.compose.SimpleIconButton
 import fr.husi.compose.StatsBar
 import fr.husi.compose.paddingExceptBottom
-import fr.husi.ktx.isExpert
+import fr.husi.database.DataStore
 import fr.husi.ui.MainViewModel
 import fr.husi.ui.MainViewModelUiEvent
 import fr.husi.ui.NavRoutes
@@ -67,7 +67,9 @@ fun ToolsScreen(
     val scope = rememberCoroutineScope()
     val snackbarState = remember { SnackbarHostState() }
 
-    val isExpert = remember { isExpert }
+    val isExpert by DataStore.configurationStore
+        .booleanFlow(Key.APP_EXPERT, false)
+        .collectAsStateWithLifecycle(false)
     val pagerState = rememberPagerState(
         initialPage = PAGE_NETWORK,
         pageCount = { 2 + if (isExpert) 1 else 0 },

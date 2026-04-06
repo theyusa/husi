@@ -4,6 +4,7 @@ import fr.husi.BuildConfig
 import fr.husi.aidl.SpeedDisplayData
 import fr.husi.bg.BaseService
 import fr.husi.bg.SpeedStats
+import fr.husi.database.DataStore
 import fr.husi.database.ProxyEntity
 import fr.husi.ktx.Logs
 import fr.husi.ktx.runOnDefaultDispatcher
@@ -20,7 +21,7 @@ class ProxyInstance(profile: ProxyEntity, var service: BaseService.Interface? = 
     override fun buildConfig() {
         super.buildConfig()
         Logs.d(config.config)
-        if (BuildConfig.DEBUG) Logs.d("trafficMap: " + config.trafficMap.toString())
+        if (DataStore.isExpert) Logs.d("trafficMap: " + config.trafficMap.toString())
     }
 
     override suspend fun init(isVPN: Boolean) {

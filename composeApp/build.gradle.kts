@@ -210,7 +210,6 @@ val generateBuildConfig by tasks.registering {
             |    const val VERSION_NAME = "$versionName"
             |    const val VERSION_CODE = $versionCode
             |    const val FLAVOR = ""
-            |    val DEBUG = System.getProperty("husi.debug")?.toBoolean() ?: false
             |}
             """.trimMargin(),
         )

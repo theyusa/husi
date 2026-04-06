@@ -70,7 +70,6 @@ import fr.husi.ktx.asKxsMap
 import fr.husi.ktx.toJsonObjectKxs
 import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.defaultOr
-import fr.husi.ktx.isExpert
 import fr.husi.ktx.isIpAddress
 import fr.husi.ktx.kxs
 import fr.husi.ktx.listByLineOrComma
@@ -259,7 +258,7 @@ fun buildConfig(
     return MyOptions().apply {
         if (!forTest) experimental = ExperimentalOptions().apply {
             if (!forExport) {
-                if (isExpert) DataStore.debugListen.blankAsNull()?.let {
+                if (DataStore.isExpert) DataStore.debugListen.blankAsNull()?.let {
                     debug = SingBoxOptions.DebugOptions().apply {
                         listen = it
                     }

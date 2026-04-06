@@ -82,13 +82,7 @@ fun AboutScreen(
     val listState = rememberLazyListState()
     val scrollHideVisible by rememberScrollHideState(listState)
 
-    val displayVersion = remember {
-        var displayVersion = "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})"
-        if (BuildConfig.DEBUG) {
-            displayVersion += " DEBUG"
-        }
-        displayVersion
-    }
+    val displayVersion = remember { "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})" }
     val releaseLink = remember {
         val isPreVersion = Libcore.isPreRelease(BuildConfig.VERSION_NAME)
         if (isPreVersion) {
