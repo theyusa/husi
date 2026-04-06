@@ -233,8 +233,8 @@ class MainViewModel(
         when (text.substringBefore("://", "").lowercase()) {
             "http", "https" -> _uiEvent.emit(
                 MainViewModelUiEvent.AlertDialog(
-                    title = StringOrRes.Res(Res.string.profile_import),
-                    message = StringOrRes.Direct(text),
+                    title = StringOrRes.Res(Res.string.import_url),
+                    message = StringOrRes.Res(Res.string.import_http_url),
                     confirmButton = AlertButton(StringOrRes.Res(Res.string.subscription_import)) {
                         importSubscription(text)
                     },

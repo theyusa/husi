@@ -148,6 +148,7 @@ import fr.husi.resources.copy_success
 import fr.husi.resources.custom_config
 import fr.husi.resources.delete_confirm_prompt
 import fr.husi.resources.ecg
+import fr.husi.resources.error
 import fr.husi.resources.group_order_by_delay
 import fr.husi.resources.group_order_by_name
 import fr.husi.resources.group_order_origin
@@ -161,6 +162,7 @@ import fr.husi.resources.ok
 import fr.husi.resources.plugin_unknown
 import fr.husi.resources.proxy_chain
 import fr.husi.resources.proxy_set
+import fr.husi.resources.question_mark
 import fr.husi.resources.remove_duplicate
 import fr.husi.resources.removed
 import fr.husi.resources.search
@@ -171,6 +173,7 @@ import fr.husi.ui.MainViewModel
 import fr.husi.ui.MainViewModelUiEvent
 import fr.husi.ui.NavRoutes
 import fr.husi.ui.getStringOrRes
+import fr.husi.ui.stringOrRes
 import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
@@ -190,6 +193,7 @@ fun ConfigurationScreen(
     val snackbarState = remember { SnackbarHostState() }
     var scrollHideVisible by remember { mutableStateOf(true) }
     var fabHeight by remember { mutableIntStateOf(0) }
+    var showAlertDialog by remember { mutableStateOf<MainViewModelUiEvent.AlertDialog?>(null) }
     val clipboard = LocalClipboard.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val focusManager = LocalFocusManager.current
@@ -761,9 +765,43 @@ fun ConfigurationScreen(
                     event.callback(result)
                 }
 
-                else -> {}
+                is MainViewModelUiEvent.AlertDialog -> showAlertDialog = event
             }
         }
+    }
+
+    showAlertDialog?.let { dialog ->
+        ScrollableDialog(
+            onDismissRequest = { showAlertDialog = null },
+            confirmButton = {
+                TextButton(stringOrRes(dialog.confirmButton.label)) {
+                    dialog.confirmButton.onClick()
+                    showAlertDialog = null
+                }
+            },
+            dismissButton = dialog.dismissButton?.let { button ->
+                {
+                    TextButton(stringOrRes(button.label)) {
+                        button.onClick()
+                        showAlertDialog = null
+                    }
+                }
+            },
+            icon = {
+                Icon(
+                    vectorResource(
+                        if (dialog.dismissButton != null) {
+                            Res.drawable.question_mark
+                        } else {
+                            Res.drawable.error
+                        },
+                    ),
+                    null,
+                )
+            },
+            title = { Text(stringOrRes(dialog.title)) },
+            text = { Text(stringOrRes(dialog.message)) },
+        )
     }
 }
 
