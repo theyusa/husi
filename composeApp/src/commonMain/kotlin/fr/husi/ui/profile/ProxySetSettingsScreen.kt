@@ -4,7 +4,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,12 +18,10 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
-import fr.husi.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
-import fr.husi.compose.material3.Text
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -47,6 +44,8 @@ import com.ernestoyaquello.dragdropswipelazycolumn.config.DraggableSwipeableItem
 import fr.husi.compose.DurationTextField
 import fr.husi.compose.TooltipIconButton
 import fr.husi.compose.UIntegerTextField
+import fr.husi.compose.material3.Icon
+import fr.husi.compose.material3.Text
 import fr.husi.database.ProxyEntity
 import fr.husi.database.displayType
 import fr.husi.fmt.internal.ProxySetBean
@@ -269,7 +268,8 @@ private fun LazyListScope.proxySetSettings(
                 },
                 type = ListPreferenceType.DROPDOWN_MENU,
                 valueToText = { id ->
-                    val text = uiState.groups[id]?.displayName() ?: stringResource(Res.string.not_set)
+                    val text =
+                        uiState.groups[id]?.displayName() ?: stringResource(Res.string.not_set)
                     AnnotatedString(text)
                 },
             )
@@ -294,10 +294,10 @@ private fun LazyListScope.proxySetSettings(
 
     item("add_profile", 2) {
         ElevatedCard(
+            onClick = onAdd,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(4.dp)
-                .clickable(onClick = onAdd),
+                .padding(4.dp),
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceContainer,

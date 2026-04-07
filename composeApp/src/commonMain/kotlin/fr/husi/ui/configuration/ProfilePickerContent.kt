@@ -3,6 +3,8 @@
 package fr.husi.ui.configuration
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -15,12 +17,9 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.material3.AppBarWithSearch
 import androidx.compose.material3.ExperimentalMaterial3Api
-import fr.husi.compose.material3.Icon
-import fr.husi.compose.material3.PrimaryScrollableTabRow
 import androidx.compose.material3.SearchBarDefaults
+import androidx.compose.material3.SearchBarValue
 import androidx.compose.material3.SnackbarHostState
-import fr.husi.compose.material3.Tab
-import fr.husi.compose.material3.Text
 import androidx.compose.material3.rememberSearchBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -42,6 +41,10 @@ import androidx.compose.ui.util.fastCoerceIn
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.husi.compose.SimpleIconButton
+import fr.husi.compose.material3.Icon
+import fr.husi.compose.material3.PrimaryScrollableTabRow
+import fr.husi.compose.material3.Tab
+import fr.husi.compose.material3.Text
 import fr.husi.database.DataStore
 import fr.husi.database.ProfileManager
 import fr.husi.ktx.onIoDispatcher
@@ -146,9 +149,31 @@ fun ProfilePickerContent(
 ) {
     val focusManager = LocalFocusManager.current
     val searchBarState = rememberSearchBarState()
+    val searchFieldInteractionSource = remember { MutableInteractionSource() }
+    var allowSearchInput by remember { mutableStateOf(false) }
     val appBarColors = SearchBarDefaults.appBarWithSearchColors()
     val scrollBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior()
     val windowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)
+
+    LaunchedEffect(searchBarState.currentValue) {
+        when (searchBarState.currentValue) {
+            SearchBarValue.Collapsed -> allowSearchInput = false
+            SearchBarValue.Expanded -> if (!allowSearchInput) {
+                focusManager.clearFocus()
+            }
+        }
+    }
+    LaunchedEffect(searchFieldInteractionSource) {
+        searchFieldInteractionSource.interactions.collect { interaction ->
+            if (
+                interaction is PressInteraction.Press &&
+                searchBarState.currentValue == SearchBarValue.Expanded &&
+                !allowSearchInput
+            ) {
+                allowSearchInput = true
+            }
+        }
+    }
 
     Column(
         modifier = modifier
@@ -166,6 +191,7 @@ fun ProfilePickerContent(
                         textFieldState = state.searchTextFieldState,
                         searchBarState = searchBarState,
                         onSearch = { focusManager.clearFocus() },
+                        readOnly = !allowSearchInput,
                         placeholder = { Text(stringResource(Res.string.search_go)) },
                         leadingIcon = {
                             Icon(vectorResource(Res.drawable.search), null)
@@ -182,6 +208,7 @@ fun ProfilePickerContent(
                             null
                         },
                         colors = appBarColors.searchBarColors.inputFieldColors,
+                        interactionSource = searchFieldInteractionSource,
                     )
                 },
                 navigationIcon = {
