@@ -1,0 +1,119 @@
+name: Android Manual Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: Branch, tag, or commit to build
+        required: true
+        default: dev
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    env:
+      KEYSTORE_PASS: android
+      ALIAS_NAME: androiddebugkey
+      ALIAS_PASS: android
+    steps:
+      - name: Checkout selected ref
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch }}
+          fetch-depth: 0
+
+      - name: Prepare git for GitHub submodules
+        run: |
+          git config --global url."https://github.com/".insteadOf git@github.com:
+          git submodule sync --recursive
+          git submodule update --init --recursive
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.26.1'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android NDK 29
+        run: |
+          sdkmanager --install 'ndk;29.0.14206865'
+
+      - name: Export Android environment
+        run: |
+          echo "ANDROID_HOME=${ANDROID_SDK_ROOT}" >> "$GITHUB_ENV"
+          echo "ANDROID_NDK_HOME=${ANDROID_SDK_ROOT}/ndk/29.0.14206865" >> "$GITHUB_ENV"
+          echo "NDK=${ANDROID_SDK_ROOT}/ndk/29.0.14206865" >> "$GITHUB_ENV"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Create local.properties
+        run: |
+          printf 'sdk.dir=%s\n' "$ANDROID_HOME" > local.properties
+
+      - name: Generate debug keystore for release signing
+        run: |
+          rm -f release.keystore
+          keytool -genkeypair \
+            -alias "$ALIAS_NAME" \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -storetype PKCS12 \
+            -keystore release.keystore \
+            -storepass "$KEYSTORE_PASS" \
+            -keypass "$ALIAS_PASS" \
+            -dname 'CN=Android Debug,O=Android,C=US'
+
+      - name: Compute automatic version
+        id: version
+        shell: bash
+        run: |
+          base_version=$(grep '^VERSION_NAME=' husi.properties | cut -d= -f2)
+          base_code=$(grep '^VERSION_CODE=' husi.properties | cut -d= -f2)
+          branch_slug=$(printf '%s' '${{ inputs.branch }}' | tr '[:upper:]' '[:lower:]' | sed 's#[^a-z0-9._-]#-#g' | sed 's#-\{2,\}#-#g' | sed 's#^-##;s#-$##')
+          stamp=$(date -u +'%Y%m%d')
+          auto_version="${base_version}-${branch_slug}-${stamp}.${GITHUB_RUN_NUMBER}"
+          auto_code=$((base_code * 100000 + GITHUB_RUN_NUMBER))
+
+          sed -i "s/^VERSION_NAME=.*/VERSION_NAME=${auto_version}/" husi.properties
+          sed -i "s/^VERSION_CODE=.*/VERSION_CODE=${auto_code}/" husi.properties
+
+          echo "version_name=${auto_version}" >> "$GITHUB_OUTPUT"
+          echo "version_code=${auto_code}" >> "$GITHUB_OUTPUT"
+
+      - name: Build Android prerequisites
+        run: |
+          make libcore_android
+          make assets
+
+      - name: Build signed foss release APK
+        run: |
+          BUILD_PLUGIN=none ./gradlew androidApp:assembleFossRelease --stacktrace
+
+      - name: Collect APKs
+        run: |
+          mkdir -p dist
+          cp androidApp/build/outputs/apk/foss/release/*.apk dist/
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: husi-${{ steps.version.outputs.version_name }}
+          path: |
+            dist/*.apk
+            husi.properties
+          if-no-files-found: error
+          retention-days: 14
