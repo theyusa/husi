@@ -15,7 +15,6 @@ import fr.husi.fmt.v2ray.VLESSBean
 import fr.husi.fmt.v2ray.VMessBean
 import fr.husi.resources.Res
 import fr.husi.resources.warn_hysteria_legacy
-import fr.husi.resources.warn_insecure
 import fr.husi.resources.warn_not_encrypted
 import fr.husi.resources.warn_quic_0_rtt
 import fr.husi.resources.warn_shadowsocks_stream_cipher
@@ -55,45 +54,35 @@ fun AbstractBean.isInsecure(): ValidateResult {
             if (encryption in arrayOf("none", "zero")) {
                 if (!isTLS) return ValidateResult.Insecure(Res.string.warn_not_encrypted)
             }
-            if (allowInsecure) return ValidateResult.Insecure(Res.string.warn_insecure)
         }
 
         is VLESSBean -> {
             if (encryption in arrayOf("", "none")) {
                 if (!isTLS) return ValidateResult.Insecure(Res.string.warn_not_encrypted)
             }
-            if (allowInsecure) return ValidateResult.Insecure(Res.string.warn_insecure)
         }
 
         is TrojanBean -> {
             if (!isTLS) return ValidateResult.Insecure(Res.string.warn_not_encrypted)
-            if (allowInsecure) return ValidateResult.Insecure(Res.string.warn_insecure)
         }
 
         is HysteriaBean -> {
-            if (allowInsecure) return ValidateResult.Insecure(Res.string.warn_insecure)
             if (protocolVersion < HysteriaBean.PROTOCOL_VERSION_2) {
                 return ValidateResult.Deprecated(Res.string.warn_hysteria_legacy)
             }
         }
 
         is TuicBean -> {
-            if (allowInsecure) return ValidateResult.Insecure(Res.string.warn_insecure)
             if (zeroRTT) return ValidateResult.Insecure(Res.string.warn_quic_0_rtt)
         }
 
         is ShadowTLSBean -> {
-            if (allowInsecure) return ValidateResult.Insecure(Res.string.warn_insecure)
             if (protocolVersion < 3) return ValidateResult.Deprecated(Res.string.warn_shadowtls_legacy)
         }
 
-        is JuicityBean -> {
-            if (allowInsecure) return ValidateResult.Insecure(Res.string.warn_insecure)
-        }
+        is JuicityBean -> {}
 
-        is AnyTLSBean -> {
-            if (allowInsecure) return ValidateResult.Insecure(Res.string.warn_insecure)
-        }
+        is AnyTLSBean -> {}
 
         is ShadowQUICBean -> {
             if (zeroRTT) return ValidateResult.Insecure(Res.string.warn_quic_0_rtt)
