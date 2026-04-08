@@ -22,6 +22,7 @@ internal enum class AppLanguage(
     SPANISH("es", "Español"),
     PERSIAN("fa", "فارسی"),
     RUSSIAN("ru", "Русский"),
+    TURKISH("tr", "Türkçe"),
     CHINESE_SIMPLIFIED("zh-Hans-CN", "简体中文"),
     CHINESE_TRADITIONAL_TW("zh-Hant-TW", "繁體中文（台灣）"),
     CHINESE_TRADITIONAL_HK("zh-Hant-HK", "繁體中文（香港）");
