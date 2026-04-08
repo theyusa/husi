@@ -161,8 +161,6 @@
     <string name="invert_selections">معکوس کردن انتخاب ها</string>
     <string name="clear_selections">پاک کردن انتخاب ها</string>
     <string name="bypass_apps">بایپس</string>
-    <string name="auto_connect">ارتباط خودکار</string>
-    <string name="auto_connect_summary">فعال کردن پروکسی در هنگام راه‌اندازی/به‌روزرسانی برنامه اگر قبلاً اجرا می‌شد</string>
     <string name="direct_boot_aware">تغییر در صفحه قفل مجاز است</string>
     <string name="direct_boot_aware_summary">اطلاعات نمایه انتخابی شما کمتر محافظت می شود</string>
     <!-- notification category -->

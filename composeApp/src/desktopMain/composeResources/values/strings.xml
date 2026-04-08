@@ -1,0 +1,4 @@
+<resources>
+    <string name="auto_connect_desktop">Connect at Login</string>
+    <string name="auto_connect_summary_desktop">Launch at login and connect automatically</string>
+</resources>

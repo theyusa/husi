@@ -162,8 +162,6 @@
     <string name="invert_selections">Invertir selecciones</string>
     <string name="clear_selections">Borrar selecciones</string>
     <string name="bypass_apps">Omitir</string>
-    <string name="auto_connect">Conexión automática</string>
-    <string name="auto_connect_summary">Activa el proxy en el inicio/actualización de la aplicación si se estaba ejecutando antes</string>
     <string name="direct_boot_aware">Permitir alternar en pantalla de bloqueo</string>
     <string name="direct_boot_aware_summary">La información de tu perfil seleccionado estará menos protegida</string>
     <!-- notification category -->

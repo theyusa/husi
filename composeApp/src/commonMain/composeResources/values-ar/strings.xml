@@ -185,8 +185,6 @@
     <string name="service_vpn">خدمة VPN</string>
     <string name="direct_boot_aware_summary">ستكون معلومات ملف التعريف المحدد أقل حماية</string>
     <string name="direct_boot_aware">السماح بالتبديل في شاشة القفل</string>
-    <string name="auto_connect_summary">قم بتمكين البروکسی عند تحديث بدء التشغيل/التطبيق إذا كان يعمل من قبل</string>
-    <string name="auto_connect">اتصال تلقائي</string>
     <string name="bypass_apps">ضع جانبا</string>
     <string name="clear_selections">تحديدات واضحة</string>
     <string name="invert_selections">عكس التحديدات</string>

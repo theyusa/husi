@@ -1,6 +1,7 @@
 package fr.husi.ui
 
 import androidx.compose.foundation.lazy.LazyListScope
+import fr.husi.DesktopAutoStart
 import fr.husi.compose.material3.Icon
 import fr.husi.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -12,7 +13,10 @@ import fr.husi.compose.PreferenceType
 import fr.husi.database.DataStore
 import fr.husi.platform.PlatformInfo
 import fr.husi.resources.Res
+import fr.husi.resources.auto_connect_desktop
+import fr.husi.resources.auto_connect_summary_desktop
 import fr.husi.resources.arrow_and_edge
+import fr.husi.resources.phonelink_ring
 import fr.husi.resources.tun_auto_redirect
 import fr.husi.resources.tun_strict_route
 import me.zhanghai.compose.preference.SwitchPreference
@@ -20,6 +24,22 @@ import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 
 internal actual fun LazyListScope.autoConnect() {
+    item(Key.PERSIST_ACROSS_REBOOT, PreferenceType.SWITCH) {
+        val value by DataStore.configurationStore
+            .booleanFlow(Key.PERSIST_ACROSS_REBOOT, false)
+            .collectAsStateWithLifecycle(false)
+        SwitchPreference(
+            value = value,
+            onValueChange = {
+                if (DesktopAutoStart.setEnabled(it)) {
+                    DataStore.persistAcrossReboot = it
+                }
+            },
+            title = { Text(stringResource(Res.string.auto_connect_desktop)) },
+            icon = { Icon(vectorResource(Res.drawable.phonelink_ring), null) },
+            summary = { Text(stringResource(Res.string.auto_connect_summary_desktop)) },
+        )
+    }
 }
 
 @Composable

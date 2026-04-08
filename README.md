@@ -396,6 +396,8 @@ _No bundled JRE for end users_
 
 `--help`, `-h`: Usage info 
 
+`--background`, `-b`: Only start with tray, not open window.
+
 #### Arguments
 
 URLs to import.

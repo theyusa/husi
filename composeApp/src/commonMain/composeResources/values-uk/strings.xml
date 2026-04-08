@@ -271,12 +271,10 @@
     <string name="invert_selections">Інвертувати вибрані</string>
     <string name="clear_selections">Очистити вибрані</string>
     <string name="bypass_apps">Обхід</string>
-    <string name="auto_connect">Автоматичне підключення</string>
     <string name="direct_boot_aware">Дозволити перемикання на екрані блокування</string>
     <string name="direct_boot_aware_summary">Обрана вами інформація профілю буде менш захищеною</string>
     <string name="service_vpn">VPN-сервіс</string>
     <string name="service_proxy">Проксі-сервіс</string>
-    <string name="auto_connect_summary">Увімкнути проксі при запуску/оновленні застосунки, якщо він був запущений до цього</string>
     <string name="settings">Налаштування</string>
     <string name="edit">Редагувати</string>
     <string name="share">Поділитися</string>

@@ -2,6 +2,7 @@ package fr.husi
 
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -71,7 +72,10 @@ fun main(args: Array<String>) {
 
     application {
         val repository = resolveDesktopRepository()
-        var windowVisible by remember { mutableStateOf(true) }
+        val supportTray = remember { isTraySupported }
+        var windowVisible by remember {
+            mutableStateOf(!desktopArgs.background || !supportTray)
+        }
 
         val trayState = rememberTrayState()
         val windowState = rememberWindowState(size = DpSize(1200.dp, 800.dp))
@@ -91,7 +95,11 @@ fun main(args: Array<String>) {
         }
 
         DesktopResourceEnvironmentFix {
-            val supportTray = remember { isTraySupported }
+            LaunchedEffect(desktopArgs.autoStart) {
+                if (shouldAutoConnectOnLaunch(desktopArgs)) {
+                    repository.startService()
+                }
+            }
             if (supportTray) {
                 // In fact, whether on macOS, Windows, or Linux, the advanced tray consistently throws "java.lang.UnsupportedOperationException: java.awt.Menu doesn't support mnemonic."
                 val supportAdvancedTray = false
@@ -200,9 +208,11 @@ private fun registerMacOSOpenUriHandler() {
     }
 }
 
-private data class DesktopStartupArgs(
+internal data class DesktopStartupArgs(
     val baseDir: File?,
     val logLevelOverride: Int?,
+    val autoStart: Boolean,
+    val background: Boolean,
     val many: Boolean,
     val deepLinks: List<String>,
 )
@@ -227,6 +237,17 @@ private fun parseDesktopStartupArgs(args: Array<String>): DesktopStartupArgs {
         shortName = "m",
         description = "Ignore exist instance",
     )
+    val autoStart by parser.option(
+        type = ArgType.Boolean,
+        fullName = "autostart",
+        description = "[Internal use] Started by system autostart. This option should only be added by program itself, not by users.",
+    )
+    val background by parser.option(
+        type = ArgType.Boolean,
+        fullName = "background",
+        shortName = "b",
+        description = "Start without opening the main window",
+    )
     val links by parser.argument(
         type = ArgType.String,
         fullName = "deep-link",
@@ -236,6 +257,8 @@ private fun parseDesktopStartupArgs(args: Array<String>): DesktopStartupArgs {
     return DesktopStartupArgs(
         baseDir = baseDir?.blankAsNull()?.let(::File),
         logLevelOverride = logLevel?.takeIf { it in MIN_LOG_LEVEL..MAX_LOG_LEVEL },
+        autoStart = autoStart == true,
+        background = background == true,
         many = many == true,
         deepLinks = links,
     )
@@ -249,12 +272,15 @@ private fun initDesktopRuntime(startupArgs: DesktopStartupArgs) {
         ?: File(System.getProperty("user.home"), ".config").resolve("husi")
     baseDir.mkdirs()
     val repository = DesktopRepository(baseDir)
+    DesktopAutoStart.initialize()
     initHusiKoin(repository)
     val filesDir = repository.filesDir.absolutePath + "/"
 
     if (!startupArgs.many) {
         when (checkExistingInstance(filesDir, startupArgs.deepLinks)) {
             ExistingInstanceCheckResult.NotFound -> Unit
+            ExistingInstanceCheckResult.ExistsNoDeepLink
+                if (startupArgs.autoStart) -> exitApplication()
             ExistingInstanceCheckResult.ExistsNoDeepLink,
             ExistingInstanceCheckResult.ExistsForwardFailed,
                 -> warnForExistInstanceAndExit(filesDir)
@@ -287,6 +313,13 @@ private fun initDesktopRuntime(startupArgs: DesktopStartupArgs) {
     )
     loadCA(DataStore.certProvider)
     repository.boxService?.start()
+}
+
+private fun shouldAutoConnectOnLaunch(startupArgs: DesktopStartupArgs): Boolean {
+    return startupArgs.autoStart &&
+            DataStore.persistAcrossReboot &&
+            DataStore.selectedProxy > 0L &&
+            !DataStore.serviceState.started
 }
 
 private enum class ExistingInstanceCheckResult {
