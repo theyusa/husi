@@ -41,8 +41,8 @@
     <string name="security_settings">TLS guvenlik ayarlari</string>
     <string name="allow_insecure">Guvensize izin ver</string>
     <string name="allow_insecure_sum">Sertifika denetimini kapatir. Etkin oldugunda bu yapilandirma duz metin kadar guvensiz olur</string>
-    <string name="global_allow_insecure">Global Allow Insecure</string>
-    <string name="global_allow_insecure_sum">Ayarlardan tum TLS profillerine otomatik olarak Allow Insecure uygula</string>
+    <string name="allow_insecure_global">Global Allow Insecure</string>
+    <string name="allow_insecure_global_sum">Ayarlardan tum TLS profillerine otomatik olarak Allow Insecure uygula</string>
     <string name="remote_dns">Uzak DNS</string>
     <string name="direct_dns">Dogrudan DNS</string>
     <string name="enable_fakedns">FakeDNS'i etkinlestir</string>

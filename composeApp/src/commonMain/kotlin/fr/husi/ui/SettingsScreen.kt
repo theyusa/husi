@@ -651,14 +651,14 @@ fun SettingsScreen(
                         SwitchPreference(
                             value = value,
                             onValueChange = { DataStore.globalAllowInsecure = it },
-                            title = { Text(stringResource(Res.string.global_allow_insecure)) },
+                            title = { Text(stringResource(Res.string.allow_insecure_global)) },
                             icon = {
                                 Icon(
                                     vectorResource(Res.drawable.security),
                                     null,
                                 )
                             },
-                            summary = { Text(stringResource(Res.string.global_allow_insecure_sum)) },
+                            summary = { Text(stringResource(Res.string.allow_insecure_global_sum)) },
                         )
                     }
                     platformSecurityOptions()
