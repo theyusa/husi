@@ -217,7 +217,7 @@
     <string name="vpn_connected">Подключено, нажмите для проверки соединения</string>
     <string name="connecting">Подключение…</string>
     <string name="deprecated">Устарело</string>
-    <string name="insecure">Ненадежный</string>
+    <string name="insecure">Небезопасный</string>
     <string name="undo">Отменить</string>
     <string name="add_profile_methods_manual_settings">Ручные настройки</string>
     <string name="add_profile_methods_scan_qr_code">Отсканировать QR-код</string>
@@ -368,7 +368,7 @@
     <string name="menu_traffic">Трафик</string>
     <string name="no_statistics">Статистики пока нет</string>
     <string name="clear_logcat">Очистить журнал</string>
-    <string name="menu_log">Журнал</string>
+    <string name="menu_log">Журналы</string>
     <string name="menu_tools">Инструменты</string>
     <string name="translate_platform">Платформа локализации</string>
     <string name="ssh_private_key_passphrase">Парольная фраза закрытого ключа</string>
@@ -387,7 +387,7 @@
     <string name="wireguard_public_key">Открытый ключ сервера</string>
     <string name="wireguard_psk">Пароль сервера</string>
     <string name="naive_insecure_concurrency">Небезопасный параллелизм</string>
-    <string name="naive_insecure_concurrency_summary">Использовать N параллельных соединений для повышения отказоустойчивости в условиях ненадёжной сети. Большее число соединений увеличивает риск обнаружения туннелей и снижает безопасность. Этот проект стремится к максимальной защите от анализа трафика, следовательно, использование его небезопасным образом противоречит данной цели.\n\nЕсли придётся использовать данную функцию, попробуйте N=2, чтобы проверить, решит ли это проблему. Настоятельно не рекомендуется использовать более 4 соединений.</string>
+    <string name="naive_insecure_concurrency_summary">Использовать N параллельных соединений для повышения отказоустойчивости в условиях ненадёжной сети. Большее число соединений увеличивает риск обнаружения туннелей и снижает безопасность. Этот проект стремится к максимальной защите от анализа трафика, следовательно, использование его небезопасным образом противоречит данной цели.\n\nЕсли придётся использовать данную функциональность, попробуйте N=2, чтобы проверить, решит ли это проблему. Настоятельно не рекомендуется использовать более 4 соединений.</string>
     <string name="resolve_destination">Резолвить адрес назначения</string>
     <string name="start">Старт</string>
     <string name="stun_attest_loading">Это может занять несколько минут…</string>
@@ -413,7 +413,7 @@
     <string name="log_level">Тип журнала</string>
     <string name="landing_proxy">Конечный прокси</string>
     <string name="show_group_in_notification">Показывать название группы в уведомлении</string>
-    <string name="menu_dashboard">Панель</string>
+    <string name="menu_dashboard">Панель sing-box</string>
     <string name="action_copy">Копировать</string>
     <string name="mux_sum">Mux снижает задержку соединения, но не увеличивает его пропускную способность. Неэффективен для просмотра видео, загрузок и тестов скорости. Необходима поддержка на стороне сервера.</string>
     <string name="mux_type">Протокол мультиплексирования</string>
@@ -475,7 +475,7 @@
     <string name="location_permission_title">Разрешение геолокации</string>
     <string name="hysteria2_provider">Провайдер Hysteria2</string>
     <string name="authenticated_length">Аутентифицированнная длина</string>
-    <string name="insecure_warn">Советы по безопасности</string>
+    <string name="insecure_warn">Предупреждение о небезопасных прокси</string>
     <string name="experimental_authenticated_length">Сделать длину каждого сегмента полезной нагрузки фиксированной. • Требуется, чтобы клиент и сервер использовали одинаковую версию v2ray-core. Ожидаются обновления, потенциально нарушающие обратную совместимость.</string>
     <string name="keep_default">Оставить по умолчанию</string>
     <string name="action_flash_on">Включить вспышку</string>
