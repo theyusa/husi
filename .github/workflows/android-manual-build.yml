@@ -13,8 +13,138 @@ permissions:
   contents: read
 
 jobs:
-  build-android:
+  libcore:
+    name: Native Build (LibCore)
     runs-on: ubuntu-latest
+    steps:
+      - name: Checkout selected ref
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch }}
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Golang status
+        run: find buildScript libcore/*.sh | xargs cat | sha1sum > golang_status
+
+      - name: Libcore status
+        run: git ls-files libcore | xargs cat | sha1sum > libcore_status
+
+      - name: Cache libcore artifacts
+        id: cache-libcore
+        uses: actions/cache@v4
+        with:
+          path: composeApp/libs
+          key: ${{ runner.os }}-manual-libcore-${{ hashFiles('.github/workflows/*', '.github/CRONET_GO_VERSION', 'golang_status', 'libcore_status') }}
+
+      - name: Verify libcore cache
+        id: verify-libcore
+        run: |
+          missing=0
+          required_files=(
+            "composeApp/libs/libcore.aar"
+            "composeApp/libs/libcore-desktop-linux-amd64.jar"
+          )
+          for file in "${required_files[@]}"; do
+            if [ ! -f "$file" ]; then
+              echo "Missing required libcore artifact: $file"
+              missing=1
+            fi
+          done
+          if [ "$missing" -eq 0 ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Resolve Go version
+        if: steps.verify-libcore.outputs.ready != 'true'
+        id: go-version
+        run: |
+          source buildScript/init/version.sh
+          echo "go_version=$GO_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Go
+        if: steps.verify-libcore.outputs.ready != 'true'
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ steps.go-version.outputs.go_version }}
+          cache-dependency-path: libcore/go.sum
+
+      - name: Set up JDK 21
+        if: steps.verify-libcore.outputs.ready != 'true'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Android NDK
+        if: steps.verify-libcore.outputs.ready != 'true'
+        id: setup-ndk
+        uses: nttld/setup-ndk@v1
+        with:
+          add-to-path: true
+          ndk-version: r29
+          local-cache: false
+
+      - name: Resolve cronet-go version
+        if: steps.verify-libcore.outputs.ready != 'true'
+        id: cronet-go-version
+        run: |
+          echo "version=$(tr -d '[:space:]' < .github/CRONET_GO_VERSION)" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout cronet-go
+        if: steps.verify-libcore.outputs.ready != 'true'
+        uses: actions/checkout@v4
+        with:
+          repository: sagernet/cronet-go
+          ref: ${{ steps.cronet-go-version.outputs.version }}
+          path: cronet-go
+          submodules: recursive
+          fetch-depth: 1
+
+      - name: Cache Chromium toolchain
+        if: steps.verify-libcore.outputs.ready != 'true'
+        uses: actions/cache@v4
+        with:
+          path: |
+            cronet-go/naiveproxy/src/third_party/llvm-build/
+            cronet-go/naiveproxy/src/gn/out/
+            cronet-go/naiveproxy/src/chrome/build/pgo_profiles/
+            cronet-go/naiveproxy/src/out/sysroot-build/
+          key: cronet-toolchain-linux-amd64-${{ steps.cronet-go-version.outputs.version }}
+
+      - name: Download Chromium toolchain
+        if: steps.verify-libcore.outputs.ready != 'true'
+        run: |
+          set -xeuo pipefail
+          rm -f "$GITHUB_WORKSPACE/cronet-go/naiveproxy/src/build/linux/sysroot_scripts/keyring.gpg"
+          cd "$GITHUB_WORKSPACE/cronet-go"
+          GPG_TTY=/dev/null ./naiveproxy/src/build/linux/sysroot_scripts/generate_keyring.sh
+          go run ./cmd/build-naive --target=linux/amd64 download-toolchain
+
+      - name: Build libcore artifacts
+        if: steps.verify-libcore.outputs.ready != 'true'
+        env:
+          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+        run: |
+          export CRONET_GO_ROOT="$GITHUB_WORKSPACE/cronet-go"
+          ./run lib core --android --desktop --desktoptargets linux/amd64
+
+      - name: Upload libcore artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: libcore
+          path: |
+            composeApp/libs/libcore.aar
+            composeApp/libs/libcore-desktop-linux-amd64.jar
+          if-no-files-found: error
+          retention-days: 14
+
+  build-android:
+    name: Build signed FOSS APK
+    runs-on: ubuntu-latest
+    needs: libcore
     env:
       KEYSTORE_PASS: android
       ALIAS_NAME: androiddebugkey
@@ -25,12 +155,22 @@ jobs:
         with:
           ref: ${{ inputs.branch }}
           fetch-depth: 0
+          submodules: recursive
 
-      - name: Prepare git for GitHub submodules
+      - name: Download libcore artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: libcore
+          path: composeApp/libs
+
+      - name: Verify libcore artifacts
         run: |
-          git config --global url."https://github.com/".insteadOf git@github.com:
-          git submodule sync --recursive
-          git submodule update --init --recursive
+          ls -la composeApp/libs || true
+          test -f composeApp/libs/libcore.aar
+          test -f composeApp/libs/libcore-desktop-linux-amd64.jar
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
@@ -38,30 +178,42 @@ jobs:
           distribution: temurin
           java-version: '21'
 
+      - name: Resolve Go version
+        id: go-version
+        run: |
+          source buildScript/init/version.sh
+          echo "go_version=$GO_VERSION" >> "$GITHUB_OUTPUT"
+
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.26.1'
-
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Install Android NDK 29
-        run: |
-          sdkmanager --install 'ndk;29.0.14206865'
-
-      - name: Export Android environment
-        run: |
-          echo "ANDROID_HOME=${ANDROID_SDK_ROOT}" >> "$GITHUB_ENV"
-          echo "ANDROID_NDK_HOME=${ANDROID_SDK_ROOT}/ndk/29.0.14206865" >> "$GITHUB_ENV"
-          echo "NDK=${ANDROID_SDK_ROOT}/ndk/29.0.14206865" >> "$GITHUB_ENV"
+          go-version: ${{ steps.go-version.outputs.go_version }}
+          cache-dependency-path: libcore/go.sum
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
 
+      - name: Compute automatic version
+        id: version
+        shell: bash
+        run: |
+          base_version=$(grep '^VERSION_NAME=' husi.properties | cut -d= -f2)
+          base_code=$(grep '^VERSION_CODE=' husi.properties | cut -d= -f2)
+          branch_slug=$(printf '%s' '${{ inputs.branch }}' | tr '[:upper:]' '[:lower:]' | sed 's#[^a-z0-9._-]#-#g' | sed 's#-\{2,\}#-#g' | sed 's#^-##;s#-$##')
+          stamp=$(date -u +'%Y%m%d')
+          auto_version="${base_version}-${branch_slug}-${stamp}.${GITHUB_RUN_NUMBER}"
+          auto_code=$((base_code * 100000 + GITHUB_RUN_NUMBER))
+          sed -i "s/^VERSION_NAME=.*/VERSION_NAME=${auto_version}/" husi.properties
+          sed -i "s/^VERSION_CODE=.*/VERSION_CODE=${auto_code}/" husi.properties
+          echo "version_name=${auto_version}" >> "$GITHUB_OUTPUT"
+          echo "version_code=${auto_code}" >> "$GITHUB_OUTPUT"
+
       - name: Create local.properties
         run: |
-          printf 'sdk.dir=%s\n' "$ANDROID_HOME" > local.properties
+          echo "sdk.dir=${ANDROID_HOME}" > local.properties
+          echo "KEYSTORE_PASS=${KEYSTORE_PASS}" >> local.properties
+          echo "ALIAS_NAME=${ALIAS_NAME}" >> local.properties
+          echo "ALIAS_PASS=${ALIAS_PASS}" >> local.properties
 
       - name: Generate debug keystore for release signing
         run: |
@@ -77,31 +229,19 @@ jobs:
             -keypass "$ALIAS_PASS" \
             -dname 'CN=Android Debug,O=Android,C=US'
 
-      - name: Compute automatic version
-        id: version
-        shell: bash
+      - name: Prepare Gradle assets
         run: |
-          base_version=$(grep '^VERSION_NAME=' husi.properties | cut -d= -f2)
-          base_code=$(grep '^VERSION_CODE=' husi.properties | cut -d= -f2)
-          branch_slug=$(printf '%s' '${{ inputs.branch }}' | tr '[:upper:]' '[:lower:]' | sed 's#[^a-z0-9._-]#-#g' | sed 's#-\{2,\}#-#g' | sed 's#^-##;s#-$##')
-          stamp=$(date -u +'%Y%m%d')
-          auto_version="${base_version}-${branch_slug}-${stamp}.${GITHUB_RUN_NUMBER}"
-          auto_code=$((base_code * 100000 + GITHUB_RUN_NUMBER))
+          ./run init action gradle
 
-          sed -i "s/^VERSION_NAME=.*/VERSION_NAME=${auto_version}/" husi.properties
-          sed -i "s/^VERSION_CODE=.*/VERSION_CODE=${auto_code}/" husi.properties
-
-          echo "version_name=${auto_version}" >> "$GITHUB_OUTPUT"
-          echo "version_code=${auto_code}" >> "$GITHUB_OUTPUT"
-
-      - name: Build Android prerequisites
+      - name: Export library definitions
         run: |
-          make libcore_android
-          make assets
+          ./gradlew :composeApp:exportLibraryDefinitions
 
       - name: Build signed foss release APK
+        env:
+          BUILD_PLUGIN: none
         run: |
-          BUILD_PLUGIN=none ./gradlew androidApp:assembleFossRelease -PskipDesktopLibcore=true --stacktrace
+          ./gradlew clean androidApp:assembleFossRelease --stacktrace
 
       - name: Collect APKs
         run: |

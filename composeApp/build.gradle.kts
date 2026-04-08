@@ -171,8 +171,6 @@ val requestedDesktopTarget =
     } else {
         null
     }
-val skipDesktopLibcore =
-    project.findProperty("skipDesktopLibcore")?.toString()?.toBooleanStrictOrNull() == true
 val desktopTarget = requestedDesktopTarget ?: resolveHostDesktopTarget()
 val hostDesktopTarget = resolveHostDesktopTarget()
 val composeDesktopVersion = libs.versions.composeMultiplatform.get()
@@ -180,16 +178,12 @@ val composeDesktopVersion = libs.versions.composeMultiplatform.get()
 val desktopJarName = desktopTarget.libcoreDesktopJarName
 val desktopJarFile = layout.projectDirectory.file("libs/$desktopJarName").asFile
 val libcoreDesktopJar =
-    if (skipDesktopLibcore) {
-        files()
-    } else {
-        files({
-            require(desktopJarFile.isFile) {
-                "Missing desktop libcore jar '${desktopJarFile.path}'. Build it first, e.g. make libcore_desktop DESKTOP_TARGETS=$desktopTarget."
-            }
-            desktopJarFile
-        })
-    }
+    files({
+        require(desktopJarFile.isFile) {
+            "Missing desktop libcore jar '${desktopJarFile.path}'. Build it first, e.g. make libcore_desktop DESKTOP_TARGETS=$desktopTarget."
+        }
+        desktopJarFile
+    })
 val desktopPackageName = metadata.getProperty("PACKAGE_NAME").trim()
 val desktopVersion = metadata.getProperty("VERSION_NAME").trim()
 val macPackageVersion = normalizeMacPackageVersion(desktopVersion)
