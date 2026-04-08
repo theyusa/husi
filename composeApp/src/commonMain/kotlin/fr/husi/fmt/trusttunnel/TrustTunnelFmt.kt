@@ -1,6 +1,7 @@
 package fr.husi.fmt.trusttunnel
 
 import fr.husi.fmt.SingBoxOptions
+import fr.husi.fmt.effectiveAllowInsecure
 import fr.husi.ktx.blankAsNull
 import fr.husi.ktx.emptyAsNull
 import fr.husi.ktx.listByLineOrComma
@@ -50,7 +51,7 @@ fun buildSingBoxOutboundTrustTunnelBean(bean: TrustTunnelBean): SingBoxOptions.O
         tls = SingBoxOptions.OutboundTLSOptions().apply {
             enabled = true
             server_name = bean.serverName.blankAsNull()
-            if (bean.allowInsecure) insecure = true
+            if (effectiveAllowInsecure(bean.allowInsecure)) insecure = true
             alpn = bean.alpn.blankAsNull()?.listByLineOrComma()?.toMutableList()
             certificate = bean.certificates.blankAsNull()?.lines()?.toMutableList()
             certificate_public_key_sha256 = bean.certPublicKeySha256

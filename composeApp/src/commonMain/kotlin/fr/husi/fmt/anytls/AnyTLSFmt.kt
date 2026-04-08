@@ -1,6 +1,7 @@
 package fr.husi.fmt.anytls
 
 import fr.husi.fmt.SingBoxOptions
+import fr.husi.fmt.effectiveAllowInsecure
 import fr.husi.fmt.parseBoxOutbound
 import fr.husi.fmt.parseBoxTLS
 import fr.husi.ktx.JSONMap
@@ -50,7 +51,7 @@ fun buildSingBoxOutboundAnyTLSBean(bean: AnyTLSBean): SingBoxOptions.Outbound_An
         tls = SingBoxOptions.OutboundTLSOptions().apply {
             enabled = true
             server_name = bean.serverName.blankAsNull()
-            if (bean.allowInsecure) insecure = true
+            if (effectiveAllowInsecure(bean.allowInsecure)) insecure = true
             if (bean.disableSNI) disable_sni = true
             alpn = bean.alpn.blankAsNull()?.listByLineOrComma()?.toMutableList()
             certificate = bean.certificates.blankAsNull()?.lines()?.toMutableList()

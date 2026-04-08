@@ -131,6 +131,7 @@ object DataStore {
     var dnsHosts by configurationStore.string(Key.DNS_HOSTS)
 
     var securityAdvisory by configurationStore.boolean(Key.SECURITY_ADVISORY) { true }
+    var globalAllowInsecure by configurationStore.boolean(Key.GLOBAL_ALLOW_INSECURE) { false }
     var rulesProvider by configurationStore.int(Key.RULES_PROVIDER)
     var customRuleProvider by configurationStore.string(Key.CUSTOM_RULE_PROVIDER)
     var logLevel by configurationStore.int(Key.LOG_LEVEL) { 3 /* WARN */ }

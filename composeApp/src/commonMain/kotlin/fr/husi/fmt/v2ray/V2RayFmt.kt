@@ -25,6 +25,7 @@ import fr.husi.fmt.SingBoxOptions.V2RayTransportOptions_V2RayQUICOptions
 import fr.husi.fmt.SingBoxOptions.V2RayTransportOptions_V2RayWebsocketOptions
 import fr.husi.fmt.buildHeader
 import fr.husi.fmt.buildSingBoxMux
+import fr.husi.fmt.effectiveAllowInsecure
 import fr.husi.fmt.http.HttpBean
 import fr.husi.fmt.listable
 import fr.husi.fmt.parseBoxOutbound
@@ -485,7 +486,7 @@ fun buildSingBoxOutboundTLS(bean: StandardV2RayBean): OutboundTLSOptions? {
     if (bean.security != "tls") return null
     return OutboundTLSOptions().apply {
         enabled = true
-        if (bean.allowInsecure) insecure = true
+        if (effectiveAllowInsecure(bean.allowInsecure)) insecure = true
         if (bean.disableSNI) disable_sni = true
         if (bean.sni.isNotBlank()) server_name = bean.sni
         alpn = bean.alpn.blankAsNull()?.listByLineOrComma()?.toMutableList()

@@ -1,5 +1,6 @@
 package fr.husi.fmt.tuic
 
+import fr.husi.database.DataStore
 import fr.husi.fmt.FmtTestConstant
 import fr.husi.fmt.SingBoxOptions
 import fr.husi.ktx.JSONMap
@@ -108,6 +109,26 @@ class TuicFmtTest {
         assertEquals(echOpts.enabled, true)
         assertEquals(listOf("ech-config"), echOpts.config?.toList())
         assertEquals("ech.example.com", echOpts.query_server_name)
+    }
+
+    @Test
+    fun `buildSingBoxOutboundTuicBean should honor global allow insecure`() {
+        DataStore.globalAllowInsecure = true
+        try {
+            val bean = TuicBean().apply {
+                serverAddress = "example.com"
+                serverPort = 9443
+                uuid = "test-uuid"
+                token = "token123"
+            }
+
+            val outbound = buildSingBoxOutboundTuicBean(bean)
+
+            val tls = assertNotNull(outbound.tls)
+            assertEquals(true, tls.insecure)
+        } finally {
+            DataStore.globalAllowInsecure = false
+        }
     }
 
     @Test

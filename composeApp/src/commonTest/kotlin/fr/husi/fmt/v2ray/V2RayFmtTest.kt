@@ -1,5 +1,6 @@
 package fr.husi.fmt.v2ray
 
+import fr.husi.database.DataStore
 import fr.husi.fmt.SingBoxOptions
 import fr.husi.fmt.FmtTestConstant
 import fr.husi.fmt.trojan.TrojanBean
@@ -222,6 +223,27 @@ class V2RayFmtTest {
         val trojan = assertIs<SingBoxOptions.Outbound_TrojanOptions>(outbound)
         assertEquals(SingBoxOptions.TYPE_TROJAN, trojan.type)
         assertEquals("secret", trojan.password)
+    }
+
+    @Test
+    fun `buildSingBoxOutboundStandardV2RayBean should honor global allow insecure`() {
+        DataStore.globalAllowInsecure = true
+        try {
+            val bean = VLESSBean().apply {
+                serverAddress = "example.com"
+                serverPort = 443
+                uuid = "test-uuid"
+                security = "tls"
+            }
+
+            val outbound = buildSingBoxOutboundStandardV2RayBean(bean)
+
+            val vless = assertIs<SingBoxOptions.Outbound_VLESSOptions>(outbound)
+            val tls = assertNotNull(vless.tls)
+            assertEquals(true, tls.insecure)
+        } finally {
+            DataStore.globalAllowInsecure = false
+        }
     }
 
     @Test

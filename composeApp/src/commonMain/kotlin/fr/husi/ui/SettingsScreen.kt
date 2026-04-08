@@ -644,6 +644,23 @@ fun SettingsScreen(
                             },
                         )
                     }
+                    item(Key.GLOBAL_ALLOW_INSECURE, PreferenceType.SWITCH) {
+                        val value by DataStore.configurationStore
+                            .booleanFlow(Key.GLOBAL_ALLOW_INSECURE, false)
+                            .collectAsStateWithLifecycle(false)
+                        SwitchPreference(
+                            value = value,
+                            onValueChange = { DataStore.globalAllowInsecure = it },
+                            title = { Text(stringResource(Res.string.global_allow_insecure)) },
+                            icon = {
+                                Icon(
+                                    vectorResource(Res.drawable.security),
+                                    null,
+                                )
+                            },
+                            summary = { Text(stringResource(Res.string.global_allow_insecure_sum)) },
+                        )
+                    }
                     platformSecurityOptions()
                     meteredNetworkSetting { needReload() }
                     item(Key.LOG_LEVEL, PreferenceType.LIST) {

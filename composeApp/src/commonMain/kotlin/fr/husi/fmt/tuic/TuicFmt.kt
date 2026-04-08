@@ -2,6 +2,7 @@ package fr.husi.fmt.tuic
 
 import fr.husi.fmt.SingBoxOptions
 import fr.husi.fmt.SingBoxOptions.OutboundECHOptions
+import fr.husi.fmt.effectiveAllowInsecure
 import fr.husi.fmt.parseBoxOutbound
 import fr.husi.fmt.parseBoxTLS
 import fr.husi.ktx.JSONMap
@@ -86,7 +87,7 @@ fun buildSingBoxOutboundTuicBean(bean: TuicBean): SingBoxOptions.Outbound_TUICOp
                 }
             }
             disable_sni = bean.disableSNI
-            insecure = bean.allowInsecure
+            insecure = effectiveAllowInsecure(bean.allowInsecure)
             enabled = true
         }
     }

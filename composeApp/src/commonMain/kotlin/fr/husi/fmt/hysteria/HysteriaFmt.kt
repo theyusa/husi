@@ -4,6 +4,7 @@ package fr.husi.fmt.hysteria
 
 import fr.husi.ProtocolProvider
 import fr.husi.database.DataStore
+import fr.husi.fmt.effectiveAllowInsecure
 import fr.husi.fmt.LOCALHOST4
 import fr.husi.fmt.SingBoxOptions
 import fr.husi.fmt.listable
@@ -387,7 +388,7 @@ fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): SingBoxOptions.Outboun
                         query_server_name = bean.echQueryServerName.blankAsNull()
                     }
                 }
-                insecure = bean.allowInsecure
+                insecure = effectiveAllowInsecure(bean.allowInsecure)
                 enabled = true
             }
         }
@@ -442,7 +443,7 @@ fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): SingBoxOptions.Outboun
                     config = bean.echConfig.blankAsNull()?.lines()?.toMutableList()
                     query_server_name = bean.echQueryServerName.blankAsNull()
                 }
-                if (bean.allowInsecure) insecure = true
+                if (effectiveAllowInsecure(bean.allowInsecure)) insecure = true
                 if (bean.disableSNI) disable_sni = true
 
                 client_certificate = bean.clientCert.blankAsNull()?.lines()?.toMutableList()

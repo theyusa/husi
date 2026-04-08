@@ -1,6 +1,7 @@
 package fr.husi.fmt.juicity
 
 import fr.husi.database.DataStore
+import fr.husi.fmt.effectiveAllowInsecure
 import fr.husi.fmt.LOCALHOST4
 import fr.husi.fmt.SingBoxOptions
 import fr.husi.ktx.blankAsNull
@@ -65,7 +66,7 @@ fun buildSingBoxOutboundJuicityBean(bean: JuicityBean): SingBoxOptions.Outbound_
         tls = SingBoxOptions.OutboundTLSOptions().apply {
             enabled = true
             server_name = bean.sni.blankAsNull()
-            insecure = bean.allowInsecure || pin_cert_sha256 != null
+            insecure = effectiveAllowInsecure(bean.allowInsecure) || pin_cert_sha256 != null
         }
     }
 }
