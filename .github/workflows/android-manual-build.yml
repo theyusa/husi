@@ -94,13 +94,6 @@ jobs:
           echo "version_name=${auto_version}" >> "$GITHUB_OUTPUT"
           echo "version_code=${auto_code}" >> "$GITHUB_OUTPUT"
 
-      - name: Prepare Android-only desktop placeholder
-        run: |
-          mkdir -p composeApp/libs
-          mkdir -p .github/tmp/empty-jar
-          rm -f composeApp/libs/libcore-desktop-linux-amd64.jar
-          jar --create --file composeApp/libs/libcore-desktop-linux-amd64.jar -C .github/tmp/empty-jar .
-
       - name: Build Android prerequisites
         run: |
           make libcore_android
@@ -108,7 +101,7 @@ jobs:
 
       - name: Build signed foss release APK
         run: |
-          BUILD_PLUGIN=none ./gradlew androidApp:assembleFossRelease --stacktrace
+          BUILD_PLUGIN=none ./gradlew androidApp:assembleFossRelease -PskipDesktopLibcore=true --stacktrace
 
       - name: Collect APKs
         run: |
