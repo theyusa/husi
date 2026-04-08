@@ -94,9 +94,14 @@ jobs:
           echo "version_name=${auto_version}" >> "$GITHUB_OUTPUT"
           echo "version_code=${auto_code}" >> "$GITHUB_OUTPUT"
 
+      - name: Prepare Android-only desktop placeholder
+        run: |
+          mkdir -p composeApp/libs
+          rm -f composeApp/libs/libcore-desktop-linux-amd64.jar
+          jar --create --file composeApp/libs/libcore-desktop-linux-amd64.jar -C /tmp .
+
       - name: Build Android prerequisites
         run: |
-          make libcore_desktop DESKTOP_TARGETS=linux/amd64
           make libcore_android
           make assets
 
