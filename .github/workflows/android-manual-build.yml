@@ -96,6 +96,7 @@ jobs:
 
       - name: Build Android prerequisites
         run: |
+          make libcore_desktop DESKTOP_TARGETS=linux/amd64
           make libcore_android
           make assets
 
