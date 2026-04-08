@@ -97,8 +97,9 @@ jobs:
       - name: Prepare Android-only desktop placeholder
         run: |
           mkdir -p composeApp/libs
+          mkdir -p .github/tmp/empty-jar
           rm -f composeApp/libs/libcore-desktop-linux-amd64.jar
-          jar --create --file composeApp/libs/libcore-desktop-linux-amd64.jar -C /tmp .
+          jar --create --file composeApp/libs/libcore-desktop-linux-amd64.jar -C .github/tmp/empty-jar .
 
       - name: Build Android prerequisites
         run: |
