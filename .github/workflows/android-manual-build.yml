@@ -231,19 +231,10 @@ jobs:
           echo "ALIAS_NAME=${ALIAS_NAME}" >> local.properties
           echo "ALIAS_PASS=${ALIAS_PASS}" >> local.properties
 
-      - name: Generate debug keystore for release signing
+      - name: Verify stable signing keystore
         run: |
-          rm -f release.keystore
-          keytool -genkeypair \
-            -alias "$ALIAS_NAME" \
-            -keyalg RSA \
-            -keysize 2048 \
-            -validity 10000 \
-            -storetype PKCS12 \
-            -keystore release.keystore \
-            -storepass "$KEYSTORE_PASS" \
-            -keypass "$ALIAS_PASS" \
-            -dname 'CN=Android Debug,O=Android,C=US'
+          test -f release.keystore
+          keytool -list -keystore release.keystore -storepass "$KEYSTORE_PASS" >/dev/null
 
       - name: Prepare Gradle assets
         run: |
