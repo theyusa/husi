@@ -99,6 +99,8 @@ import fr.husi.repository.resolveRepository
 import fr.husi.resources.Res
 import fr.husi.resources.allow_access
 import fr.husi.resources.allow_access_sum
+import fr.husi.resources.allow_insecure
+import fr.husi.resources.allow_insecure_sum
 import fr.husi.resources.always_show_address
 import fr.husi.resources.always_show_address_sum
 import fr.husi.resources.app_registration
