@@ -10,7 +10,7 @@ on:
         type: string
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   libcore:
@@ -262,15 +262,30 @@ jobs:
         run: |
           ./gradlew clean androidApp:assembleFossRelease --stacktrace
 
-      - name: Collect APKs
+      - name: Prepare release tag
+        id: release
+        run: |
+          echo "tag_name=v${{ steps.version.outputs.version_name }}" >> "$GITHUB_OUTPUT"
+
+      - name: Collect arm64-v8a APK
         run: |
           mkdir -p dist
-          cp androidApp/build/outputs/apk/foss/release/*.apk dist/
+          cp androidApp/build/outputs/apk/foss/release/*arm64-v8a*.apk dist/
+
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ steps.release.outputs.tag_name }}" \
+            --target "${GITHUB_SHA}" \
+            --title "${{ steps.release.outputs.tag_name }}" \
+            --notes $'Automated Android arm64-v8a build.' \
+            dist/*.apk
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: husi-${{ steps.version.outputs.version_name }}
+          name: husi-${{ steps.version.outputs.version_name }}-arm64-v8a
           path: |
             dist/*.apk
             husi.properties
