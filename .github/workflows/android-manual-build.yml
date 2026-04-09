@@ -214,11 +214,11 @@ jobs:
         shell: bash
         run: |
           base_version=$(grep '^VERSION_NAME=' husi.properties | cut -d= -f2)
-          base_code=$(grep '^VERSION_CODE=' husi.properties | cut -d= -f2)
           branch_slug=$(printf '%s' '${{ inputs.branch }}' | tr '[:upper:]' '[:lower:]' | sed 's#[^a-z0-9._-]#-#g' | sed 's#-\{2,\}#-#g' | sed 's#^-##;s#-$##')
           stamp=$(date -u +'%Y%m%d')
+          run_suffix=$((GITHUB_RUN_NUMBER % 100))
           auto_version="${base_version}-${branch_slug}-${stamp}.${GITHUB_RUN_NUMBER}"
-          auto_code=$((base_code * 100000 + GITHUB_RUN_NUMBER))
+          auto_code=$((stamp * 100 + run_suffix))
           sed -i "s/^VERSION_NAME=.*/VERSION_NAME=${auto_version}/" husi.properties
           sed -i "s/^VERSION_CODE=.*/VERSION_CODE=${auto_code}/" husi.properties
           echo "version_name=${auto_version}" >> "$GITHUB_OUTPUT"
