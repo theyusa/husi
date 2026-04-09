@@ -24,6 +24,13 @@ jobs:
           fetch-depth: 0
           submodules: recursive
 
+      - name: Show checked out revision
+        run: |
+          echo "requested_ref=${{ inputs.branch }}"
+          git rev-parse HEAD
+          git branch --show-current || true
+          git log -1 --oneline
+
       - name: Golang status
         run: find buildScript libcore/*.sh | xargs cat | sha1sum > golang_status
 
@@ -157,6 +164,13 @@ jobs:
           fetch-depth: 0
           submodules: recursive
 
+      - name: Show checked out revision
+        run: |
+          echo "requested_ref=${{ inputs.branch }}"
+          git rev-parse HEAD
+          git branch --show-current || true
+          git log -1 --oneline
+
       - name: Download libcore artifacts
         uses: actions/download-artifact@v4
         with:
@@ -192,6 +206,8 @@ jobs:
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-disabled: true
 
       - name: Compute automatic version
         id: version
@@ -235,6 +251,9 @@ jobs:
 
       - name: Export library definitions
         run: |
+          git rev-parse HEAD
+          grep -n "allow_insecure" composeApp/src/commonMain/composeResources/values/strings.xml
+          grep -n "allow_insecure" composeApp/src/commonMain/composeResources/values-tr/strings.xml
           ./gradlew :composeApp:exportLibraryDefinitions
 
       - name: Build signed foss release APK
