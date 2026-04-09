@@ -98,8 +98,6 @@
     <string name="security_settings">TLS Security Settings</string>
     <string name="allow_insecure">Allow Insecure</string>
     <string name="allow_insecure_sum">Disable certificate checking. When enabled, this configuration is as secure as plaintext</string>
-    <string name="allow_insecure_global">Global Allow Insecure</string>
-    <string name="allow_insecure_global_sum">Apply Allow Insecure to all TLS profiles automatically from settings</string>
     <string name="traffic" translatable="false">%1$s↑ %2$s↓</string>
     <string name="speed_detail">Proxy： %1$s↑ %2$s↓\nDirect： %3$s↑ %4$s↓</string>
     <string name="speed">%1$s/s</string>
