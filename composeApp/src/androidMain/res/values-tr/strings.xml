@@ -3,8 +3,8 @@
     <string name="app_name">husi</string>
     <string name="quick_toggle">Anahtar</string>
     <string name="add_profile_methods_scan_qr_code">QR kodunu tara</string>
-    <string name="subscription_import">Abonelik ice aktar</string>
-    <string name="profile_import">Profil ice aktar</string>
-    <string name="select_profile">Profil sec</string>
-    <string name="tile_title">Degistirici</string>
+    <string name="subscription_import">Abonelik içe aktar</string>
+    <string name="profile_import">Profil içe aktar</string>
+    <string name="select_profile">Profil seç</string>
+    <string name="tile_title">Değiştirici</string>
 </resources>

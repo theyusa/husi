@@ -311,7 +311,7 @@ private fun LazyListScope.hysteriaSettings(
     }
     item("allow_insecure") {
         SwitchPreference(
-            value = uiState.allowInsecure,
+            value = rememberEffectiveAllowInsecure(uiState.allowInsecure),
             onValueChange = { viewModel.setAllowInsecure(it) },
             title = { Text(stringResource(Res.string.allow_insecure)) },
             summary = { Text(stringResource(Res.string.allow_insecure_sum)) },

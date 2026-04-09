@@ -237,7 +237,7 @@ private fun LazyListScope.tuicSettings(
     }
     item("allow_insecure") {
         SwitchPreference(
-            value = uiState.allowInsecure,
+            value = rememberEffectiveAllowInsecure(uiState.allowInsecure),
             onValueChange = { viewModel.setAllowInsecure(it) },
             title = { Text(stringResource(Res.string.allow_insecure)) },
             icon = { Icon(vectorResource(Res.drawable.lock_open), null) },

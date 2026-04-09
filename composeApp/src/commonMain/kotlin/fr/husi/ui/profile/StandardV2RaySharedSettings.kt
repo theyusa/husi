@@ -215,7 +215,7 @@ internal fun LazyListScope.tlsSettings(
                     },
                 )
                 SwitchPreference(
-                    value = state.allowInsecure,
+                    value = rememberEffectiveAllowInsecure(state.allowInsecure),
                     onValueChange = { viewModel.setAllowInsecure(it) },
                     title = { Text(stringResource(Res.string.allow_insecure)) },
                     summary = { Text(stringResource(Res.string.allow_insecure_sum)) },
