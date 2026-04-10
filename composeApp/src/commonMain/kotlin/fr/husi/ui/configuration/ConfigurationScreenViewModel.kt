@@ -367,19 +367,24 @@ class ConfigurationScreenViewModel : ViewModel() {
         var client: Client? = null
         var processes: GuardedProcessPool? = null
         val cacheFiles = ArrayList<File>()
+        val useRunningInstance = DataStore.serviceState.started && DataStore.selectedProxy == profile.id
 
         return try {
             client = Libcore.newClient(null)
-            val config = buildConfig(profile, forTest = true)
+            val result = if (useRunningInstance) {
+                client.urlTest("", testURL, testTimeout)
+            } else {
+                val config = buildConfig(profile, forTest = true)
 
-            if (config.externalIndex.any { it.chain.isNotEmpty() }) {
-                val pluginConfigs = initPlugins(config, false, cacheFiles)
-                processes = GuardedProcessPool { throw it }
-                launchPlugins(config, pluginConfigs, processes, cacheFiles)
-                delay(500L)
+                if (config.externalIndex.any { it.chain.isNotEmpty() }) {
+                    val pluginConfigs = initPlugins(config, false, cacheFiles)
+                    processes = GuardedProcessPool { throw it }
+                    launchPlugins(config, pluginConfigs, processes, cacheFiles)
+                    delay(500L)
+                }
+
+                client.newInstanceURLTest(config.config, "", testURL, testTimeout)
             }
-
-            val result = client.newInstanceURLTest(config.config, "", testURL, testTimeout)
             TestResult.Success(result)
         } catch (e: PluginNotFoundException) {
             TestResult.Failure(FailureReason.PluginNotFound(e.plugin))
