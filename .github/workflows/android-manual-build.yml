@@ -205,26 +205,43 @@ jobs:
         with:
           cache-disabled: true
 
+      - name: Fetch release tags
+        run: git fetch --tags --force
+
       - name: Compute version from base
         id: version
         shell: bash
         run: |
           base_version=$(grep '^VERSION_NAME=' v4war.properties | cut -d= -f2)
           base_code=$(grep '^VERSION_CODE=' v4war.properties | cut -d= -f2)
-          major=$(echo "$base_version" | cut -d. -f1)
-          minor=$(echo "$base_version" | cut -d. -f2)
-          patch=$(echo "$base_version" | cut -d. -f3)
-          next_patch=$((patch + 1))
-          if [ "$next_patch" -ge 10 ]; then
-            next_patch=0
-            next_minor=$((minor + 1))
-            if [ "$next_minor" -ge 10 ]; then
-              next_minor=0
-              major=$((major + 1))
-            fi
-            minor=$next_minor
+          latest_tag=$(git tag -l 'v[0-9]*.[0-9]*.[0-9]*' | sort -V | tail -n1)
+          if [ -n "$latest_tag" ]; then
+            version_source=${latest_tag#v}
+          else
+            version_source=$base_version
           fi
-          auto_version="${major}.${minor}.${next_patch}"
+
+          major=$(echo "$version_source" | cut -d. -f1)
+          minor=$(echo "$version_source" | cut -d. -f2)
+          patch=$(echo "$version_source" | cut -d. -f3)
+
+          while :; do
+            patch=$((patch + 1))
+            if [ "$patch" -ge 10 ]; then
+              patch=0
+              minor=$((minor + 1))
+              if [ "$minor" -ge 10 ]; then
+                minor=0
+                major=$((major + 1))
+              fi
+            fi
+
+            auto_version="${major}.${minor}.${patch}"
+            if ! git rev-parse -q --verify "refs/tags/v${auto_version}" >/dev/null; then
+              break
+            fi
+          done
+
           auto_code=$((base_code + 1))
           sed -i "s/^VERSION_NAME=.*/VERSION_NAME=${auto_version}/" v4war.properties
           sed -i "s/^VERSION_CODE=.*/VERSION_CODE=${auto_code}/" v4war.properties
