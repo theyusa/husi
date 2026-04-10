@@ -1276,6 +1276,20 @@ fun buildConfig(
             optionsToMerge.blankAsNull()?.toJsonMapKxs()?.let { jsonMap ->
                 mergeJson(jsonMap, this)
             }
+            if (forTest) {
+                this["inbounds"] = emptyList<Any?>()
+                val dnsOptions = this["dns"] as? MutableMap<String, Any?>
+                if (dnsOptions != null) {
+                    dnsOptions["servers"] = mutableListOf(
+                        mutableMapOf<String, Any?>(
+                            "tag" to TAG_DNS_LOCAL,
+                            "type" to SingBoxOptions.DNS_TYPE_LOCAL,
+                        ),
+                    )
+                    dnsOptions["rules"] = emptyList<Any?>()
+                    dnsOptions["final"] = TAG_DNS_LOCAL
+                }
+            }
         }
         ConfigBuildResult(
             mainTag,
