@@ -5,6 +5,9 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.ui.graphics.Color
 
 object Amoled {
+    val primaryLight = Color(0xFF000000)
+    val primaryDark = Color(0xFFFFFFFF)
+
     private val pureBlack = Color(0xFF000000)
     private val nearBlack = Color(0xFF0A0A0A)
     private val softBlack = Color(0xFF121212)
@@ -24,7 +27,7 @@ object Amoled {
     private val onErrorContainer = Color(0xFFFFDAD6)
 
     internal val lightScheme = lightColorScheme(
-        primary = pureBlack,
+        primary = primaryLight,
         onPrimary = pureWhite,
         primaryContainer = lightSurfaceHigh,
         onPrimaryContainer = pureBlack,
@@ -62,7 +65,7 @@ object Amoled {
     )
 
     internal val darkScheme = darkColorScheme(
-        primary = pureWhite,
+        primary = primaryDark,
         onPrimary = pureBlack,
         primaryContainer = darkGray,
         onPrimaryContainer = pureWhite,
