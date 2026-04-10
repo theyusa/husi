@@ -1,4 +1,4 @@
-name: Android Manual Build
+name: V4War Android Build
 
 on:
   workflow_dispatch:
@@ -48,10 +48,7 @@ jobs:
         id: verify-libcore
         run: |
           missing=0
-          required_files=(
-            "composeApp/libs/libcore.aar"
-            "composeApp/libs/libcore-desktop-linux-amd64.jar"
-          )
+            required_files=("composeApp/libs/libcore.aar")
           for file in "${required_files[@]}"; do
             if [ ! -f "$file" ]; then
               echo "Missing required libcore artifact: $file"
@@ -136,7 +133,7 @@ jobs:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
         run: |
           export CRONET_GO_ROOT="$GITHUB_WORKSPACE/cronet-go"
-          ./run lib core --android --desktop --desktoptargets linux/amd64
+          ./run lib core --android
 
       - name: Upload libcore artifacts
         uses: actions/upload-artifact@v4
@@ -144,7 +141,6 @@ jobs:
           name: libcore
           path: |
             composeApp/libs/libcore.aar
-            composeApp/libs/libcore-desktop-linux-amd64.jar
           if-no-files-found: error
           retention-days: 14
 
@@ -181,7 +177,7 @@ jobs:
         run: |
           ls -la composeApp/libs || true
           test -f composeApp/libs/libcore.aar
-          test -f composeApp/libs/libcore-desktop-linux-amd64.jar
+          test -f composeApp/libs/libcore.aar
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
@@ -247,7 +243,7 @@ jobs:
           grep -n "allow_insecure" composeApp/src/commonMain/composeResources/values-tr/strings.xml
           ./gradlew :composeApp:exportLibraryDefinitions
 
-      - name: Build signed foss release APK
+      - name: Build signed V4War APK
         env:
           BUILD_PLUGIN: none
         run: |
@@ -269,14 +265,14 @@ jobs:
         run: |
           gh release create "${{ steps.release.outputs.tag_name }}" \
             --target "${GITHUB_SHA}" \
-            --title "${{ steps.release.outputs.tag_name }}" \
-            --notes $'Automated Android arm64-v8a build.' \
+            --title "V4War ${{ steps.release.outputs.tag_name }}" \
+            --notes $'Automated V4War Android arm64-v8a build.' \
             dist/*.apk
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: husi-${{ steps.version.outputs.version_name }}-arm64-v8a
+          name: v4war-${{ steps.version.outputs.version_name }}-arm64-v8a
           path: |
             dist/*.apk
             husi.properties
