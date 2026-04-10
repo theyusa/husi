@@ -59,19 +59,21 @@ class AndroidPlatformInterface : PlatformInterface {
         destinationAddress: String,
         destinationPort: Int,
     ): ConnectionOwner {
-        try {
-            val uid = resolveAndroidRepository().connectivity.getConnectionOwnerUid(
-                ipProtocol,
-                InetSocketAddress(sourceAddress, sourcePort),
-                InetSocketAddress(destinationAddress, destinationPort),
-            )
-            if (uid == Process.INVALID_UID) error("android: connection owner not found")
+        val uid = resolveAndroidRepository().connectivity.getConnectionOwnerUid(
+            ipProtocol,
+            InetSocketAddress(sourceAddress, sourcePort),
+            InetSocketAddress(destinationAddress, destinationPort),
+        )
+        if (uid == Process.INVALID_UID) {
+            return ConnectionOwner(uid, null)
+        }
+        return runCatching {
             PackageCache.awaitLoadSync()
             val packages = PackageCache.uidMap[uid]
-            return ConnectionOwner(uid, packages?.toStringIterator(packages.size))
-        } catch (e: Exception) {
+            ConnectionOwner(uid, packages?.toStringIterator(packages.size))
+        }.getOrElse { e ->
             Logs.e(e)
-            throw e
+            ConnectionOwner(uid, null)
         }
     }
 
