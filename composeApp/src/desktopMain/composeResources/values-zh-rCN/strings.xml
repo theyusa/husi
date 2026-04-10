@@ -1,4 +1,0 @@
-<resources>
-    <string name="auto_connect_desktop">登录时连接</string>
-    <string name="auto_connect_summary_desktop">登录系统时启动并自动连接</string>
-</resources>

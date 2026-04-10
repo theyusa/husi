@@ -1,6 +1,3 @@
-import org.jetbrains.compose.desktop.application.dsl.TargetFormat
-import org.gradle.jvm.tasks.Jar
-
 plugins {
     id("org.jetbrains.kotlin.multiplatform")
     id("com.android.kotlin.multiplatform.library")
@@ -13,186 +10,6 @@ plugins {
 }
 
 val metadata = requireMetadata()
-enum class DesktopPlatform(
-    val id: String,
-    private val aliases: Set<String>,
-    val composeDependencyId: String,
-    val nativeNames: Set<String>,
-    val jnaName: String,
-) {
-    Linux(
-        id = "linux",
-        aliases = setOf("linux"),
-        composeDependencyId = "linux",
-        nativeNames = setOf("linux"),
-        jnaName = "linux",
-    ),
-    Darwin(
-        id = "darwin",
-        aliases = setOf("darwin", "macos", "mac", "osx"),
-        composeDependencyId = "macos",
-        nativeNames = setOf("osx", "darwin"),
-        jnaName = "darwin",
-    ),
-    Windows(
-        id = "windows",
-        aliases = setOf("windows", "win"),
-        composeDependencyId = "windows",
-        nativeNames = setOf("windows"),
-        jnaName = "win32",
-    ),
-    ;
-
-    private fun matches(rawValue: String): Boolean = rawValue.trim().lowercase() in aliases
-
-    companion object {
-        fun parse(rawValue: String): DesktopPlatform =
-            entries.firstOrNull { it.matches(rawValue) }
-                ?: error("Unsupported desktop platform '$rawValue'. Use linux, darwin, or windows.")
-
-        fun parseHost(rawValue: String): DesktopPlatform {
-            val value = rawValue.trim().lowercase()
-            return when {
-                value.contains("linux") -> Linux
-                value.contains("darwin") || value.contains("mac") || value.contains("osx") -> Darwin
-                value.startsWith("win") -> Windows
-                else -> error("Unsupported host desktop platform '$rawValue'. Use linux, darwin, or windows.")
-            }
-        }
-    }
-}
-
-enum class DesktopArch(
-    val id: String,
-    private val aliases: Set<String>,
-    val composeDependencyId: String,
-    val packageJarArchToken: String,
-    val nativeNames: Set<String>,
-    val jnaName: String,
-) {
-    Amd64(
-        id = "amd64",
-        aliases = setOf("amd64", "x86_64"),
-        composeDependencyId = "x64",
-        packageJarArchToken = "x64",
-        nativeNames = setOf("x64", "amd64"),
-        jnaName = "x86-64",
-    ),
-    Arm64(
-        id = "arm64",
-        aliases = setOf("arm64", "aarch64"),
-        composeDependencyId = "arm64",
-        packageJarArchToken = "arm64",
-        nativeNames = setOf("arm64", "aarch64"),
-        jnaName = "aarch64",
-    ),
-    ;
-
-    private fun matches(rawValue: String): Boolean = rawValue.trim().lowercase() in aliases
-
-    companion object {
-        fun parse(rawValue: String): DesktopArch =
-            entries.firstOrNull { it.matches(rawValue) }
-                ?: error("Unsupported desktop arch '$rawValue'. Use amd64 or arm64.")
-    }
-}
-
-data class DesktopTarget(
-    val platform: DesktopPlatform,
-    val arch: DesktopArch,
-) {
-    val id: String = "${platform.id}/${arch.id}"
-    val libcoreDesktopJarName: String = "libcore-desktop-${platform.id}-${arch.id}.jar"
-    val composeDependencyNotation: String =
-        "org.jetbrains.compose.desktop:desktop-jvm-${platform.composeDependencyId}-${arch.composeDependencyId}"
-    val nativeKeepPrefixes: Set<String> =
-        platform.nativeNames
-            .flatMap { platformName ->
-                arch.nativeNames.flatMap { archName ->
-                    listOf("natives/${platformName}_${archName}/", "natives/${platformName}-${archName}/")
-                }
-            }.toSet()
-    val jnaNativeKeepPrefixes: Set<String> =
-        setOf(
-            "com/sun/jna/${platform.jnaName}-${arch.jnaName}/",
-        )
-
-    override fun toString(): String = id
-
-    companion object {
-        val supported: Set<DesktopTarget> =
-            DesktopPlatform.entries.flatMap { platform ->
-                DesktopArch.entries.map { arch -> DesktopTarget(platform, arch) }
-            }.toSet()
-
-        fun parse(rawValue: String): DesktopTarget {
-            val tokens = rawValue.trim().split("/", limit = 2)
-            require(tokens.size == 2) {
-                "Invalid desktopTarget '$rawValue'. Use <platform>/<arch>, e.g. linux/amd64."
-            }
-            val parsedTarget = DesktopTarget(platform = DesktopPlatform.parse(tokens[0]), arch = DesktopArch.parse(tokens[1]))
-            require(parsedTarget in supported) {
-                "Unsupported desktop target '$rawValue'. Supported targets: ${supported.joinToString()}."
-            }
-            return parsedTarget
-        }
-
-        fun parseHost(platformRawValue: String, archRawValue: String): DesktopTarget =
-            DesktopTarget(
-                platform = DesktopPlatform.parseHost(platformRawValue),
-                arch = DesktopArch.parse(archRawValue),
-            )
-    }
-}
-
-fun resolveHostDesktopTarget(): DesktopTarget =
-    DesktopTarget.parseHost(
-        platformRawValue = System.getProperty("os.name"),
-        archRawValue = System.getProperty("os.arch"),
-    )
-
-fun normalizeMacPackageVersion(versionName: String): String {
-    val numbers =
-        Regex("""\d+""")
-            .findAll(versionName)
-            .map { it.value }
-            .take(3)
-            .toList()
-    val major = numbers.getOrElse(0) { "1" }
-    val minor = numbers.getOrElse(1) { "0" }
-    val patch = numbers.getOrElse(2) { "0" }
-    return "$major.$minor.$patch"
-}
-
-val requestedDesktopTargetRaw = project.findProperty("desktopTarget")?.toString()?.trim().orEmpty()
-val requestedDesktopTarget =
-    if (requestedDesktopTargetRaw.isNotEmpty()) {
-        DesktopTarget.parse(requestedDesktopTargetRaw)
-    } else {
-        null
-    }
-val desktopTarget = requestedDesktopTarget ?: resolveHostDesktopTarget()
-val hostDesktopTarget = resolveHostDesktopTarget()
-val composeDesktopVersion = libs.versions.composeMultiplatform.get()
-
-val desktopJarName = desktopTarget.libcoreDesktopJarName
-val desktopJarFile = layout.projectDirectory.file("libs/$desktopJarName").asFile
-val libcoreDesktopJar =
-    files({
-        require(desktopJarFile.isFile) {
-            "Missing desktop libcore jar '${desktopJarFile.path}'. Build it first, e.g. make libcore_desktop DESKTOP_TARGETS=$desktopTarget."
-        }
-        desktopJarFile
-    })
-val desktopPackageName = metadata.getProperty("PACKAGE_NAME").trim()
-val desktopVersion = metadata.getProperty("VERSION_NAME").trim()
-val macPackageVersion = normalizeMacPackageVersion(desktopVersion)
-val desktopTargetFormats =
-    when (hostDesktopTarget.platform) {
-        DesktopPlatform.Linux -> emptySet()
-        DesktopPlatform.Darwin -> setOf(TargetFormat.Dmg)
-        DesktopPlatform.Windows -> linkedSetOf(TargetFormat.Exe)
-    }
 
 val generateBuildConfig by tasks.registering {
     val outputDir = layout.buildDirectory.dir("generated/buildConfig/kotlin")
@@ -216,24 +33,6 @@ val generateBuildConfig by tasks.registering {
     }
 }
 
-val generateDesktopPlatformInfo by tasks.registering {
-    val outputDir = layout.buildDirectory.dir("generated/platformInfo/desktop/${desktopTarget.id}")
-    val platformInfoPackage = "fr.husi.platform"
-    inputs.property("desktopTarget", desktopTarget.toString())
-    outputs.dir(outputDir)
-    doLast {
-        writePlatformInfo(
-            outputDir = outputDir.get().asFile,
-            packageName = platformInfoPackage,
-            fileName = "PlatformInfo.desktop.kt",
-            isAndroid = false,
-            isLinux = desktopTarget.platform == DesktopPlatform.Linux,
-            isMacOs = desktopTarget.platform == DesktopPlatform.Darwin,
-            isWindows = desktopTarget.platform == DesktopPlatform.Windows,
-        )
-    }
-}
-
 kotlin {
     compilerOptions {
         freeCompilerArgs.add("-Xexpect-actual-classes")
@@ -251,15 +50,10 @@ kotlin {
         }
     }
 
-    jvm("desktop")
-
     sourceSets {
         val commonMain by getting {
             kotlin.srcDir(generateBuildConfig)
             dependencies {
-                // This is workaround for IDE to get libcore info
-                compileOnly(libcoreDesktopJar)
-
                 implementation(libs.jetbrains.compose.runtime)
                 implementation(libs.jetbrains.compose.foundation)
                 implementation(libs.jetbrains.compose.material3)
@@ -349,42 +143,6 @@ kotlin {
                 runtimeOnly(libs.junit.jupiter.engine)
             }
         }
-        val desktopMain by getting {
-            kotlin.srcDir(generateDesktopPlatformInfo)
-            dependencies {
-                if (requestedDesktopTarget == null) {
-                    implementation(compose.desktop.currentOs)
-                } else {
-                    implementation("${desktopTarget.composeDependencyNotation}:$composeDesktopVersion")
-                }
-                implementation(libs.clikt)
-                implementation(libs.kotlinx.coroutines.swing)
-                implementation(libcoreDesktopJar)
-            }
-        }
-    }
-}
-
-compose.desktop {
-    application {
-        mainClass = "fr.husi.DesktopMainKt"
-        nativeDistributions {
-            if (desktopTargetFormats.isNotEmpty()) {
-                targetFormats(*desktopTargetFormats.toTypedArray())
-            }
-            packageName = desktopPackageName
-            packageVersion = macPackageVersion
-            description = "Husi desktop proxy integration tool"
-            vendor = "Husi contributors"
-            copyright = "GPL-3.0-or-later"
-            licenseFile.set(rootProject.layout.projectDirectory.file("LICENSE"))
-            macOS {
-                dmgPackageVersion = macPackageVersion
-            }
-            windows {
-                exePackageVersion = macPackageVersion
-            }
-        }
     }
 }
 
@@ -408,60 +166,6 @@ ksp {
 
 dependencies {
     kspAndroid(libs.androidx.room.compiler)
-    add("kspDesktop", libs.androidx.room.compiler)
-}
-
-tasks.matching { it.name == "packageUberJarForCurrentOS" }.configureEach {
-    if (this is Jar) {
-        // Exclude non-target native binaries from dependency family buckets.
-
-        val nativeKeepPrefixes = desktopTarget.nativeKeepPrefixes
-        val jnaNativeKeepPrefixes = desktopTarget.jnaNativeKeepPrefixes
-
-        eachFile {
-            val entryPath = path
-            if (entryPath.startsWith("natives/") && nativeKeepPrefixes.none(entryPath::startsWith)) {
-                exclude()
-                return@eachFile
-            }
-
-            val isJnaNativeBinary =
-                entryPath.startsWith("com/sun/jna/") &&
-                    (entryPath.endsWith(".so") ||
-                        entryPath.endsWith(".dll") ||
-                        entryPath.endsWith(".jnilib") ||
-                        entryPath.endsWith(".a"))
-            if (isJnaNativeBinary && jnaNativeKeepPrefixes.none(entryPath::startsWith)) {
-                exclude()
-            }
-        }
-
-        includeEmptyDirs = false
-    }
-
-    doLast {
-        if (requestedDesktopTarget == null) {
-            return@doLast
-        }
-
-        val jarOutputDir = layout.buildDirectory.dir("compose/jars").get().asFile
-        val sourceJarName =
-            "$desktopPackageName-${hostDesktopTarget.platform.id}-${hostDesktopTarget.arch.packageJarArchToken}-$desktopVersion.jar"
-        val targetJarName =
-            "$desktopPackageName-${desktopTarget.platform.id}-${desktopTarget.arch.packageJarArchToken}-$desktopVersion.jar"
-        val sourceJar = jarOutputDir.resolve(sourceJarName)
-        val targetJar = jarOutputDir.resolve(targetJarName)
-
-        require(sourceJar.isFile) {
-            "Expected source uberjar '${sourceJar.path}' was not generated."
-        }
-
-        if (sourceJar.path == targetJar.path) {
-            return@doLast
-        }
-
-        sourceJar.copyTo(targetJar, overwrite = true)
-    }
 }
 
 tasks.withType<Test>().configureEach {

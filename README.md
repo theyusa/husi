@@ -1,87 +1,97 @@
 # V4War
 
-V4War, sansure karsi dayaniklilik ve internet ozgurlugu odakli bir ag aracidir.
+V4War, Android icin gelistirilmis bir sansur direnci ve internet ozgurlugu istemcisidir.
 
-Motto: `Internet Freedom War & Censorship Resistance`
+`Internet Freedom War & Censorship Resistance`
 
-## Genel Bakis
+V4War; V2Ray tabanli paylasim formatlari ile Sing-box cekirdegini ayni uygulamada birlestiren, teknik kullanicilara odakli bir proxy yonetim aracidir. Amaç; farkli ag kosullarinda profilleri hizli ithal etmek, abonelikleri yonetmek, baglanti davranisini ince ayarlamak ve sansure karsi daha esnek bir istemci deneyimi sunmaktir.
 
-V4War; V2Ray ve Sing-box hibrit cekirdek yapisini kullanan, farkli proxy senaryolarini tek bir uygulamada yonetmeyi hedefleyen teknik bir istemcidir. Proje, ozellikle kisitli ag ortamlarinda daha esnek baglanti yonetimi, profil duzenleme ve abonelik senkronizasyonu ihtiyacina odaklanir.
+## Nedir?
 
-- Proje adi: `V4War`
-- Paket adi: `tr.theyusa.v4war`
-- Gelistirici: [TheYusa](https://github.com/TheYusa)
-- Isim ve marka haklari: `TheYusa`
+V4War bir VPN servisi veya hazir sunucu saglayicisi degildir. Uygulama; kullanicinin sahip oldugu ya da guvendigi proxy/profil baglantilarini Android cihaz uzerinde calistirmasina yardim eder.
+
+Temel odak noktalarimiz:
+
+- Android uzerinde guclu proxy istemci deneyimi
+- V2Ray ve Sing-box hibrit cekirdek yapisi
+- Profil ve abonelik yonetiminde hiz ve esneklik
+- Sansure karsi dayaniklilik ve baglanti kontrolu
+- Teknik ama sade, hizli ve ozellestirilebilir arayuz
 
 ## Ozellikler
 
-- V2Ray ve Sing-box hibrit altyapi
-- VLESS, VMess, Trojan, Shadowsocks ve cesitli modern protokol destegi
-- Abonelik yonetimi, filtreleme ve otomatik guncelleme
-- Gelismis TLS/SNI ayarlari ve baglanti testi araclari
-- AMOLED tema dahil ozellestirilebilir arayuz
-- Android odakli kullanim, log alma ve tanilama araclari
+- VLESS, VMess, Trojan, Shadowsocks ve diger modern protokol destegi
+- Subscription import, filtreleme, deduplication ve otomatik guncelleme
+- Baglanti testi, hiz testi ve log disa aktarma araclari
+- Gelismis TLS/SNI ayarlari
+- AMOLED dahil tema secenekleri
+- Android odakli arayuz ve sistem entegrasyonu
 
-## Kurulum
+## Teknik Yapi
 
-### Kaynak Koddan Derleme
+- Uygulama adi: `V4War`
+- Paket adi: `tr.theyusa.v4war`
+- Gelistirici: [TheYusa](https://github.com/TheYusa)
+- Isim ve marka haklari: `TheYusa`
+- Cekirdek yapisi: `V2Ray + Sing-box hibrit altyapi`
 
-Gerekli temel araclar:
+## Derleme
+
+Gereksinimler:
 
 - JDK 21
 - Android NDK `29.0.14206865`
 - Go surumu: `buildScript/init/version.sh` ile uyumlu
 
-Depoyu alin:
+Kaynak kodu alin:
 
 ```sh
 git clone https://github.com/TheYusa/husi.git --depth=1
 cd husi
 ```
 
-Android icin cekirdek kutuphanelerini hazirlayin:
+Android icin gerekli libcore derlemesini alin:
 
 ```sh
 make libcore_android
 ```
 
-Varliklari indirin:
+Varlik dosyalarini indirin:
 
 ```sh
 make assets
 ```
 
-Acik kaynak lisans verilerini olusturun:
+Acik kaynak lisans ciktilarini olusturun:
 
 ```sh
 ./gradlew :composeApp:exportLibraryDefinitions
 ```
 
-APK derleyin:
+FOSS release APK derleyin:
 
 ```sh
 make apk
 ```
 
-Olusan APK dosyalari `androidApp/build/outputs/apk` altinda yer alir.
+APK ciktilari:
 
-## Gelistirme Notlari
-
-- Android uygulama kimligi `tr.theyusa.v4war` olarak ayarlanmistir.
-- UI ve metinsel marka ogeleri V4War kimligine gore duzenlenmistir.
-- Cekirdek binary adlarini degistirmeyin; bunlar calisma zamani entegrasyonu icin sabit tutulmalidir.
+```text
+androidApp/build/outputs/apk
+```
 
 ## Yasal Uyari
 
-V4War yasal, etik ve sorumlu kullanim amaciyla sunulur. Bu proje;
+V4War, yasal ve sorumlu kullanim icin sunulur. Bu proje:
 
 - yerel yasalari ihlal etmek,
 - yetkisiz erisim saglamak,
-- zararli faaliyetleri gizlemek
+- zararli faaliyetleri gizlemek,
+- ucuncu taraf sistemlere izinsiz mudahale etmek
 
-icin tasarlanmamistir.
+amaciyla tasarlanmamistir.
 
-Uygulamayi kullanmadan once bulundugunuz ulkedeki mevzuati ve servis saglayicinizin kurallarini kontrol edin. Tum sorumluluk kullaniciya aittir.
+Bulundugunuz ulkedeki mevzuat ve servis saglayici kurallari sizin sorumlulugunuzdadir. Uygulamanin kullanimindan dogan tum hukuki ve teknik sorumluluk son kullaniciya aittir.
 
 ## Baglantilar
 
