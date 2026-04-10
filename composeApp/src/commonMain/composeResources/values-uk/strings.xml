@@ -350,6 +350,9 @@
     <string name="append_http_proxy_sum">HTTP-проксі буде використовуватия напряму з (браузера/ деяких застосунків, що підтримуються), без використання віртуального мережевого інтерфейсу (Android 10+)</string>
     <string name="auto_update_delay">Затримка автоматичного оновлення (у хвилинах)</string>
     <string name="subscription_user_agent">UserAgent</string>
+    <string name="subscription_custom_sni">Користувацький SNI</string>
+    <string name="subscription_remove_non_tls_xtls">Залишати лише TLS-профілі</string>
+    <string name="subscription_remove_non_tls_xtls_sum">Якщо увімкнено, під час оновлення підписки залишаються лише профілі з увімкненим TLS, решта відкидаються.</string>
     <string name="ooc_missing_protocol">Підписка потребує підтримки протоколу %1$s, але вона не може бути знайдена. Протоколи, що не підтримуються, будуть проігноровані.</string>
     <string name="service_subscription">Служба оновлення підписки</string>
     <string name="subscription_update">Оновлення підписки</string>

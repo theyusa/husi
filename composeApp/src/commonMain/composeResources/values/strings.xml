@@ -370,8 +370,8 @@
     <string name="update_when_connected_only_sum">Prevent IP address leakage</string>
     <string name="subscription_user_agent">UserAgent</string>
     <string name="subscription_custom_sni">Custom SNI</string>
-    <string name="subscription_remove_non_tls_xtls">Remove XTLS without TLS</string>
-    <string name="subscription_remove_non_tls_xtls_sum">Clears imported VLESS XTLS flow when the profile does not actually use TLS.</string>
+    <string name="subscription_remove_non_tls_xtls">Only keep TLS profiles</string>
+    <string name="subscription_remove_non_tls_xtls_sum">When enabled, subscription updates only keep profiles that have TLS enabled and ignore the rest.</string>
     <string name="confirm">Confirm</string>
     <string name="missing_plugin">Missing Plugin</string>
     <string name="profile_requiring_plugin">Profile %1$s requires the %2$s plugin to be installed, but it was not found.</string>

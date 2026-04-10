@@ -358,9 +358,9 @@
     <string name="update_when_connected_only">Yalnızca bağlıyken güncelle</string>
     <string name="update_when_connected_only_sum">IP adresi sızıntısını önle</string>
     <string name="subscription_user_agent">User-Agent</string>
-    <string name="subscription_custom_sni">Ozel SNI</string>
-    <string name="subscription_remove_non_tls_xtls">TLS yoksa XTLS'i kaldir</string>
-    <string name="subscription_remove_non_tls_xtls_sum">Ice aktarilan VLESS profillerinde TLS gercekten yoksa XTLS flow alanini temizler.</string>
+    <string name="subscription_custom_sni">Özel SNI</string>
+    <string name="subscription_remove_non_tls_xtls">Yalnızca TLS açık profilleri tut</string>
+    <string name="subscription_remove_non_tls_xtls_sum">Açıldığında abonelik güncellemesinde sadece TLS açık profiller listeye alınır, diğerleri atılır.</string>
     <string name="confirm">Onayla</string>
     <string name="missing_plugin">Eksik eklenti</string>
     <string name="profile_requiring_plugin">%1$s profili %2$s eklentisinin kurulu olmasını gerektiriyor, ancak bulunamadı.</string>

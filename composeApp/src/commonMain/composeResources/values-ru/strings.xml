@@ -142,6 +142,9 @@
     <string name="missing_plugin">Отсутствующий плагин</string>
     <string name="confirm">Подтвердить</string>
     <string name="subscription_user_agent">UserAgent</string>
+    <string name="subscription_custom_sni">Пользовательский SNI</string>
+    <string name="subscription_remove_non_tls_xtls">Оставлять только TLS-профили</string>
+    <string name="subscription_remove_non_tls_xtls_sum">Если включено, при обновлении подписки сохраняются только профили с включённым TLS, остальные пропускаются.</string>
     <string name="update_when_connected_only_sum">Предотвратить утечку IP-адреса</string>
     <string name="update_when_connected_only">Обновлять только при подключении</string>
     <string name="auto_update_delay">Задержка автоматического обновления (в минутах)</string>

@@ -235,6 +235,9 @@
     <string name="missing_plugin">في عداد المفقودين المكونات في</string>
     <string name="confirm">أكد</string>
     <string name="subscription_user_agent">وكيل المستخدم</string>
+    <string name="subscription_custom_sni">SNI مخصص</string>
+    <string name="subscription_remove_non_tls_xtls">الاحتفاظ فقط بملفات TLS</string>
+    <string name="subscription_remove_non_tls_xtls_sum">عند التفعيل، يتم الاحتفاظ فقط بالملفات التي تحتوي على TLS وتجاهل البقية.</string>
     <string name="update_when_connected_only_sum">منع تسرب عنوان IP</string>
     <string name="update_when_connected_only">التحديث فقط عند الاتصال</string>
     <string name="auto_update_delay">تأخير التحديث التلقائي (بالدقائق)</string>

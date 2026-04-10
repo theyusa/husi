@@ -304,6 +304,9 @@
     <string name="update_when_connected_only">به‌روزرسانی فقط در صورت اتصال</string>
     <string name="update_when_connected_only_sum">جلوگیری از نشت آدرس IP</string>
     <string name="subscription_user_agent">عامل کاربر</string>
+    <string name="subscription_custom_sni">SNI سفارشی</string>
+    <string name="subscription_remove_non_tls_xtls">فقط پروفایل‌های TLS را نگه دار</string>
+    <string name="subscription_remove_non_tls_xtls_sum">اگر فعال باشد، فقط پروفایل‌هایی که TLS فعال دارند نگه داشته می‌شوند و بقیه حذف می‌شوند.</string>
     <string name="confirm">تایید</string>
     <string name="missing_plugin">افزونه از دست رفته</string>
     <string name="profile_requiring_plugin">پروفایل %1$s نیاز دارد %2$s افزونه نصب باشد، اما پیدا نشد.</string>

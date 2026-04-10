@@ -312,6 +312,9 @@
     <string name="update_when_connected_only">Actualizar solo cuando esté conectado</string>
     <string name="update_when_connected_only_sum">Evita la fuga de direcciones IP</string>
     <string name="subscription_user_agent">Agente de usuario</string>
+    <string name="subscription_custom_sni">SNI personalizado</string>
+    <string name="subscription_remove_non_tls_xtls">Conservar solo perfiles TLS</string>
+    <string name="subscription_remove_non_tls_xtls_sum">Si está activado, las actualizaciones de suscripción solo conservan perfiles con TLS habilitado y descartan los demás.</string>
     <string name="confirm">Confirmar</string>
     <string name="missing_plugin">Plugin faltante</string>
     <string name="profile_requiring_plugin">El perfil %1$s requiere que el plugin %2$s esté instalado, pero no se ha encontrado.</string>

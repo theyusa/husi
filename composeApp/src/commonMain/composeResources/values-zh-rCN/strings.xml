@@ -316,6 +316,9 @@
     <string name="update_when_connected_only">仅在连接时更新</string>
     <string name="update_when_connected_only_sum">防止 IP 地址泄漏</string>
     <string name="subscription_user_agent">用户代理</string>
+    <string name="subscription_custom_sni">自定义 SNI</string>
+    <string name="subscription_remove_non_tls_xtls">仅保留启用 TLS 的配置</string>
+    <string name="subscription_remove_non_tls_xtls_sum">启用后，订阅更新时只保留已启用 TLS 的配置，其余配置将被忽略。</string>
     <string name="confirm">确认</string>
     <string name="missing_plugin">缺少插件</string>
     <string name="profile_requiring_plugin">配置 %1$s 需要插件 %2$s, 但找不到.</string>

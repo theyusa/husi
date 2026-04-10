@@ -121,6 +121,10 @@ abstract class GroupUpdater {
             proxies
         }
 
+        if (subscription.removeNonTlsXtls) {
+            newProxies = newProxies.filter(::isTlsEnabledProfile)
+        }
+
         val proxiesMap = LinkedHashMap<String, AbstractBean>()
         for (proxy in newProxies) {
             var index = 0
@@ -276,9 +280,6 @@ abstract class GroupUpdater {
             }
 
             is VLESSBean -> {
-                if (subscription.removeNonTlsXtls && !proxy.isTLS) {
-                    proxy.flow = ""
-                }
                 if (customSni.isNotBlank() && proxy.isTLS) proxy.sni = customSni
             }
 
@@ -305,6 +306,18 @@ abstract class GroupUpdater {
             is ShadowQUICBean -> {
                 if (customSni.isNotBlank()) proxy.sni = customSni
             }
+        }
+    }
+
+    private fun isTlsEnabledProfile(proxy: AbstractBean): Boolean {
+        return when (proxy) {
+            is StandardV2RayBean -> proxy.isTLS
+            is HysteriaBean -> true
+            is TuicBean -> true
+            is JuicityBean -> true
+            is NaiveBean -> true
+            is ShadowQUICBean -> true
+            else -> false
         }
     }
 

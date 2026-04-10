@@ -314,6 +314,9 @@
     <string name="update_when_connected_only">僅在已連線時更新</string>
     <string name="update_when_connected_only_sum">防止 IP 位址洩漏</string>
     <string name="subscription_user_agent">使用者代理</string>
+    <string name="subscription_custom_sni">自訂 SNI</string>
+    <string name="subscription_remove_non_tls_xtls">僅保留已啟用 TLS 的設定</string>
+    <string name="subscription_remove_non_tls_xtls_sum">啟用後，訂閱更新時只會保留已啟用 TLS 的設定，其餘會被忽略。</string>
     <string name="confirm">確認</string>
     <string name="missing_plugin">遺失外掛程式</string>
     <string name="profile_requiring_plugin">設定檔 %1$s 需要外掛程式 %2$s，但其未被安裝。</string>
