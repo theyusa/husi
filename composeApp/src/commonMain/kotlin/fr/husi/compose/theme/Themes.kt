@@ -10,6 +10,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.husi.Key
 import fr.husi.database.DataStore
 import fr.husi.resources.Res
+import fr.husi.resources.themes_amoled
 import fr.husi.resources.themes_amber
 import fr.husi.resources.themes_black
 import fr.husi.resources.themes_blue
@@ -55,7 +56,8 @@ const val BROWN = 18
 const val GREY = 19
 const val BLUE_GREY = 20
 const val BLACK = 21
-const val DYNAMIC = 22
+const val AMOLED = 22
+const val DYNAMIC = 23
 
 val LocalAppDarkMode = compositionLocalOf { false }
 
@@ -81,6 +83,7 @@ val themes = listOf(
     Color(0xFF9E9E9E),
     Color(0xFF607D8B),
     Color(0xFF212121),
+    Color(0xFF000000),
 )
 
 @Composable
@@ -125,6 +128,7 @@ fun AppTheme(content: @Composable () -> Unit) {
             GREY -> if (isDarkMode) Grey.darkScheme else Grey.lightScheme
             BLUE_GREY -> if (isDarkMode) BlueGrey.darkScheme else BlueGrey.lightScheme
             BLACK -> if (isDarkMode) Black.darkScheme else Black.lightScheme
+            AMOLED -> if (isDarkMode) Amoled.darkScheme else Amoled.lightScheme
             DYNAMIC -> dynamicScheme ?: if (isDarkMode) Red.darkScheme else Red.lightScheme
             else -> dynamicScheme ?: if (isDarkMode) Red.darkScheme else Red.lightScheme
         }
@@ -161,6 +165,7 @@ fun themeString(theme: Int): StringResource = when (theme) {
     GREY -> Res.string.themes_grey
     BLUE_GREY -> Res.string.themes_blue_grey
     BLACK -> Res.string.themes_black
+    AMOLED -> Res.string.themes_amoled
     DYNAMIC -> Res.string.themes_dynamic
     else -> error("Unknown theme $theme")
 }

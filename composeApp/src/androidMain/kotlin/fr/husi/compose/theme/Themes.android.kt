@@ -47,6 +47,7 @@ fun Context.getPrimaryColor(): Int {
         GREY -> if (isDark) Grey.primaryDark else Grey.primaryLight
         BLUE_GREY -> if (isDark) BlueGrey.primaryDark else BlueGrey.primaryLight
         BLACK -> if (isDark) Black.primaryDark else Black.primaryLight
+        AMOLED -> if (isDark) Amoled.primaryDark else Amoled.primaryLight
         else -> if (isDark) Red.primaryDark else Red.primaryLight
     }
     return color.toArgb()
