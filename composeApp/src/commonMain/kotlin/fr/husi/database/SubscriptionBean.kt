@@ -30,6 +30,8 @@ class SubscriptionBean : Serializable() {
     var autoUpdate: Boolean = false
     var autoUpdateDelay: Int = 1440
     var lastUpdated: Int = 0
+    var customSni: String = ""
+    var removeNonTlsXtls: Boolean = false
 
     // SIP008
     var bytesUsed: Long = 0L
@@ -40,7 +42,7 @@ class SubscriptionBean : Serializable() {
     var expiryDate: Long = 0L
 
     override fun serializeToBuffer(output: ByteBufferOutput) {
-        output.writeInt(4)
+        output.writeInt(5)
 
         output.writeInt(type)
         output.writeString(link)
@@ -57,10 +59,12 @@ class SubscriptionBean : Serializable() {
         output.writeLong(bytesRemaining)
         output.writeString(token)
         output.writeString(filterNotRegex)
+        output.writeString(customSni)
+        output.writeBoolean(removeNonTlsXtls)
     }
 
     fun serializeForShare(output: ByteBufferOutput) {
-        output.writeInt(1)
+        output.writeInt(2)
 
         output.writeInt(type)
         output.writeString(link)
@@ -70,6 +74,8 @@ class SubscriptionBean : Serializable() {
         output.writeBoolean(updateWhenConnectedOnly)
         output.writeString(customUserAgent)
         output.writeString(token)
+        output.writeString(customSni)
+        output.writeBoolean(removeNonTlsXtls)
     }
 
     override fun deserializeFromBuffer(input: ByteBufferInput) {
@@ -98,6 +104,11 @@ class SubscriptionBean : Serializable() {
         if (version >= 4) {
             filterNotRegex = input.readString()
         }
+
+        if (version >= 5) {
+            customSni = input.readString()
+            removeNonTlsXtls = input.readBoolean()
+        }
     }
 
     fun deserializeFromShare(input: ByteBufferInput) {
@@ -112,6 +123,11 @@ class SubscriptionBean : Serializable() {
 
         if (version >= 1) {
             token = input.readString()
+        }
+
+        if (version >= 2) {
+            customSni = input.readString()
+            removeNonTlsXtls = input.readBoolean()
         }
     }
 

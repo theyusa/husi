@@ -38,6 +38,8 @@ internal data class GroupSettingsUiState(
     val subscriptionForceResolve: Boolean = false,
     val subscriptionDeduplication: Boolean = false,
     val subscriptionFilterNotRegex: String = "",
+    val subscriptionCustomSni: String = "",
+    val subscriptionRemoveNonTlsXtls: Boolean = false,
     val subscriptionUpdateWhenConnectedOnly: Boolean = false,
     val subscriptionUserAgent: String = "",
     val subscriptionAutoUpdate: Boolean = false,
@@ -93,6 +95,8 @@ internal class GroupSettingsViewModel(
                 subscriptionForceResolve = subscription.forceResolve,
                 subscriptionDeduplication = subscription.deduplication,
                 subscriptionFilterNotRegex = subscription.filterNotRegex,
+                subscriptionCustomSni = subscription.customSni,
+                subscriptionRemoveNonTlsXtls = subscription.removeNonTlsXtls,
                 subscriptionUpdateWhenConnectedOnly = subscription.updateWhenConnectedOnly,
                 subscriptionUserAgent = subscription.customUserAgent,
                 subscriptionAutoUpdate = subscription.autoUpdate,
@@ -143,6 +147,8 @@ internal class GroupSettingsViewModel(
                 forceResolve = state.subscriptionForceResolve
                 deduplication = state.subscriptionDeduplication
                 filterNotRegex = state.subscriptionFilterNotRegex
+                customSni = state.subscriptionCustomSni
+                removeNonTlsXtls = state.subscriptionRemoveNonTlsXtls
                 updateWhenConnectedOnly = state.subscriptionUpdateWhenConnectedOnly
                 customUserAgent = state.subscriptionUserAgent
                 autoUpdate = state.subscriptionAutoUpdate
@@ -216,6 +222,19 @@ internal class GroupSettingsViewModel(
             it.copy(subscriptionFilterNotRegex = subscriptionFilterNotRegex)
         }
     }
+
+    fun setSubscriptionCustomSni(subscriptionCustomSni: String) = viewModelScope.launch {
+        _uiState.update {
+            it.copy(subscriptionCustomSni = subscriptionCustomSni)
+        }
+    }
+
+    fun setSubscriptionRemoveNonTlsXtls(subscriptionRemoveNonTlsXtls: Boolean) =
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(subscriptionRemoveNonTlsXtls = subscriptionRemoveNonTlsXtls)
+            }
+        }
 
     fun setSubscriptionUpdateWhenConnectedOnly(subscriptionUpdateWhenConnectedOnly: Boolean) =
         viewModelScope.launch {

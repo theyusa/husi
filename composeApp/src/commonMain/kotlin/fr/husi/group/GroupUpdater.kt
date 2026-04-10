@@ -14,7 +14,12 @@ import fr.husi.fmt.Deduplication
 import fr.husi.fmt.SingBoxOptions
 import fr.husi.fmt.http.HttpBean
 import fr.husi.fmt.hysteria.HysteriaBean
+import fr.husi.fmt.juicity.JuicityBean
+import fr.husi.fmt.naive.NaiveBean
+import fr.husi.fmt.shadowquic.ShadowQUICBean
+import fr.husi.fmt.tuic.TuicBean
 import fr.husi.fmt.v2ray.StandardV2RayBean
+import fr.husi.fmt.v2ray.VLESSBean
 import fr.husi.ktx.Logs
 import fr.husi.ktx.isIpAddress
 import fr.husi.ktx.onIoDispatcher
@@ -187,6 +192,7 @@ abstract class GroupUpdater {
             if (entity != null) {
                 val existsBean = entity.requireBean()
                 existsBean.applyFeatureSettings(bean)
+                normalizeSubscriptionProxy(bean, subscription)
                 when {
                     existsBean != bean -> {
                         changed++
@@ -210,6 +216,7 @@ abstract class GroupUpdater {
                     }
                 }
             } else {
+                normalizeSubscriptionProxy(bean, subscription)
                 changed++
                 toInsert.add(
                     ProxyEntity(
@@ -255,6 +262,50 @@ abstract class GroupUpdater {
         userInterface?.onUpdateSuccess(
             proxyGroup, changed, added, updated, deleted, duplicate, byUser,
         )
+    }
+
+    private fun normalizeSubscriptionProxy(
+        proxy: AbstractBean,
+        subscription: SubscriptionBean,
+    ) {
+        val customSni = subscription.customSni
+
+        when (proxy) {
+            is HttpBean -> {
+                if (customSni.isNotBlank() && proxy.isTLS) proxy.sni = customSni
+            }
+
+            is VLESSBean -> {
+                if (subscription.removeNonTlsXtls && !proxy.isTLS) {
+                    proxy.flow = ""
+                }
+                if (customSni.isNotBlank() && proxy.isTLS) proxy.sni = customSni
+            }
+
+            is StandardV2RayBean -> {
+                if (customSni.isNotBlank() && proxy.isTLS) proxy.sni = customSni
+            }
+
+            is HysteriaBean -> {
+                if (customSni.isNotBlank()) proxy.sni = customSni
+            }
+
+            is TuicBean -> {
+                if (customSni.isNotBlank()) proxy.sni = customSni
+            }
+
+            is JuicityBean -> {
+                if (customSni.isNotBlank()) proxy.sni = customSni
+            }
+
+            is NaiveBean -> {
+                if (customSni.isNotBlank()) proxy.sni = customSni
+            }
+
+            is ShadowQUICBean -> {
+                if (customSni.isNotBlank()) proxy.sni = customSni
+            }
+        }
     }
 
     companion object {

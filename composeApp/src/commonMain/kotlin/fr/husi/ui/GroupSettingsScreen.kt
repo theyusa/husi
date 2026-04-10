@@ -99,6 +99,9 @@ import fr.husi.resources.security
 import fr.husi.resources.sip008
 import fr.husi.resources.ssh_auth_type_none
 import fr.husi.resources.subscription
+import fr.husi.resources.subscription_custom_sni
+import fr.husi.resources.subscription_remove_non_tls_xtls
+import fr.husi.resources.subscription_remove_non_tls_xtls_sum
 import fr.husi.resources.subscription_settings
 import fr.husi.resources.subscription_type
 import fr.husi.resources.subscription_user_agent
@@ -467,6 +470,26 @@ private fun LazyListScope.groupSettings(
                 icon = { Icon(vectorResource(Res.drawable.delete_sweep), null) },
                 summary = { Text(contentOrUnset(uiState.subscriptionFilterNotRegex)) },
                 valueToText = { it },
+            )
+        }
+        item("subscription_custom_sni", PreferenceType.TEXT_FIELD) {
+            TextFieldPreference(
+                value = uiState.subscriptionCustomSni,
+                onValueChange = { viewModel.setSubscriptionCustomSni(it) },
+                title = { Text(stringResource(Res.string.subscription_custom_sni)) },
+                textToValue = { it },
+                icon = { Icon(vectorResource(Res.drawable.link), null) },
+                summary = { Text(contentOrUnset(uiState.subscriptionCustomSni)) },
+                valueToText = { it },
+            )
+        }
+        item("subscription_remove_non_tls_xtls", PreferenceType.SWITCH) {
+            SwitchPreference(
+                value = uiState.subscriptionRemoveNonTlsXtls,
+                onValueChange = { viewModel.setSubscriptionRemoveNonTlsXtls(it) },
+                title = { Text(stringResource(Res.string.subscription_remove_non_tls_xtls)) },
+                icon = { Icon(vectorResource(Res.drawable.delete_sweep), null) },
+                summary = { Text(stringResource(Res.string.subscription_remove_non_tls_xtls_sum)) },
             )
         }
 
