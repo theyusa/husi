@@ -486,7 +486,7 @@
     <string name="action_flash_on">Encender el flash</string>
     <string name="location_permission_title">Permiso de ubicación</string>
     <string name="no_thanks">No, gracias</string>
-    <string name="location_permission_description">Tu regla de ruta contiene reglas de enrutamiento Wi-Fi SSID o Wi-Fi BSSID. Para que funcionen, husi utiliza el permiso de ubicación en segundo plano para obtener información sobre la red Wi-Fi conectada. La información se utilizará únicamente con fines de enrutamiento.</string>
+    <string name="location_permission_description">Tu regla de ruta contiene reglas de enrutamiento Wi-Fi SSID o Wi-Fi BSSID. Para que funcionen, V4War utiliza el permiso de ubicación en segundo plano para obtener información sobre la red Wi-Fi conectada. La información se utilizará únicamente con fines de enrutamiento.</string>
     <string name="location_permission_background_description">A partir de Android 10, se requiere permiso de ubicación en segundo plano. Seleccione Permitir siempre para otorgar el permiso.</string>
     <string name="connection_test_mux">Servidor no compatible con este protocolo múltiplex</string>
     <string name="front_proxy">Proxy frontal</string>

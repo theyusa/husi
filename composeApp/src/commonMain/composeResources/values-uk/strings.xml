@@ -444,7 +444,7 @@
     <string name="enable_brutal">Увімкнути контролер перевантаження TCP Brutal</string>
     <string name="action_flash_off">Вимкнути спалах</string>
     <string name="blurred_address">Зробити адресу сервера розмитою</string>
-    <string name="location_permission_description">Ваше правило маршрутизації містить правила маршрутизації Wi-Fi SSID або Wi-Fi BSSID. Для того, щоб вони працювали, husi використовує дозвіл на визначення місцерозташування у фоновому режимі, аби отримувати інформацію про підключену мережу Wi-Fi. Інформація буде використовуватися виключно для маршрутизації.</string>
+    <string name="location_permission_description">Ваше правило маршрутизації містить правила маршрутизації Wi-Fi SSID або Wi-Fi BSSID. Для того, щоб вони працювали, V4War використовує дозвіл на визначення місцерозташування у фоновому режимі, аби отримувати інформацію про підключену мережу Wi-Fi. Інформація буде використовуватися виключно для маршрутизації.</string>
     <string name="location_permission_title">Дозвіл геолокації</string>
     <string name="no_thanks">Ні, дякую</string>
     <string name="test_timeout">Таймаут (мс)</string>

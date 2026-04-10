@@ -38,4 +38,4 @@ include(":composeApp")
 include(":library:compose-code-editor:codeeditor")
 include(":library:DragDropSwipeLazyColumn")
 
-rootProject.name = "husi"
+rootProject.name = "V4War"

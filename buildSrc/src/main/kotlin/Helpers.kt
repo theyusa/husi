@@ -52,7 +52,7 @@ fun Project.requireFlavor(): String {
 fun Project.requireMetadata(): Properties {
     if (!::metadata.isInitialized) {
         metadata = Properties().apply {
-            load(rootProject.file("husi.properties").inputStream())
+            load(rootProject.file("v4war.properties").inputStream())
         }
     }
     return metadata

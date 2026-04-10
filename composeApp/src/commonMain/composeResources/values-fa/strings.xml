@@ -453,7 +453,7 @@
     <string name="scan_vpn_app_introduce">بررسی کردن نصب شدن VPN و نوع آن روی دستگاه.</string>
     <string name="vpn_core_path">مسیر شناسایی شده</string>
     <string name="location_permission_title">اجازه دادن موقعیت مکانی</string>
-    <string name="location_permission_description">قوانین route شما شامل قوانین مسیریابی Wi-Fi SSID و Wi-Fi BSSID می باشد. برای اینکه کار کنند، husi مجوز موقعیت یابی را در پس زمینه میخواهد تا اطلاعاتی درباره شبکه ی وای فای بدست آورد. این اطلاعات فقط برای اهداف مسیریابی استفاده خواهد شد.</string>
+    <string name="location_permission_description">قوانین route شما شامل قوانین مسیریابی Wi-Fi SSID و Wi-Fi BSSID می باشد. برای اینکه کار کنند، V4War مجوز موقعیت یابی را در پس زمینه میخواهد تا اطلاعاتی درباره شبکه ی وای فای بدست آورد. این اطلاعات فقط برای اهداف مسیریابی استفاده خواهد شد.</string>
     <string name="domain_strategy_for_direct">استراتژی دامنه برای اتصال مستقیم</string>
     <string name="domain_strategy_for_server">استراتژی دامنه برای آدرس سرور</string>
     <string name="is_outbound_only">مجموعه JSON خروجی است</string>

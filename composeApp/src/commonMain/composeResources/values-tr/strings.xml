@@ -536,7 +536,7 @@
     <string name="action_flash_off">Flaşı kapat</string>
     <string name="location_permission_title">Konum izni</string>
     <string name="no_thanks">Hayır, teşekkürler</string>
-    <string name="location_permission_description">Rota kuralınız Wi-Fi SSID veya Wi-Fi BSSID yönlendirme kuralları içeriyor. Bunların çalışması için husi, bağlı Wi-Fi ağı hakkında bilgi almak üzere arka planda konum izni kullanır. Bu bilgiler yalnızca yönlendirme amacıyla kullanılır.</string>
+    <string name="location_permission_description">Rota kuralınız Wi-Fi SSID veya Wi-Fi BSSID yönlendirme kuralları içeriyor. Bunların çalışması için V4War, bağlı Wi-Fi ağı hakkında bilgi almak üzere arka planda konum izni kullanır. Bu bilgiler yalnızca yönlendirme amacıyla kullanılır.</string>
     <string name="location_permission_background_description">Android 10 ve üzeri sürümlerde arka plan konum izni gerekir. İzni vermek için Her zaman izin ver seçin.</string>
     <string name="insecure_warn">Güvenlik uyarısı</string>
     <string name="hysteria2_provider">Hysteria2 provider</string>
