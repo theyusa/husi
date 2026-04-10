@@ -18,7 +18,7 @@ enum class PluginEntry(
         "mieru-plugin",
         Res.string.action_mieru,
         DownloadSource(
-            apk = "https://codeberg.org/xchacha20-poly1305/husi/releases?q=plugin-mieru",
+            apk = "https://github.com/TheYusa/husi/releases?q=plugin-mieru",
             binary = "https://github.com/enfein/mieru/releases",
         ),
     ),
@@ -42,7 +42,7 @@ enum class PluginEntry(
         "hysteria2-plugin",
         Res.string.action_hysteria2,
         DownloadSource(
-            apk = "https://github.com/xchacha20-poly1305/husi/releases?q=plugin-hysteria2",
+            apk = "https://github.com/TheYusa/husi/releases?q=plugin-hysteria2",
             binary = "https://github.com/apernet/hysteria/releases",
         ),
     ),
@@ -50,7 +50,7 @@ enum class PluginEntry(
         "juicity-plugin",
         Res.string.action_juicity,
         DownloadSource(
-            apk = "https://github.com/xchacha20-poly1305/husi/releases?q=plugin-juicity",
+            apk = "https://github.com/TheYusa/husi/releases?q=plugin-juicity",
             binary = "https://github.com/juicity/juicity/releases",
         ),
     ),
@@ -58,7 +58,7 @@ enum class PluginEntry(
         "shadowquic-plugin",
         Res.string.action_shadowquic,
         DownloadSource(
-            apk = "https://github.com/xchacha20-poly1305/husi/releases?q=plugin-shadowquic",
+            apk = "https://github.com/TheYusa/husi/releases?q=plugin-shadowquic",
             binary = "https://github.com/spongebob888/shadowquic/releases",
         ),
     )
@@ -84,7 +84,7 @@ enum class PluginEntry(
     }
 
     data class DownloadSource(
-        val apk: String = "https://github.com/xchacha20-poly1305/husi/releases",
+        val apk: String = "https://github.com/TheYusa/husi/releases",
         val binary: String,
     )
 

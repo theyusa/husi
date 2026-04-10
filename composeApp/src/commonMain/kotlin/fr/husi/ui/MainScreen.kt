@@ -312,7 +312,7 @@ private fun MainScreenContent(
                 selected = false,
                 onClick = {
                     closeDrawer()
-                    uriHandler.openUri("https://codeberg.org/xchacha20-poly1305/husi/wiki")
+                    uriHandler.openUri("https://github.com/TheYusa")
                 },
                 icon = {
                     Icon(vectorResource(Res.drawable.data_usage), null)

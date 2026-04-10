@@ -295,7 +295,7 @@ fun RouteScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable {
-                                    uriHandler.openUri("https://codeberg.org/xchacha20-poly1305/husi/wiki/Route")
+                                    uriHandler.openUri("https://github.com/TheYusa")
                                 },
                             color = MaterialTheme.colorScheme.onSurface,
                             fontWeight = FontWeight.Bold,
