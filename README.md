@@ -1,5 +1,9 @@
 # V4War
 
+<p align="center">
+  <img src="./V.png" alt="V4War Logo" width="220" />
+</p>
+
 V4War, Android icin gelistirilmis bir sansur direnci ve internet ozgurlugu istemcisidir.
 
 `Internet Freedom War & Censorship Resistance`

@@ -62,7 +62,7 @@ actual object SubscriptionUpdater {
                 .setWhen(0)
                 .setTicker(resolveRepository().getString(Res.string.forward_success))
                 .setContentTitle(resolveRepository().getString(Res.string.subscription_update))
-                .setSmallIcon(R.drawable.ic_service_active)
+                .setSmallIcon(R.drawable.ic_notification_v)
                 .setCategory(NotificationCompat.CATEGORY_SERVICE)
         }
 
