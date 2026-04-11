@@ -18,6 +18,7 @@ import fr.husi.fmt.buildConfig
 import fr.husi.group.RawUpdater
 import fr.husi.ktx.Logs
 import fr.husi.ktx.SubscriptionFoundException
+import fr.husi.ktx.onIoDispatcher
 import fr.husi.ktx.readableMessage
 import fr.husi.ktx.runOnIoDispatcher
 import fr.husi.repository.Repository
@@ -152,7 +153,7 @@ class MainViewModel(
         try {
             var result = -1
             val selectedTag = runCatching {
-                val profile = runOnIoDispatcher {
+                val profile = onIoDispatcher {
                     SagerDatabase.proxyDao.getById(DataStore.selectedProxy)
                 } ?: return@runCatching ""
                 buildConfig(profile, forTest = true).mainTag
