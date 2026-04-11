@@ -24,7 +24,7 @@ class ProxyService : Service(), BaseService.Interface {
 
     @SuppressLint("WakelockTimeout")
     override fun acquireWakeLock() {
-        wakeLock = resolveAndroidRepository().power.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "husi:proxy")
+        wakeLock = resolveAndroidRepository().power.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "v4war:proxy")
             .apply { acquire() }
     }
 

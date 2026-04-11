@@ -1,6 +1,6 @@
 package fr.husi.ktx
 
-import fr.husi.BuildConfig
+import fr.v4war.BuildConfig
 import fr.husi.database.DataStore
 import fr.husi.fmt.AbstractBean
 import fr.husi.fmt.LOCALHOST4
@@ -103,7 +103,7 @@ fun mkPort(): Int {
     return port
 }
 
-val USER_AGENT by lazy { "husi/${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE}; sing-box ${Libcore.versionBox()})" }
+val USER_AGENT by lazy { "v4war/${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE}; sing-box ${Libcore.versionBox()})" }
 
 /**
 Replace all version-about escapes in userAent

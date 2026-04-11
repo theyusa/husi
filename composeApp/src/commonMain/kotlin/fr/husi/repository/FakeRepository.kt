@@ -15,7 +15,7 @@ class FakeRepository : Repository {
     override val boxService: fr.husi.libcore.Service? = null
 
     @Suppress("NewApi")
-    private val tempRoot = createTempDirectory("husi-fake-repo").toFile()
+    private val tempRoot = createTempDirectory("v4war-fake-repo").toFile()
     override val cacheDir = tempRoot.resolve("cache").apply { mkdirs() }
     override val filesDir = tempRoot.resolve("files").apply { mkdirs() }
     override val externalAssetsDir = tempRoot.resolve("external").apply { mkdirs() }

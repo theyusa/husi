@@ -52,7 +52,7 @@ const (
 	//   - Compress tar headers and metadata effectively
 	//   - Decompress with only ~256KB memory (128KB window + 128KB max block)
 	//
-	// See: https://github.com/xchacha20-poly1305/husi/issues/614
+	// See: https://github.com/TheYusa/V4War/issues/614
 	//      https://github.com/klauspost/compress/discussions/675
 	windowSize = 128 << 10 // 128KB
 )

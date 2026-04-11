@@ -107,13 +107,13 @@ suspend fun parseProxies(text: String): List<AbstractBean> {
     val entitiesByLine = ArrayList<AbstractBean>()
 
     suspend fun String.parseLink(entities: MutableList<AbstractBean>) {
-        if (startsWith("sing-box://import-remote-profile?") || startsWith("husi://subscription?")) {
+        if (startsWith("sing-box://import-remote-profile?") || startsWith("v4war://subscription?")) {
             throw SubscriptionFoundException(this)
         }
 
         val scheme = this.substringBefore("://")
         when (scheme) {
-            "husi" -> {
+            "v4war" -> {
                 Logs.d("Try parse universal link: $this")
                 runCatching {
                     entities.add(parseUniversal(this))

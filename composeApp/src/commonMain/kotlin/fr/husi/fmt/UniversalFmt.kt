@@ -9,12 +9,12 @@ import fr.husi.ktx.zlibDecompress
 
 fun parseUniversal(link: String): AbstractBean {
     return if (link.contains("?")) {
-        val type = link.substringAfter("husi://").substringBefore("?")
+        val type = link.substringAfter("v4war://").substringBefore("?")
         ProxyEntity(type = TypeMap[type] ?: error("Type $type not found")).apply {
             putByteArray(link.substringAfter("?").b64Decode().zlibDecompress())
         }.requireBean()
     } else {
-        val type = link.substringAfter("husi://").substringBefore(":")
+        val type = link.substringAfter("v4war://").substringBefore(":")
         ProxyEntity(type = TypeMap[type] ?: error("Type $type not found")).apply {
             putByteArray(link.substringAfter(":").substringAfter(":").b64Decode())
         }.requireBean()
@@ -22,7 +22,7 @@ fun parseUniversal(link: String): AbstractBean {
 }
 
 fun AbstractBean.toUniversalLink(): String {
-    var link = "husi://"
+    var link = "v4war://"
     link += TypeMap.reversed[ProxyEntity().putBean(this).type]
     link += "?"
     link += KryoConverters.serialize(this).zlibCompress(9).b64EncodeUrlSafe()
@@ -31,7 +31,7 @@ fun AbstractBean.toUniversalLink(): String {
 
 
 fun ProxyGroup.toUniversalLink(): String {
-    var link = "husi://subscription?"
+    var link = "v4war://subscription?"
     export = true
     link += KryoConverters.serialize(this).zlibCompress(9).b64EncodeUrlSafe()
     export = false

@@ -21,7 +21,7 @@ internal expect fun platformThemeApi(): PlatformThemeApi
 internal expect fun platformRepositoryModule(repository: Repository): Module
 internal expect fun platformKoinModules(): List<Module>
 
-fun initHusiKoin(repository: Repository) {
+fun initV4WarKoin(repository: Repository) {
     if (GlobalContext.getOrNull() != null) return
     startKoin {
         modules(

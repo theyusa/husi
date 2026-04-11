@@ -17,11 +17,11 @@ val generateBuildConfig by tasks.registering {
     val versionCode = metadata.getProperty("VERSION_CODE")
     outputs.dir(outputDir)
     doLast {
-        val dir = outputDir.get().asFile.resolve("fr/husi")
+        val dir = outputDir.get().asFile.resolve("fr/v4war")
         dir.mkdirs()
         dir.resolve("BuildConfig.kt").writeText(
             """
-            |package fr.husi
+            |package fr.v4war
             |
             |object BuildConfig {
             |    const val VERSION_NAME = "$versionName"

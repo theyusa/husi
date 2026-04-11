@@ -1,6 +1,6 @@
 package fr.husi.bg.proto
 
-import fr.husi.BuildConfig
+import fr.v4war.BuildConfig
 import fr.husi.aidl.SpeedDisplayData
 import fr.husi.bg.BaseService
 import fr.husi.bg.SpeedStats

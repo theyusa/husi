@@ -4,7 +4,7 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import fr.husi.BuildConfig
+import fr.v4war.BuildConfig
 import fr.husi.ktx.currentSocks5
 import fr.husi.libcore.Libcore
 import kotlinx.coroutines.Dispatchers
@@ -25,7 +25,7 @@ internal data class StunScreenUiState(
 internal class StunScreenViewModel : ViewModel() {
 
     companion object {
-        private const val STUN_SOFTWARE_NAME = "husi ${BuildConfig.VERSION_NAME}"
+        private const val STUN_SOFTWARE_NAME = "V4War ${BuildConfig.VERSION_NAME}"
     }
 
     private val _uiState = MutableStateFlow(StunScreenUiState())

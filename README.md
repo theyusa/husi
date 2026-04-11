@@ -50,8 +50,8 @@ Gereksinimler:
 Kaynak kodu alin:
 
 ```sh
-git clone https://github.com/TheYusa/husi.git --depth=1
-cd husi
+git clone https://github.com/TheYusa/V4War.git --depth=1
+cd V4War
 ```
 
 Android icin gerekli libcore derlemesini alin:

@@ -12,7 +12,7 @@ import fr.husi.bg.AppChangeReceiver
 import fr.husi.bg.DefaultNetworkMonitor
 import fr.husi.bg.SubscriptionUpdater
 import fr.husi.database.DataStore
-import fr.husi.di.initHusiKoin
+import fr.husi.di.initV4WarKoin
 import fr.husi.ktx.runOnDefaultDispatcher
 import fr.husi.libcore.Libcore
 import fr.husi.libcore.loadCA
@@ -47,7 +47,7 @@ class Application : Application(),
 
     override fun onCreate() {
         super.onCreate()
-        initHusiKoin(repository)
+        initV4WarKoin(repository)
 
         System.setProperty(DEBUG_PROPERTY_NAME, DEBUG_PROPERTY_VALUE_ON)
         Thread.setDefaultUncaughtExceptionHandler(CrashHandler)

@@ -10,7 +10,7 @@ import fr.husi.fmt.internal.ProxySetBean
 import fr.husi.fmt.socks.SOCKSBean
 import fr.husi.ktx.applyDefaultValues
 import fr.husi.platform.PlatformInfo
-import fr.husi.di.initHusiKoin
+import fr.husi.di.initV4WarKoin
 import fr.husi.repository.FakeRepository
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
@@ -34,7 +34,7 @@ class ConfigBuilderTest {
 
     @BeforeTest
     fun setup() = runBlocking {
-        initHusiKoin(FakeRepository())
+        initV4WarKoin(FakeRepository())
 
         DataStore.configurationStore.reset()
         SagerDatabase.proxyDao.reset()

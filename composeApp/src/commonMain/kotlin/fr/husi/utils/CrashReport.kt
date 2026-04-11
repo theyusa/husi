@@ -1,6 +1,6 @@
 package fr.husi.utils
 
-import fr.husi.BuildConfig
+import fr.v4war.BuildConfig
 import fr.husi.database.DataStore
 import fr.husi.ktx.currentUtcReportTimestamp
 import kotlinx.coroutines.runBlocking
@@ -29,7 +29,7 @@ object CrashReport {
 
     fun buildReportHeader(): String {
         var report = ""
-        report += "husi ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE}) ${BuildConfig.FLAVOR.uppercase()}\n"
+        report += "V4War ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE}) ${BuildConfig.FLAVOR.uppercase()}\n"
         report += "Date: ${getCurrentMilliSecondUTCTimeStamp()}\n\n"
         report += buildPlatformSystemInfoReport()
 

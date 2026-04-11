@@ -26,7 +26,7 @@ sealed interface ImportLinkPreview {
 class ImportLinkInteractor {
 
     suspend fun parseUri(uri: String): ImportLinkPreview {
-        return if (uri.startsWith("sing-box://") || uri.startsWith("husi://subscription")) {
+        return if (uri.startsWith("sing-box://") || uri.startsWith("v4war://subscription")) {
             val group = parseSubscription(uri)
             if (group == null) ImportLinkPreview.Ignore else ImportLinkPreview.Subscription(group)
         } else {

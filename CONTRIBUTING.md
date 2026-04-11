@@ -1,4 +1,4 @@
-# Husi Contributing Guide
+# V4War Contributing Guide
 
 Welcome, and thank you for contributing! 🎉
 

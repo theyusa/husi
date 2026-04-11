@@ -61,7 +61,7 @@ class VpnService : BaseVpnService(),
 
     @SuppressLint("WakelockTimeout")
     override fun acquireWakeLock() {
-        wakeLock = resolveAndroidRepository().power.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "husi:vpn")
+        wakeLock = resolveAndroidRepository().power.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "v4war:vpn")
             .apply { acquire() }
     }
 

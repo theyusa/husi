@@ -122,7 +122,7 @@ internal class ScannerActivityViewModel(
             }
 
             "sing-box" -> importSubscription(value)
-            "husi" -> importSubscription(value)
+            "v4war" -> importSubscription(value)
             else -> parseAndImportProfile(value)
         }
     }

@@ -18,13 +18,13 @@ func Test_UpdateRootCACerts(t *testing.T) {
 		chinaRailway     = "www.12306.cn" // Use CA from China
 		trustAsiaAddress = chinaRailway + ":443"
 
-		husi = "husi.fr"
+		v4war = "v4war.fr"
 	)
 	listener := common.Must1(net.Listen(N.NetworkTCP, "127.0.0.1:0"))
 	defer listener.Close()
 	listen := listener.Addr().String()
 
-	privateKey, publicKey := common.Must2(aTLS.GenerateCertificate(nil, nil, time.Now, husi, time.Now().Add(5*time.Minute)))
+	privateKey, publicKey := common.Must2(aTLS.GenerateCertificate(nil, nil, time.Now, v4war, time.Now().Add(5*time.Minute)))
 	common.Must(os.WriteFile(customCaFile, publicKey, os.ModePerm))
 	defer os.Remove(customCaFile)
 
@@ -33,7 +33,7 @@ func Test_UpdateRootCACerts(t *testing.T) {
 		cert := common.Must1(tls.X509KeyPair(publicKey, privateKey))
 		config := &tls.Config{
 			Certificates: []tls.Certificate{cert},
-			ServerName:   husi,
+			ServerName:   v4war,
 		}
 		done <- struct{}{}
 		go func(listener net.Listener, done chan struct{}) {
@@ -85,15 +85,15 @@ func Test_UpdateRootCACerts(t *testing.T) {
 
 	// normal
 	testConnect(chinaRailway, trustAsiaAddress, false, "normal 12306")
-	testConnect(husi, listen, true, "normal local")
+	testConnect(v4war, listen, true, "normal local")
 
 	// Load local cert and Mozilla CA
 	UpdateRootCACerts(CertMozilla, nil)
 	testConnect(chinaRailway, trustAsiaAddress, true, "mozilla 12306")
-	testConnect(husi, listen, !C.IsAndroid, "loaded custom")
+	testConnect(v4war, listen, !C.IsAndroid, "loaded custom")
 
 	// Set back but load local
 	UpdateRootCACerts(CertGoOrigin, nil)
 	testConnect(chinaRailway, trustAsiaAddress, false, "normal 12306 2")
-	testConnect(husi, listen, !C.IsAndroid, "loaded custom 2")
+	testConnect(v4war, listen, !C.IsAndroid, "loaded custom 2")
 }
