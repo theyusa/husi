@@ -123,6 +123,23 @@ private fun JSONMap.applyForTestSandbox() {
     dnsOptions["final"] = TAG_DNS_LOCAL
 }
 
+private fun JSONMap.detectMainOutboundTag(): String? {
+    val route = this["route"] as? Map<*, *>
+    val routeFinal = route?.get("final") as? String
+    if (!routeFinal.isNullOrBlank()) return routeFinal
+
+    fun firstTag(container: Any?): String? {
+        val items = container as? List<*> ?: return null
+        for (item in items) {
+            val tag = (item as? Map<*, *>)?.get("tag") as? String
+            if (!tag.isNullOrBlank()) return tag
+        }
+        return null
+    }
+
+    return firstTag(this["outbounds"]) ?: firstTag(this["endpoints"])
+}
+
 class ConfigBuildResult(
     val mainTag: String,
     var config: String,
@@ -142,23 +159,33 @@ fun buildConfig(
         val bean = proxy.configBean!!
         if (bean.type == ConfigBean.TYPE_CONFIG) {
             val tagProxy = bean.displayName()
+            val parsedConfig = runCatching { bean.config.toJsonMapKxs() }.getOrNull()
+            val detectedMainTag = parsedConfig?.detectMainOutboundTag()?.blankAsNull()
+            val mainTag = detectedMainTag ?: tagProxy
             val configText = if (forTest) {
-                runCatching {
-                    bean.config.toJsonMapKxs().apply {
-                        applyForTestSandbox()
-                    }.toJsonStringKxs()
-                }.getOrElse {
+                parsedConfig?.run {
+                    applyForTestSandbox()
+                    toJsonStringKxs()
+                } ?: run {
                     bean.config
                 }
             } else {
                 bean.config
             }
+            val trafficMap = linkedMapOf(mainTag to listOf(proxy))
+            if (mainTag != tagProxy) {
+                trafficMap[tagProxy] = listOf(proxy)
+            }
+            val tagToID = linkedMapOf(mainTag to proxy.id)
+            if (mainTag != tagProxy) {
+                tagToID[tagProxy] = proxy.id
+            }
             return ConfigBuildResult(
-                tagProxy,
+                mainTag,
                 configText,
                 listOf(),
-                mapOf(tagProxy to listOf(proxy)),
-                mapOf(tagProxy to proxy.id),
+                trafficMap,
+                tagToID,
             )
         }
     }

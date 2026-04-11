@@ -379,7 +379,7 @@ class ConfigurationScreenViewModel : ViewModel() {
                 delay(500L)
             }
 
-            val result = client.newInstanceURLTest(config.config, "", testURL, testTimeout)
+            val result = client.newInstanceURLTest(config.config, config.mainTag, testURL, testTimeout)
             TestResult.Success(result)
         } catch (e: PluginNotFoundException) {
             TestResult.Failure(FailureReason.PluginNotFound(e.plugin))
