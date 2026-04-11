@@ -12,7 +12,9 @@ import fr.husi.bg.DeepLinkDispatcher
 import fr.husi.database.DataStore
 import fr.husi.database.GroupManager
 import fr.husi.database.ProxyGroup
+import fr.husi.database.SagerDatabase
 import fr.husi.fmt.AbstractBean
+import fr.husi.fmt.buildConfig
 import fr.husi.group.RawUpdater
 import fr.husi.ktx.Logs
 import fr.husi.ktx.SubscriptionFoundException
@@ -149,9 +151,18 @@ class MainViewModel(
         }
         try {
             var result = -1
+            val selectedTag = runCatching {
+                val profile = runOnIoDispatcher {
+                    SagerDatabase.proxyDao.getById(DataStore.selectedProxy)
+                } ?: return@runCatching ""
+                buildConfig(profile, forTest = true).mainTag
+            }.getOrElse {
+                Logs.w(it)
+                ""
+            }
             urlTestClient.withClient { client ->
                 result = client.urlTest(
-                    "",
+                    selectedTag,
                     DataStore.connectionTestURL,
                     DataStore.connectionTestTimeout,
                 )
