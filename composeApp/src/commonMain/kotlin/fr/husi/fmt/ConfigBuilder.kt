@@ -79,6 +79,7 @@ import fr.husi.ktx.reverse
 import fr.husi.ktx.showToast
 import fr.husi.ktx.toJsonElementKxs
 import fr.husi.ktx.toJsonMapKxs
+import fr.husi.ktx.toJsonStringKxs
 import fr.husi.libcore.Libcore
 import fr.husi.logLevelString
 import fr.husi.repository.resolveRepository
@@ -107,6 +108,21 @@ const val LOCALHOST4 = "127.0.0.1"
 
 val FAKE_DNS_QUERY_TYPE get() = listOf("A", "AAAA")
 
+private fun JSONMap.applyForTestSandbox() {
+    this["inbounds"] = emptyList<Any?>()
+    val dnsOptions = (this["dns"] as? JSONMap) ?: mutableMapOf<String, Any?>().also {
+        this["dns"] = it
+    }
+    dnsOptions["servers"] = mutableListOf(
+        mutableMapOf<String, Any?>(
+            "tag" to TAG_DNS_LOCAL,
+            "type" to SingBoxOptions.DNS_TYPE_LOCAL,
+        ),
+    )
+    dnsOptions["rules"] = emptyList<Any?>()
+    dnsOptions["final"] = TAG_DNS_LOCAL
+}
+
 class ConfigBuildResult(
     val mainTag: String,
     var config: String,
@@ -126,9 +142,20 @@ fun buildConfig(
         val bean = proxy.configBean!!
         if (bean.type == ConfigBean.TYPE_CONFIG) {
             val tagProxy = bean.displayName()
+            val configText = if (forTest) {
+                runCatching {
+                    bean.config.toJsonMapKxs().apply {
+                        applyForTestSandbox()
+                    }.toJsonStringKxs()
+                }.getOrElse {
+                    bean.config
+                }
+            } else {
+                bean.config
+            }
             return ConfigBuildResult(
                 tagProxy,
-                bean.config,
+                configText,
                 listOf(),
                 mapOf(tagProxy to listOf(proxy)),
                 mapOf(tagProxy to proxy.id),
@@ -1277,18 +1304,7 @@ fun buildConfig(
                 mergeJson(jsonMap, this)
             }
             if (forTest) {
-                this["inbounds"] = emptyList<Any?>()
-                val dnsOptions = this["dns"] as? MutableMap<String, Any?>
-                if (dnsOptions != null) {
-                    dnsOptions["servers"] = mutableListOf(
-                        mutableMapOf<String, Any?>(
-                            "tag" to TAG_DNS_LOCAL,
-                            "type" to SingBoxOptions.DNS_TYPE_LOCAL,
-                        ),
-                    )
-                    dnsOptions["rules"] = emptyList<Any?>()
-                    dnsOptions["final"] = TAG_DNS_LOCAL
-                }
+                applyForTestSandbox()
             }
         }
         ConfigBuildResult(
